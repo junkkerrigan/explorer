@@ -40,14 +40,13 @@ namespace Explorer.Presenter
 
         public void FillNode(FileSystemNode node, string path)
         {
-
             try
             {
                 var innerFiles = Directory.GetFileSystemEntries(path);
 
                 foreach (var file in innerFiles)
                 {
-                    Console.WriteLine(file);
+                    // TODO: add nodes distinction
                     var newNode = new FileSystemNode(file);
                     node.Nodes.Add(newNode);
                 }

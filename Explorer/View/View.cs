@@ -29,9 +29,9 @@ namespace Explorer.View
 
         private void FillNodeIconsList()
         {
-            _nodeIcons.Images.Add(Image.FromFile("../../driveIcon.png"));
-            _nodeIcons.Images.Add(Image.FromFile("../../folderIcon.png"));
-            _nodeIcons.Images.Add(Image.FromFile("../../fileIcon.png"));
+            _nodeIcons.Images.Add(Image.FromFile("../../assets/icons/driveIcon.png"));
+            _nodeIcons.Images.Add(Image.FromFile("../../assets/icons/folderIcon.png"));
+            _nodeIcons.Images.Add(Image.FromFile("../../assets/icons/fileIcon.png"));
         }
     }
 
