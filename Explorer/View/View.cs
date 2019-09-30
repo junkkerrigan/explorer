@@ -11,8 +11,6 @@ using Explorer.Presenter;
 
 namespace Explorer.View
 {
-
-
     public class FileSystemTree : TreeView
     {
         private readonly ImageList _nodeIcons = new ImageList();
@@ -44,6 +42,8 @@ namespace Explorer.View
 
     public class FileSystemNode : TreeNode
     {
+        public string Path;
+
         public FileSystemNode(string name) : base(name)
         {
             this.NodeFont = new Font("Verdana", 12);
@@ -55,7 +55,8 @@ namespace Explorer.View
         private static readonly FileType Type = FileType.Drive;
         public DriveNode(string name) : base(name)
         {
-            this.ImageIndex = (int)Type;
+            this.ImageIndex = this.SelectedImageIndex = (int)Type;
+
         }
     }
 
@@ -64,7 +65,7 @@ namespace Explorer.View
         private static readonly FileType Type = FileType.Folder;
         public FolderNode(string name) : base(name)
         {
-            this.ImageIndex = (int)Type;
+            this.ImageIndex = this.SelectedImageIndex = (int)Type;
         }
     }
 
@@ -73,7 +74,7 @@ namespace Explorer.View
         private static readonly FileType Type = FileType.File;
         public FileNode(string name) : base(name)
         {
-            this.ImageIndex = (int)Type;
+            this.ImageIndex = this.SelectedImageIndex = (int)Type;
         }
     }
 
@@ -101,8 +102,8 @@ namespace Explorer.View
             };
             FolderViewWrapper.Controls.Add(FolderView);
 
-            FolderView.BeforeExpand += FolderView_BeforeExpand;
-            FolderView.BeforeSelect += FolderView_BeforeExpand;
+            FolderView.BeforeExpand += PreloadContent;
+            FolderView.BeforeSelect += PreloadContent;
 
             _presenter = new Presenter.Presenter(this);
             _presenter.LoadDrives();
@@ -113,14 +114,18 @@ namespace Explorer.View
             Application.Run(this);
         }
 
-        private void FolderView_BeforeExpand(object sender, TreeViewCancelEventArgs e)
+        private void PreloadContent(object sender, TreeViewCancelEventArgs e)
         {
+            // TODO: add inaccessible folders exception handling
 
+            // e.Node.TreeView.BeginUpdate();
+            _presenter.LoadSubdirs(e.Node as FileSystemNode);
+            // e.Node.TreeView.EndUpdate();
         }
 
         public void MountDrives(List<DriveNode> drives)
         {
-            foreach (var d in drives)
+            foreach (DriveNode d in drives)
             {
                 FolderView.Nodes.Add(d);
             }
@@ -130,7 +135,7 @@ namespace Explorer.View
         {
             MainWrapper.BorderStyle = BorderStyle.None;
             Pen p = new Pen(Color.White, 2);
-            var border = new Rectangle(MainWrapper.Location, MainWrapper.Size);
+            Rectangle border = new Rectangle(MainWrapper.Location, MainWrapper.Size);
             e.Graphics.DrawRectangle(p, border);
         }
     }

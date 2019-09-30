@@ -1,9 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Explorer.View;
 
 namespace Explorer.Presenter
@@ -24,31 +21,57 @@ namespace Explorer.Presenter
 
         public void LoadDrives()
         {
-            var drives = DriveInfo.GetDrives();
+            DriveInfo[] drives = DriveInfo.GetDrives();
 
-            var driveNodes = new List<DriveNode>();
+            List<DriveNode> driveNodes = new List<DriveNode>();
             foreach (DriveInfo d in drives)
             {
-                var newNode = new DriveNode(d.Name + "         ");
+                DriveNode newNode = new DriveNode(d.Name + "         ")
+                {
+                    Path = d.Name
+                };
                 driveNodes.Add(newNode);
                 if (!Directory.Exists(d.Name)) continue;
-                FillNode(newNode, d.Name);
+                FillNode(newNode);
             }
 
             _view.MountDrives(driveNodes);
         }
 
-        public void FillNode(FileSystemNode node, string path)
+        public void LoadSubdirs(FileSystemNode node)
+        {
+            foreach (FileSystemNode subNode in node.Nodes)
+            {
+                if (subNode is FolderNode && Directory.Exists(subNode.Path))
+                {
+                    string path = subNode.Path;
+                    FillNode(subNode);
+                }
+            }
+        }
+
+        public void FillNode(FileSystemNode node)
         {
             try
             {
-                var innerFiles = Directory.GetFileSystemEntries(path);
-
-                foreach (var file in innerFiles)
+                string path = node.Path;
+                string[] subDirs = Directory.GetDirectories(path);
+                foreach (string dir in subDirs)
                 {
-                    // TODO: add nodes distinction
-                    var newNode = new FileSystemNode(file);
-                    node.Nodes.Add(newNode);
+                    string dirName = dir.Substring(dir.LastIndexOf("\\") + 1);
+                    FolderNode dirNode = new FolderNode(dirName)
+                    {
+                        Path = dir
+                    };
+                    node.Nodes.Add(dirNode);
+                }
+
+                string[] innerFiles = Directory.GetFiles(path);
+                foreach (string file in innerFiles)
+                {
+                    string fileName = file.Substring(file.LastIndexOf("\\") + 1);
+                    FileNode fileNode = new FileNode(fileName);
+                    node.Nodes.Add(fileNode);
                 }
             }
             catch (Exception ex)
