@@ -16,7 +16,11 @@ namespace Explorer
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+
+            var view = new View.Explorer();
+            var presenter = new Presenter.Presenter(view);
+
+            presenter.Run();
         }
     }
 }
