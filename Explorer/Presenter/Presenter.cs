@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Collections.Generic;
 using Explorer.View;
@@ -40,6 +41,11 @@ namespace Explorer.Presenter
 
         public void LoadSubdirs(FileSystemNode node)
         {
+            if (!Directory.Exists(node.Path))
+            {
+                Console.WriteLine("AccessErr");
+                return;
+            }
             foreach (FileSystemNode subNode in node.Nodes)
             {
                 if (subNode is FolderNode && Directory.Exists(subNode.Path))
@@ -49,6 +55,8 @@ namespace Explorer.Presenter
                 }
             }
         }
+
+        static List<string> InaccessibleDirectories = new List<string>();
 
         public void FillNode(FileSystemNode node)
         {
@@ -70,14 +78,32 @@ namespace Explorer.Presenter
                 foreach (string file in innerFiles)
                 {
                     string fileName = file.Substring(file.LastIndexOf("\\") + 1);
-                    FileNode fileNode = new FileNode(fileName);
+                    FileNode fileNode = new FileNode(fileName)
+                    {
+                        Path = file
+                    };
                     node.Nodes.Add(fileNode);
                 }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                string m = ex.Message;
+                int start = m.IndexOf("\"") + 1,
+                    len = m.LastIndexOf("\"") - m.IndexOf("\"") - 1;
+                string dirName = m.Substring(start, len);
+                InaccessibleDirectories.Add(dirName);
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error in FillNode");
                 Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                if (InaccessibleDirectories.Contains(node.Path))
+                {
+                    node.ForeColor = Color.Gray;
+                }
             }
         }
     }

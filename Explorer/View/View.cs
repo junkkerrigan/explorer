@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -80,14 +81,13 @@ namespace Explorer.View
 
     public partial class Explorer : Form, IFileSystemView
     {
-        private readonly Presenter.IPresenter _presenter;
+        private readonly IPresenter _presenter;
 
         private readonly FileSystemTree FolderView;
 
         public Explorer()
         {
             InitializeComponent();
-
             this.BackColor = Color.FromArgb(236, 233, 216);
             this.Paint += Explorer_Paint;
 
@@ -103,7 +103,6 @@ namespace Explorer.View
             FolderViewWrapper.Controls.Add(FolderView);
 
             FolderView.BeforeExpand += PreloadContent;
-            FolderView.BeforeSelect += PreloadContent;
 
             _presenter = new Presenter.Presenter(this);
             _presenter.LoadDrives();
@@ -118,9 +117,7 @@ namespace Explorer.View
         {
             // TODO: add inaccessible folders exception handling
 
-            // e.Node.TreeView.BeginUpdate();
             _presenter.LoadSubdirs(e.Node as FileSystemNode);
-            // e.Node.TreeView.EndUpdate();
         }
 
         public void MountDrives(List<DriveNode> drives)
