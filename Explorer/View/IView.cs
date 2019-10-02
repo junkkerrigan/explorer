@@ -10,5 +10,7 @@ namespace Explorer.View
     public interface IFileSystemView : IView
     {
         void MountDrives(List<DriveNode> drives);
+
+        void ShowModal();
     }
 }

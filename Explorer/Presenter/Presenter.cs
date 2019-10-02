@@ -20,6 +20,11 @@ namespace Explorer.Presenter
             _view.Mount();
         }
 
+        public void CheckAccess(FileSystemNode node)
+        {
+            if (!node.IsAccessible) _view.ShowModal();
+        }
+
         public void LoadDrives()
         {
             DriveInfo[] drives = DriveInfo.GetDrives();
@@ -27,13 +32,12 @@ namespace Explorer.Presenter
             List<DriveNode> driveNodes = new List<DriveNode>();
             foreach (DriveInfo d in drives)
             {
-                DriveNode newNode = new DriveNode(d.Name + "         ")
+                DriveNode dNode = new DriveNode(d.Name + "         ")
                 {
-                    Path = d.Name
+                    Path = d.Name,
                 };
-                driveNodes.Add(newNode);
-                if (!Directory.Exists(d.Name)) continue;
-                FillNode(newNode);
+                driveNodes.Add(dNode);
+                FillNode(dNode);
             }
 
             _view.MountDrives(driveNodes);
@@ -41,25 +45,23 @@ namespace Explorer.Presenter
 
         public void LoadSubdirs(FileSystemNode node)
         {
-            if (!Directory.Exists(node.Path))
+            if (!node.IsFilled)
             {
-                Console.WriteLine("AccessErr");
-                return;
-            }
-            foreach (FileSystemNode subNode in node.Nodes)
-            {
-                if (subNode is FolderNode && Directory.Exists(subNode.Path))
+                foreach (FileSystemNode subNode in node.Nodes)
                 {
-                    string path = subNode.Path;
-                    FillNode(subNode);
+                    if (subNode is FolderNode && Directory.Exists(subNode.Path))
+                    {
+                        string path = subNode.Path;
+                        FillNode(subNode);
+                    }
                 }
+                node.IsFilled = true;
             }
         }
 
-        static List<string> InaccessibleDirectories = new List<string>();
-
         public void FillNode(FileSystemNode node)
         {
+            List<string> InaccessibleDirectories = new List<string>(); 
             try
             {
                 string path = node.Path;
@@ -69,7 +71,7 @@ namespace Explorer.Presenter
                     string dirName = dir.Substring(dir.LastIndexOf("\\") + 1);
                     FolderNode dirNode = new FolderNode(dirName)
                     {
-                        Path = dir
+                        Path = dir,
                     };
                     node.Nodes.Add(dirNode);
                 }
@@ -91,7 +93,17 @@ namespace Explorer.Presenter
                 int start = m.IndexOf("\"") + 1,
                     len = m.LastIndexOf("\"") - m.IndexOf("\"") - 1;
                 string dirName = m.Substring(start, len);
-                InaccessibleDirectories.Add(dirName);
+                if (!InaccessibleDirectories.Contains(dirName))
+                {
+                    InaccessibleDirectories.Add(dirName);
+                }
+            }
+            catch (IOException)
+            {
+                if (!InaccessibleDirectories.Contains(node.Path))
+                {
+                    InaccessibleDirectories.Add(node.Path);
+                }
             }
             catch (Exception ex)
             {
@@ -102,6 +114,7 @@ namespace Explorer.Presenter
             {
                 if (InaccessibleDirectories.Contains(node.Path))
                 {
+                    node.IsAccessible = false;
                     node.ForeColor = Color.Gray;
                 }
             }

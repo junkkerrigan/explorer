@@ -14,23 +14,17 @@ namespace Explorer.View
 {
     public class FileSystemTree : TreeView
     {
-        private readonly ImageList _nodeIcons = new ImageList();
-
         public FileSystemTree() : base()
         {
             this.ItemHeight = 30;
             this.ShowPlusMinus = true;
 
-            FillNodeIconsList();
-            this.ImageList = _nodeIcons;
+            ImageList nodeIcons = new ImageList();
+            nodeIcons.Images.Add(Image.FromFile("../../assets/icons/driveIcon.png"));
+            nodeIcons.Images.Add(Image.FromFile("../../assets/icons/folderIcon.png"));
+            nodeIcons.Images.Add(Image.FromFile("../../assets/icons/fileIcon.png"));
+            this.ImageList = nodeIcons;
             this.ImageList.ImageSize = new Size(18, 18);
-        }
-
-        private void FillNodeIconsList()
-        {
-            _nodeIcons.Images.Add(Image.FromFile("../../assets/icons/driveIcon.png"));
-            _nodeIcons.Images.Add(Image.FromFile("../../assets/icons/folderIcon.png"));
-            _nodeIcons.Images.Add(Image.FromFile("../../assets/icons/fileIcon.png"));
         }
     }
 
@@ -43,10 +37,16 @@ namespace Explorer.View
 
     public class FileSystemNode : TreeNode
     {
-        public string Path;
+        public string Path { get; set; }
+
+        public bool IsAccessible { get; set; }
+
+        public bool IsFilled { get; set; }
 
         public FileSystemNode(string name) : base(name)
         {
+            this.IsAccessible = true;
+            this.IsFilled = false;
             this.NodeFont = new Font("Verdana", 12);
         }
     }
@@ -81,8 +81,13 @@ namespace Explorer.View
 
     public partial class Explorer : Form, IFileSystemView
     {
-        private readonly IPresenter _presenter;
+        // TODO: Improve UI
+        //       -- modal form appearance and location
+        //       -- views' size and location
+        //       -- view wrapper's border
 
+        private readonly IPresenter _presenter;
+        
         private readonly FileSystemTree FolderView;
 
         public Explorer()
@@ -103,6 +108,7 @@ namespace Explorer.View
             FolderViewWrapper.Controls.Add(FolderView);
 
             FolderView.BeforeExpand += PreloadContent;
+            FolderView.NodeMouseDoubleClick += FolderView_NodeMouseDoubleClick;
 
             _presenter = new Presenter.Presenter(this);
             _presenter.LoadDrives();
@@ -115,9 +121,32 @@ namespace Explorer.View
 
         private void PreloadContent(object sender, TreeViewCancelEventArgs e)
         {
-            // TODO: add inaccessible folders exception handling
-
+            FolderView.BeginUpdate();
             _presenter.LoadSubdirs(e.Node as FileSystemNode);
+            FolderView.EndUpdate();
+        }
+
+        public void ShowModal()
+        {
+            using Form f = new Form()
+            {
+                Size = new Size(350, 250)
+            };
+            using Label l = new Label
+            {
+                Text = "Error: directory is not accessible!",
+                Font = new Font("Verdana", 12),
+                ForeColor = Color.Black,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            f.Controls.Add(l);
+            f.ShowDialog();
+        }
+
+        void FolderView_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            _presenter.CheckAccess(e.Node as FileSystemNode);
         }
 
         public void MountDrives(List<DriveNode> drives)

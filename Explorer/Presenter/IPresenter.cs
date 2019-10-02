@@ -6,6 +6,8 @@ namespace Explorer.Presenter
     {
         void Run();
 
+        void CheckAccess(FileSystemNode node);
+
         void LoadDrives();
 
         void FillNode(FileSystemNode node);
