@@ -20,7 +20,7 @@ namespace Explorer.Presenter
             _view.Mount();
         }
 
-        public void CheckAccess(FileSystemNode node)
+        public void CheckAccessibility(FileSystemNode node)
         {
             if (!node.IsAccessible) _view.ShowModal();
         }

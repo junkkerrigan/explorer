@@ -34,7 +34,7 @@ namespace Explorer.View
         Folder,
         File
     }
-
+    
     public class FileSystemNode : TreeNode
     {
         public string Path { get; set; }
@@ -43,17 +43,54 @@ namespace Explorer.View
 
         public bool IsFilled { get; set; }
 
+        private static FileSystemNode _buffer = null;
+
+        public FileSystemNode() : base() { }
+
         public FileSystemNode(string name) : base(name)
         {
             this.IsAccessible = true;
             this.IsFilled = false;
             this.NodeFont = new Font("Verdana", 12);
+
+            ToolStripMenuItem copy = new ToolStripMenuItem("Copy");
+            ToolStripMenuItem paste = new ToolStripMenuItem("Paste");
+            ContextMenuStrip menu = new ContextMenuStrip();
+
+            menu.Items.Add(copy);
+            menu.Items.Add(paste);
+
+            this.ContextMenuStrip = menu;
+            copy.Click += CopyNode;
+            paste.Click += PasteNode;
+        }
+
+        void CopyNode(object sender, EventArgs e)
+        {
+            _buffer = this.Clone() as FileSystemNode;
+        }
+
+        void PasteNode(object sender, EventArgs e)
+        {
+            // add files handling
+            if (_buffer == null)
+            {
+                this.Nodes.Add(_buffer);
+            }
+            else
+            {
+                FileSystemNode nodeClone = _buffer.Clone() as FileSystemNode;
+                this.Nodes.Add(nodeClone);
+            }
         }
     }
 
     public class DriveNode : FileSystemNode
     {
         private static readonly FileType Type = FileType.Drive;
+
+        public DriveNode() : base() { }
+
         public DriveNode(string name) : base(name)
         {
             this.ImageIndex = this.SelectedImageIndex = (int)Type;
@@ -64,6 +101,9 @@ namespace Explorer.View
     public class FolderNode : FileSystemNode
     {
         private static readonly FileType Type = FileType.Folder;
+
+        public FolderNode() : base() { }
+
         public FolderNode(string name) : base(name)
         {
             this.ImageIndex = this.SelectedImageIndex = (int)Type;
@@ -73,6 +113,9 @@ namespace Explorer.View
     public class FileNode : FileSystemNode
     {
         private static readonly FileType Type = FileType.File;
+
+        public FileNode() : base() { }
+
         public FileNode(string name) : base(name)
         {
             this.ImageIndex = this.SelectedImageIndex = (int)Type;
@@ -85,6 +128,10 @@ namespace Explorer.View
         //       -- modal form appearance and location
         //       -- views' size and location
         //       -- view wrapper's border
+
+        // TODO: Refactor code
+
+        // TODO: Add inaccessibility handling
 
         private readonly IPresenter _presenter;
         
@@ -108,7 +155,7 @@ namespace Explorer.View
             FolderViewWrapper.Controls.Add(FolderView);
 
             FolderView.BeforeExpand += PreloadContent;
-            FolderView.NodeMouseDoubleClick += FolderView_NodeMouseDoubleClick;
+            FolderView.NodeMouseDoubleClick += CheckAccessibility;
 
             _presenter = new Presenter.Presenter(this);
             _presenter.LoadDrives();
@@ -128,25 +175,12 @@ namespace Explorer.View
 
         public void ShowModal()
         {
-            using Form f = new Form()
-            {
-                Size = new Size(350, 250)
-            };
-            using Label l = new Label
-            {
-                Text = "Error: directory is not accessible!",
-                Font = new Font("Verdana", 12),
-                ForeColor = Color.Black,
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter
-            };
-            f.Controls.Add(l);
-            f.ShowDialog();
+            
         }
 
-        void FolderView_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        void CheckAccessibility(object sender, TreeNodeMouseClickEventArgs e)
         {
-            _presenter.CheckAccess(e.Node as FileSystemNode);
+            _presenter.CheckAccessibility(e.Node as FileSystemNode);
         }
 
         public void MountDrives(List<DriveNode> drives)
