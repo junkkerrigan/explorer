@@ -12,8 +12,15 @@ using Explorer.Presenter;
 
 namespace Explorer.View
 {
+    /// <summary>
+    /// Displays hierarchical collection of file system elements, each 
+    /// represented by <see cref="FileSystemNode"/>.
+    /// </summary>
     public class FileSystemTree : TreeView
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="FileSystemTree"/>.
+        /// </summary>
         public FileSystemTree() : base()
         {
             this.ItemHeight = 30;
@@ -28,100 +35,132 @@ namespace Explorer.View
         }
     }
 
-    public enum FileType
+    /// <summary>
+    /// Specifies a type of file system element's icon.
+    /// </summary>
+    public enum IconType
     {
         Drive,
         Folder,
         File
     }
     
-    public class FileSystemNode : TreeNode
+    /// <summary>
+    /// Represents a node of <see cref="FileSystemTree"/>.
+    /// </summary>
+    public abstract class FileSystemNode : TreeNode
     {
+        /// <summary>
+        /// Absolute path to element.
+        /// </summary>
         public string Path { get; set; }
 
+        /// <summary>
+        /// Indicates if it's possible to interact with element.
+        /// </summary>
         public bool IsAccessible { get; set; }
-
+        
+        /// <summary>
+        /// Indicates if subnodes are uploaded into node.
+        /// </summary>
         public bool IsFilled { get; set; }
 
         private static FileSystemNode _buffer = null;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="FileSystemNode"/> class.
+        /// </summary>
         public FileSystemNode() : base() { }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="FileSystemNode"/> class
+        /// with specified name.
+        /// </summary>
         public FileSystemNode(string name) : base(name)
         {
             this.IsAccessible = true;
             this.IsFilled = false;
             this.NodeFont = new Font("Verdana", 12);
+            this.ContextMenuStrip = new ContextMenuStrip();
 
-            ToolStripMenuItem copy = new ToolStripMenuItem("Copy");
-            ToolStripMenuItem paste = new ToolStripMenuItem("Paste");
-            ContextMenuStrip menu = new ContextMenuStrip();
+            AddContextMenuItem("Copy", CopyToBuffer);
+            AddContextMenuItem("Paste", PasteFromBuffer);
 
-            menu.Items.Add(copy);
-            menu.Items.Add(paste);
+            void CopyToBuffer(object sender, EventArgs e)
+            {
+                _buffer = this.Clone() as FileSystemNode;
+            }
 
-            this.ContextMenuStrip = menu;
-            copy.Click += CopyNode;
-            paste.Click += PasteNode;
+            void PasteFromBuffer(object sender, EventArgs e)
+            {
+                if (_buffer == null)
+                {
+                    this.Nodes.Add(_buffer);
+                }
+                else
+                {
+                    FileSystemNode nodeClone = _buffer.Clone() as FileSystemNode;
+                    this.Nodes.Add(nodeClone);
+                }
+            }
         }
 
-        void CopyNode(object sender, EventArgs e)
+        /// <summary>
+        /// Adds new option to right-click menu.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="onClick"></param>
+        protected void AddContextMenuItem(string name, EventHandler onClick)
         {
-            _buffer = this.Clone() as FileSystemNode;
-        }
-
-        void PasteNode(object sender, EventArgs e)
-        {
-            // add files handling
-            if (_buffer == null)
-            {
-                this.Nodes.Add(_buffer);
-            }
-            else
-            {
-                FileSystemNode nodeClone = _buffer.Clone() as FileSystemNode;
-                this.Nodes.Add(nodeClone);
-            }
+            ToolStripMenuItem item = new ToolStripMenuItem(name);
+            item.Click += onClick;
+            this.ContextMenuStrip.Items.Add(item);
         }
     }
 
+    /// <summary>
+    /// Respresents a node of a system drive in <see cref="FileSystemTree"/>.
+    /// </summary>
     public class DriveNode : FileSystemNode
     {
-        private static readonly FileType Type = FileType.Drive;
-
         public DriveNode() : base() { }
 
         public DriveNode(string name) : base(name)
         {
-            this.ImageIndex = this.SelectedImageIndex = (int)Type;
+            this.ImageIndex = this.SelectedImageIndex = (int)IconType.Drive;
 
         }
     }
 
+    /// <summary>
+    /// Respresents a node of a folder in <see cref="FileSystemTree"/>.
+    /// </summary>
     public class FolderNode : FileSystemNode
     {
-        private static readonly FileType Type = FileType.Folder;
-
         public FolderNode() : base() { }
 
         public FolderNode(string name) : base(name)
         {
-            this.ImageIndex = this.SelectedImageIndex = (int)Type;
+            this.ImageIndex = this.SelectedImageIndex = (int)IconType.Folder;
         }
     }
 
+    /// <summary>
+    /// Respresents a node of a file in <see cref="FileSystemTree"/>.
+    /// </summary>
     public class FileNode : FileSystemNode
     {
-        private static readonly FileType Type = FileType.File;
-
         public FileNode() : base() { }
 
         public FileNode(string name) : base(name)
         {
-            this.ImageIndex = this.SelectedImageIndex = (int)Type;
+            this.ImageIndex = this.SelectedImageIndex = (int)IconType.File;
         }
     }
 
+    /// <summary>
+    /// Displays a file manager.
+    /// </summary>
     public partial class Explorer : Form, IFileSystemView
     {
         // TODO: Improve UI
@@ -135,32 +174,38 @@ namespace Explorer.View
 
         private readonly IPresenter _presenter;
         
-        private readonly FileSystemTree FolderView;
+        private readonly FileSystemTree DirectoryView;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="Explorer"/>.
+        /// </summary>
         public Explorer()
         {
             InitializeComponent();
             this.BackColor = Color.FromArgb(236, 233, 216);
             this.Paint += Explorer_Paint;
 
-            FolderViewWrapper.Padding = new Padding(20, 15, 20, 15);
-            FolderViewWrapper.BorderStyle = BorderStyle.FixedSingle;
-            FolderViewWrapper.BackColor = Color.White;
+            DirectoryViewWrapper.Padding = new Padding(20, 15, 20, 15);
+            DirectoryViewWrapper.BorderStyle = BorderStyle.FixedSingle;
+            DirectoryViewWrapper.BackColor = Color.White;
 
-            FolderView = new FileSystemTree()
+            DirectoryView = new FileSystemTree()
             {
                 Dock = DockStyle.Fill,
                 BorderStyle = BorderStyle.None,
             };
-            FolderViewWrapper.Controls.Add(FolderView);
+            DirectoryViewWrapper.Controls.Add(DirectoryView);
 
-            FolderView.BeforeExpand += PreloadContent;
-            FolderView.NodeMouseDoubleClick += CheckAccessibility;
+            DirectoryView.BeforeExpand += PreloadContent;
+            //DirectoryView.NodeMouseDoubleClick += CheckAccessibility;
 
             _presenter = new Presenter.Presenter(this);
             _presenter.LoadDrives();
         }
 
+        /// <summary>
+        /// Runs an application.
+        /// </summary>
         public void Mount()
         {
             Application.Run(this);
@@ -168,26 +213,26 @@ namespace Explorer.View
 
         private void PreloadContent(object sender, TreeViewCancelEventArgs e)
         {
-            FolderView.BeginUpdate();
+            DirectoryView.BeginUpdate();
             _presenter.LoadSubdirs(e.Node as FileSystemNode);
-            FolderView.EndUpdate();
+            DirectoryView.EndUpdate();
         }
 
-        public void ShowModal()
-        {
+        //public void ShowModal()
+        //{
             
-        }
+        //}
 
-        void CheckAccessibility(object sender, TreeNodeMouseClickEventArgs e)
-        {
-            _presenter.CheckAccessibility(e.Node as FileSystemNode);
-        }
+        //private void CheckAccessibility(object sender, TreeNodeMouseClickEventArgs e)
+        //{
+        //    _presenter.CheckAccessibility(e.Node as FileSystemNode);
+        //}
 
         public void MountDrives(List<DriveNode> drives)
         {
             foreach (DriveNode d in drives)
             {
-                FolderView.Nodes.Add(d);
+                DirectoryView.Nodes.Add(d);
             }
         }
 

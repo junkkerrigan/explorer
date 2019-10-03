@@ -6,10 +6,17 @@ using Explorer.View;
 
 namespace Explorer.Presenter
 {
+    /// <summary>
+    /// Implements <see cref="IPresenter"/>.
+    /// </summary>
     class Presenter : IPresenter
     {
         private readonly IFileSystemView _view;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="Presenter"/>.
+        /// </summary>
+        /// <param name="view"></param>
         public Presenter(IFileSystemView view)
         {
             _view = view;
@@ -20,10 +27,10 @@ namespace Explorer.Presenter
             _view.Mount();
         }
 
-        public void CheckAccessibility(FileSystemNode node)
-        {
-            if (!node.IsAccessible) _view.ShowModal();
-        }
+        //public void CheckAccessibility(FileSystemNode node)
+        //{
+        //    //if (!node.IsAccessible) _view.ShowModal();
+        //}
 
         public void LoadDrives()
         {
@@ -59,7 +66,7 @@ namespace Explorer.Presenter
             }
         }
 
-        public void FillNode(FileSystemNode node)
+        private void FillNode(FileSystemNode node)
         {
             List<string> InaccessibleDirectories = new List<string>(); 
             try

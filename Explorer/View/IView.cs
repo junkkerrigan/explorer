@@ -7,10 +7,17 @@ namespace Explorer.View
         void Mount();
     }
 
+    /// <summary>
+    /// Provides an interface to interact with <see cref="Explorer"/>.
+    /// </summary>
     public interface IFileSystemView : IView
     {
+        /// <summary>
+        /// Loads drives into a <see cref="FileSystemTree"/>.
+        /// </summary>
+        /// <param name="drives"></param>
         void MountDrives(List<DriveNode> drives);
 
-        void ShowModal();
+        //void ShowModal();
     }
 }

@@ -30,13 +30,13 @@
         {
             this.MainWrapper = new System.Windows.Forms.Panel();
             this.FileView = new System.Windows.Forms.TreeView();
-            this.FolderViewWrapper = new System.Windows.Forms.Panel();
+            this.DirectoryViewWrapper = new System.Windows.Forms.Panel();
             this.MainWrapper.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainWrapper
             // 
-            this.MainWrapper.Controls.Add(this.FolderViewWrapper);
+            this.MainWrapper.Controls.Add(this.DirectoryViewWrapper);
             this.MainWrapper.Controls.Add(this.FileView);
             this.MainWrapper.Location = new System.Drawing.Point(0, 30);
             this.MainWrapper.Name = "MainWrapper";
@@ -50,12 +50,12 @@
             this.FileView.Size = new System.Drawing.Size(643, 543);
             this.FileView.TabIndex = 1;
             // 
-            // FolderViewWrapper
+            // DirectoryViewWrapper
             // 
-            this.FolderViewWrapper.Location = new System.Drawing.Point(0, 15);
-            this.FolderViewWrapper.Name = "FolderViewWrapper";
-            this.FolderViewWrapper.Size = new System.Drawing.Size(643, 543);
-            this.FolderViewWrapper.TabIndex = 2;
+            this.DirectoryViewWrapper.Location = new System.Drawing.Point(0, 15);
+            this.DirectoryViewWrapper.Name = "DirectoryViewWrapper";
+            this.DirectoryViewWrapper.Size = new System.Drawing.Size(643, 543);
+            this.DirectoryViewWrapper.TabIndex = 2;
             // 
             // Explorer
             // 
@@ -74,6 +74,6 @@
 
         private System.Windows.Forms.Panel MainWrapper;
         private System.Windows.Forms.TreeView FileView;
-        private System.Windows.Forms.Panel FolderViewWrapper;
+        private System.Windows.Forms.Panel DirectoryViewWrapper;
     }
 }
