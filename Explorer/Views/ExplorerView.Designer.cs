@@ -1,4 +1,4 @@
-﻿namespace Explorer.View
+﻿namespace Explorer.Views
 {
     partial class Explorer
     {

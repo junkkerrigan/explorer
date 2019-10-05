@@ -1,16 +1,11 @@
 ﻿using System.Collections.Generic;
 
-namespace Explorer.View
+namespace Explorer.Views
 {
-    public interface IView
-    {
-        void Mount();
-    }
-
     /// <summary>
-    /// Provides an interface to interact with <see cref="Explorer"/>.
+    /// Provides an interface to interact with <see cref="FileSystemTree"/>.
     /// </summary>
-    public interface IFileSystemView : IView
+    public interface IFileSystemTree
     {
         /// <summary>
         /// Loads drives into a <see cref="FileSystemTree"/>.

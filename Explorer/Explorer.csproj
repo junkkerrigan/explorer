@@ -82,18 +82,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Presenter\Loader.cs" />
-    <Compile Include="View\View.cs">
-      <SubType>Component</SubType>
+    <Compile Include="Presenters\FileSystemNodePresenter.cs" />
+    <Compile Include="Presenters\FileSystemTreePresenter.cs" />
+    <Compile Include="Presenters\IFileSystemNodePresenter.cs" />
+    <Compile Include="Presenters\IFileSystemTreePresenter.cs" />
+    <Compile Include="Views\ExplorerView.cs">
+      <SubType>Form</SubType>
     </Compile>
-    <Compile Include="View\View.Designer.cs">
-      <DependentUpon>View.cs</DependentUpon>
+    <Compile Include="Views\ExplorerView.Designer.cs">
+      <DependentUpon>ExplorerView.cs</DependentUpon>
     </Compile>
-    <Compile Include="Presenter\Presenter.cs" />
-    <Compile Include="Presenter\IPresenter.cs" />
+    <Compile Include="Presenters\ExplorerPresenter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="View\IView.cs" />
+    <Compile Include="Views\FileSystemNodeView.cs" />
+    <Compile Include="Views\FileSystemTreeView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Views\IExplorerView.cs" />
+    <Compile Include="Views\IFileSystemNodeView.cs" />
+    <Compile Include="Views\IFileSystemTreeView.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

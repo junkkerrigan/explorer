@@ -1,23 +1,21 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Explorer.View;
+using Explorer.Views;
 
-namespace Explorer.Presenter
+namespace Explorer.Presenters
 {
-    /// <summary>
-    /// Provides a static method to load inner elements .
-    /// </summary>
-    static class Loader
+    public class FileSystemTreePresenter : IFileSystemTreePresenter
     {
-        /// <summary>
-        /// Loads system drives.
-        /// </summary>
-        /// <returns></returns>
-        public static List<DriveNode> GetDrives()
+        private readonly IFileSystemTree _view;
+
+        public FileSystemTreePresenter(IFileSystemTree view)
+        {
+            _view = view;
+        }
+
+        public void LoadDrives()
         {
             List<DriveNode> driveNodes = new List<DriveNode>();
 
@@ -29,29 +27,24 @@ namespace Explorer.Presenter
                     Path = d.Name,
                 };
                 driveNodes.Add(dNode);
-                FillDirectory(dNode);
+                FillSubNode(dNode);
             }
 
-            return driveNodes;
+            _view.MountDrives(driveNodes);
         }
 
-        public static void LoadSubDirs(FileSystemNode node)
+        public void FillNode(FileSystemNode node)
         {
             foreach (FileSystemNode subNode in node.Nodes)
             {
                 if (subNode is FileNode || subNode.Filled) return;
-                FillDirectory(subNode);
+                FillSubNode(subNode);
                 subNode.Filled = true;
             }
         }
 
-        /// <summary>
-        /// Loads all subnodes of passed node.
-        /// </summary>
-        /// <param name="node"></param>
-        public static void FillDirectory(FileSystemNode node)
+        private static void FillSubNode(FileSystemNode node)
         {
-            //Console.WriteLine(node.Path);
             string[] subFolders = GetSubFolders(node);
             foreach (string folder in subFolders)
             {
@@ -61,7 +54,6 @@ namespace Explorer.Presenter
                     Path = folder,
                 };
                 node.Nodes.Add(folderNode);
-                //FillDirectory(folderNode);
             }
 
             string[] innerFiles = GetInnerFiles(node);
@@ -93,7 +85,7 @@ namespace Explorer.Presenter
                 }
                 else
                 {
-                    Console.WriteLine("Error in FillNode");
+                    Console.WriteLine("Error in GetSubFolders");
                     Console.WriteLine(ex.Message);
                 }
             }
@@ -103,6 +95,7 @@ namespace Explorer.Presenter
 
         private static string[] GetInnerFiles(FileSystemNode node)
         {
+            //Console.WriteLine(node.Path == null);
             string path = node.Path;
             string[] innerFiles = { };
             try
@@ -117,7 +110,7 @@ namespace Explorer.Presenter
                 }
                 else
                 {
-                    Console.WriteLine("Error in FillNode");
+                    Console.WriteLine("Error in GetInnerFiles");
                     Console.WriteLine(ex.Message);
                 }
             }
@@ -125,4 +118,16 @@ namespace Explorer.Presenter
             return innerFiles;
         }
     }
+}
+
+    /// <summary>
+    /// Provides static methods to load system elements.
+    /// </summary>
+    static class Loader
+    {
+        /// <summary>
+        /// Loads system drives.
+        /// </summary>
+        /// <returns></returns>
+        
 }

@@ -14,8 +14,8 @@ namespace Explorer
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var view = new View.Explorer();
-            var presenter = new Presenter.Presenter(view);
+            var view = new Views.Explorer();
+            var presenter = new Presenters.ExplorerPresenter(view);
 
             presenter.Run();
         }
