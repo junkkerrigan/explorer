@@ -1,4 +1,5 @@
-﻿using Explorer.View;
+﻿using System.Threading.Tasks;
+using Explorer.View;
 
 namespace Explorer.Presenter
 {
@@ -15,14 +16,13 @@ namespace Explorer.Presenter
         //void CheckAccessibility(FileSystemNode node);
 
         /// <summary>
-        /// Loads drives of a system.
+        /// Loads system drives.
         /// </summary>
         void LoadDrives();
 
         /// <summary>
-        /// Loads subdirectories of passed directory.
+        /// 
         /// </summary>
-        /// <param name="node"></param>
-        void LoadSubdirs(FileSystemNode node);
+        void LoadSubDirectories(FileSystemNode node);
     }
 }

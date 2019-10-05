@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 using Explorer.Presenter;
 
@@ -58,12 +59,12 @@ namespace Explorer.View
         /// <summary>
         /// Indicates if it's possible to interact with element.
         /// </summary>
-        public bool IsAccessible { get; set; }
+        public bool Accessible { get; set; }
         
         /// <summary>
         /// Indicates if subnodes are uploaded into node.
         /// </summary>
-        public bool IsFilled { get; set; }
+        public bool Filled { get; set; }
 
         private static FileSystemNode _buffer = null;
 
@@ -78,8 +79,8 @@ namespace Explorer.View
         /// </summary>
         public FileSystemNode(string name) : base(name)
         {
-            this.IsAccessible = true;
-            this.IsFilled = false;
+            this.Accessible = true;
+            this.Filled = false;
             this.NodeFont = new Font("Verdana", 12);
             this.ContextMenuStrip = new ContextMenuStrip();
 
@@ -93,15 +94,8 @@ namespace Explorer.View
 
             void PasteFromBuffer(object sender, EventArgs e)
             {
-                if (_buffer == null)
-                {
-                    this.Nodes.Add(_buffer);
-                }
-                else
-                {
-                    FileSystemNode nodeClone = _buffer.Clone() as FileSystemNode;
-                    this.Nodes.Add(nodeClone);
-                }
+                FileSystemNode nodeClone = _buffer.Clone() as FileSystemNode;
+                this.Nodes.Add(nodeClone);
             }
         }
 
@@ -116,6 +110,15 @@ namespace Explorer.View
             item.Click += onClick;
             this.ContextMenuStrip.Items.Add(item);
         }
+
+        /// <summary>
+        /// Adds styles that indicate the node is inaccessible.
+        /// </summary>
+        public void MarkAsInaccessible()
+        {
+            this.Accessible = false;
+            this.ForeColor = Color.Gray;
+        }
     }
 
     /// <summary>
@@ -128,7 +131,6 @@ namespace Explorer.View
         public DriveNode(string name) : base(name)
         {
             this.ImageIndex = this.SelectedImageIndex = (int)IconType.Drive;
-
         }
     }
 
@@ -213,9 +215,9 @@ namespace Explorer.View
 
         private void PreloadContent(object sender, TreeViewCancelEventArgs e)
         {
-            DirectoryView.BeginUpdate();
-            _presenter.LoadSubdirs(e.Node as FileSystemNode);
-            DirectoryView.EndUpdate();
+            //DirectoryView.BeginUpdate();
+            _presenter.LoadSubDirectories(e.Node as FileSystemNode);
+            //DirectoryView.EndUpdate();
         }
 
         //public void ShowModal()
