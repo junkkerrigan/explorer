@@ -17,6 +17,6 @@ namespace Explorer.Presenters
         /// Loads subnodes of subnodes.
         /// </summary>
         /// <param name="node"></param>
-        void FillNode(FileSystemNode node);
+        void PreloadContent(IFileSystemNode node);
     }
 }

@@ -22,28 +22,28 @@ namespace Explorer.Presenters
             DriveInfo[] drives = DriveInfo.GetDrives();
             foreach (DriveInfo d in drives)
             {
-                DriveNode dNode = new DriveNode(d.Name + "         ")
+                DriveNode dNode = new DriveNode(d.Name + ' ')
                 {
                     Path = d.Name,
                 };
                 driveNodes.Add(dNode);
-                FillSubNode(dNode);
+                FillNode(dNode);
             }
 
             _view.MountDrives(driveNodes);
         }
 
-        public void FillNode(FileSystemNode node)
+        public void PreloadContent(IFileSystemNode node)
         {
-            foreach (FileSystemNode subNode in node.Nodes)
+            foreach (IFileSystemNode subNode in node.SubNodes)
             {
                 if (subNode is FileNode || subNode.Filled) return;
-                FillSubNode(subNode);
+                FillNode(subNode);
                 subNode.Filled = true;
             }
         }
 
-        private static void FillSubNode(FileSystemNode node)
+        private void FillNode(IFileSystemNode node)
         {
             string[] subFolders = GetSubFolders(node);
             foreach (string folder in subFolders)
@@ -53,7 +53,7 @@ namespace Explorer.Presenters
                 {
                     Path = folder,
                 };
-                node.Nodes.Add(folderNode);
+                node.Add(folderNode);
             }
 
             string[] innerFiles = GetInnerFiles(node);
@@ -64,11 +64,11 @@ namespace Explorer.Presenters
                 {
                     Path = file,
                 };
-                node.Nodes.Add(fileNode);
+                node.Add(fileNode);
             }
         }
 
-        private static string[] GetSubFolders(FileSystemNode node)
+        private string[] GetSubFolders(IFileSystemNode node)
         {
             string path = node.Path;
             string[] subFolders = { };
@@ -93,9 +93,8 @@ namespace Explorer.Presenters
             return subFolders;
         }
 
-        private static string[] GetInnerFiles(FileSystemNode node)
+        private string[] GetInnerFiles(IFileSystemNode node)
         {
-            //Console.WriteLine(node.Path == null);
             string path = node.Path;
             string[] innerFiles = { };
             try
@@ -118,16 +117,4 @@ namespace Explorer.Presenters
             return innerFiles;
         }
     }
-}
-
-    /// <summary>
-    /// Provides static methods to load system elements.
-    /// </summary>
-    static class Loader
-    {
-        /// <summary>
-        /// Loads system drives.
-        /// </summary>
-        /// <returns></returns>
-        
 }

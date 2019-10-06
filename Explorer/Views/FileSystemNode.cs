@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using Explorer.Presenters;
 
 namespace Explorer.Views
 {
@@ -19,66 +20,74 @@ namespace Explorer.Views
     /// <summary>
     /// Represents a node of <see cref="FileSystemTree"/>.
     /// </summary>
-    public abstract class FileSystemNode : TreeNode
+    public abstract class FileSystemNode : TreeNode, IFileSystemNode
     {
-        /// <summary>
-        /// Absolute path to element.
-        /// </summary>
         public string Path { get; set; }
 
-        /// <summary>
-        /// Indicates if it's possible to interact with element.
-        /// </summary>
         public bool Accessible { get; set; }
 
-        /// <summary>
-        /// Indicates if subnodes of the node are filled.
-        /// </summary>
         public bool Filled { get; set; }
 
-        private static FileSystemNode _buffer = null;
+        public List<IFileSystemNode> SubNodes
+        {
+            get
+            {
+                List<IFileSystemNode> subNodes = new List<IFileSystemNode>();
+                foreach(FileSystemNode node in this.Nodes)
+                {
+                    subNodes.Add(node);
+                }
+                return subNodes;
+            }
+        }
+
+        private readonly IFileSystemNodePresenter _presenter;
 
         /// <summary>
         /// Initializes a new instance of <see cref="FileSystemNode"/> class.
         /// </summary>
-        public FileSystemNode() : base() { }
+        public FileSystemNode() : base() 
+        {
+            _presenter = new FileSystemNodePresenter(this);
+        }
 
         /// <summary>
         /// Initializes a new instance of <see cref="FileSystemNode"/> class
         /// with specified name.
         /// </summary>
-        public FileSystemNode(string name) : base(name)
+        public FileSystemNode(string name) : base(name + ' ')
         {
+            _presenter = new FileSystemNodePresenter(this);
+
             this.Accessible = true;
             this.Filled = false;
             this.NodeFont = new Font("Verdana", 12);
             this.ContextMenuStrip = new ContextMenuStrip();
 
-            AddContextMenuItem("Copy", CopyToBuffer);
-            AddContextMenuItem("Paste", PasteFromBuffer);
+            AddContextMenuItem("Copy", FileSystemNode_Copy);
+            AddContextMenuItem("Paste", FileSystemNode_Paste);
+        }
 
-            void CopyToBuffer(object sender, EventArgs e)
-            {
-                _buffer = this.Clone();
-            }
+        public void Add(IFileSystemNode node)
+        {
+            this.Nodes.Add(node as FileSystemNode);
+        }
 
-            void PasteFromBuffer(object sender, EventArgs e)
+        public void Add(IFileSystemNode[] nodes)
+        {
+            foreach (IFileSystemNode n in nodes)
             {
-                FileSystemNode nodeClone = _buffer.Clone();
-                if (this.Path[this.Path.Length - 1] == '\\')
-                {
-                    nodeClone.Path = this.Path + nodeClone.Text;
-                }
-                else
-                {
-                    nodeClone.Path = this.Path + '\\' + nodeClone.Text;
-                }
-                Console.WriteLine(nodeClone.Path);
-                this.Nodes.Add(nodeClone);
+                this.Nodes.Add(n as FileSystemNode);
             }
         }
 
-        public new FileSystemNode Clone()
+        public void MarkAsInaccessible()
+        {
+            this.Accessible = false;
+            this.ForeColor = Color.Gray;
+        }
+
+        private FileSystemNode GetClone()
         {
             FileSystemNode clone = base.Clone() as FileSystemNode;
             clone.Path = this.Path;
@@ -99,10 +108,14 @@ namespace Explorer.Views
             this.ContextMenuStrip.Items.Add(item);
         }
 
-        public void MarkAsInaccessible()
+        private void FileSystemNode_Copy(object sender, EventArgs e)
         {
-            this.Accessible = false;
-            this.ForeColor = Color.Gray;
+            _presenter.CopyNodeToBuffer(this);
+        }
+
+        private void FileSystemNode_Paste(object sender, EventArgs e)
+        {
+            _presenter.PasteNodeFromBuffer(this);
         }
     }
 

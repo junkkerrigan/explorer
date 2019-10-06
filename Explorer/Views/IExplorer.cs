@@ -5,7 +5,7 @@ namespace Explorer.Views
     /// <summary>
     /// Provides an interface to interact with <see cref="Explorer"/>.
     /// </summary>
-    public interface IExplorerView
+    public interface IExplorer
     {
         /// <summary>
         /// Runs an application.

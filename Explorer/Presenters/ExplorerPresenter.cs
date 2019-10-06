@@ -9,13 +9,13 @@ namespace Explorer.Presenters
     /// </summary>
     class ExplorerPresenter
     {
-        private readonly IExplorerView _view;
+        private readonly IExplorer _view;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ExplorerPresenter"/>.
         /// </summary>
         /// <param name="view"></param>
-        public ExplorerPresenter(IExplorerView view)
+        public ExplorerPresenter(IExplorer view)
         {
             _view = view;
         }

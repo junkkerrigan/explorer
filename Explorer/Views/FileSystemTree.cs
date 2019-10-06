@@ -21,10 +21,13 @@ namespace Explorer.Views
         /// </summary>
         public FileSystemTree() : base()
         {
+            _presenter = new FileSystemTreePresenter(this);
+
             this.ItemHeight = 30;
             this.ShowPlusMinus = true;
             this.Dock = DockStyle.Fill;
             this.BorderStyle = BorderStyle.None;
+            this.Font = new Font("Verdana", 12);
 
             ImageList nodeIcons = new ImageList();
             nodeIcons.Images.Add(Image.FromFile("../../assets/icons/driveIcon.png"));
@@ -33,16 +36,15 @@ namespace Explorer.Views
             this.ImageList = nodeIcons;
             this.ImageList.ImageSize = new Size(18, 18);
 
-            this.BeforeExpand += PreloadContent;
+            this.BeforeExpand += FileSystemTree_Expand;
 
-            _presenter = new FileSystemTreePresenter(this);
             _presenter.LoadDrives();
         }
 
-        private void PreloadContent(object sender, TreeViewCancelEventArgs e)
+        private void FileSystemTree_Expand(object sender, TreeViewCancelEventArgs e)
         {
             //DirectoryView.BeginUpdate();
-            _presenter.FillNode(e.Node as FileSystemNode);
+            _presenter.PreloadContent(e.Node as FileSystemNode);
             //DirectoryView.EndUpdate();
         }
 

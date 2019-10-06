@@ -11,7 +11,7 @@ namespace Explorer.Views
     /// <summary>
     /// Displays a file manager.
     /// </summary>
-    public partial class Explorer : Form, IExplorerView
+    public partial class Explorer : Form, IExplorer
     {
         // TODO: Improve UI
         //       -- modal form appearance and location
