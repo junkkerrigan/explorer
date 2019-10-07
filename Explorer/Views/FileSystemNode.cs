@@ -22,6 +22,17 @@ namespace Explorer.Views
     /// </summary>
     public abstract class FileSystemNode : TreeNode, IFileSystemNode
     {
+        public new string Text
+        {
+            get
+            {
+                return base.Text;
+            }
+            set
+            {
+                this.Text = value;
+            }
+        }
         public string Path { get; set; }
 
         public bool Accessible { get; set; }
@@ -55,7 +66,7 @@ namespace Explorer.Views
         /// Initializes a new instance of <see cref="FileSystemNode"/> class
         /// with specified name.
         /// </summary>
-        public FileSystemNode(string name) : base(name + ' ')
+        public FileSystemNode(string name) : base(name)
         {
             _presenter = new FileSystemNodePresenter(this);
 
@@ -68,12 +79,19 @@ namespace Explorer.Views
             AddContextMenuItem("Paste", FileSystemNode_Paste);
         }
 
-        public void Add(IFileSystemNode node)
+        public void Fill()
         {
+            _presenter.FillNode(this);
+        }
+
+        public void AddNode(IFileSystemNode node)
+        {
+            Console.WriteLine($"Adding node with path {node.Path}");
+            Console.WriteLine($"to node with path {this.Path}");
             this.Nodes.Add(node as FileSystemNode);
         }
 
-        public void Add(IFileSystemNode[] nodes)
+        public void AddNodes(IFileSystemNode[] nodes)
         {
             foreach (IFileSystemNode n in nodes)
             {
@@ -87,14 +105,28 @@ namespace Explorer.Views
             this.ForeColor = Color.Gray;
         }
 
-        private FileSystemNode GetClone()
+        public abstract IFileSystemNode GetClone();
+
+        public bool IsChild(IFileSystemNode ancestor)
         {
-            FileSystemNode clone = base.Clone() as FileSystemNode;
-            clone.Path = this.Path;
-            clone.Accessible = this.Accessible;
-            clone.Filled = this.Filled;
-            return clone;
+            FileSystemNode cur = this, 
+                           parent = ancestor as FileSystemNode;
+            while(cur.Parent != null)
+            {
+                cur = cur.Parent as FileSystemNode;
+                if (cur == parent)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
+
+        public bool IsDirectChild(IFileSystemNode parent)
+        {
+            return parent == this.Parent;
+        }
+
 
         /// <summary>
         /// Adds new option to right-click menu.
@@ -137,6 +169,17 @@ namespace Explorer.Views
         {
             this.ImageIndex = this.SelectedImageIndex = (int)IconType.Drive;
         }
+
+        public override IFileSystemNode GetClone()
+        {
+            DriveNode clone = new DriveNode(this.Text)
+            {
+                Path = this.Path,
+                Accessible = this.Accessible,
+            };
+            clone.Fill();
+            return clone;
+        }
     }
 
     /// <summary>
@@ -157,6 +200,23 @@ namespace Explorer.Views
         {
             this.ImageIndex = this.SelectedImageIndex = (int)IconType.Folder;
         }
+
+        public override IFileSystemNode GetClone()
+        {
+            FolderNode clone = new FolderNode(this.Text)
+            {
+                Path = this.Path,
+                Accessible = this.Accessible,
+            }; 
+            clone.Fill();
+            Console.WriteLine($"Folder clone: text is {clone.Text}\npath is {clone.Path}");
+
+            foreach(var n in clone.SubNodes)
+            {
+                Console.WriteLine($"Folder clone subnode: text is {clone.Text}\npath is {clone.Path}");
+            }
+            return clone;
+        }
     }
 
     /// <summary>
@@ -176,6 +236,16 @@ namespace Explorer.Views
         public FileNode(string name) : base(name)
         {
             this.ImageIndex = this.SelectedImageIndex = (int)IconType.File;
+        }
+
+        public override IFileSystemNode GetClone()
+        {
+            FileNode clone = new FileNode(this.Text)
+            {
+                Path = this.Path,
+                Accessible = this.Accessible,
+            };
+            return clone;
         }
     }
 }

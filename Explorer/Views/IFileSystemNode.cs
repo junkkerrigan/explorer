@@ -8,6 +8,11 @@ namespace Explorer.Views
     public interface IFileSystemNode
     {
         /// <summary>
+        /// Text in node.
+        /// </summary>
+        string Text { get; set; }
+
+        /// <summary>
         /// Absolute path to element.
         /// </summary>
         string Path { get; set; }
@@ -25,17 +30,44 @@ namespace Explorer.Views
         List<IFileSystemNode> SubNodes { get; }
 
         /// <summary>
+        /// Creates a new node with the same parameters.
+        /// </summary>
+        /// <returns>Created node.</returns>
+        IFileSystemNode GetClone();
+
+        /// <summary>
         /// Adds a single previously created node to the end of the list of subnodes.
         /// </summary>
         /// <param name="node"></param>
-        void Add(IFileSystemNode node);
+        void AddNode(IFileSystemNode node);
 
         /// <summary>
         /// Adds a list of previously created nodes to the end of the list of subnodes.
         /// </summary>
         /// <param name="node"></param>
-        void Add(IFileSystemNode[] nodes);
+        void AddNodes(IFileSystemNode[] nodes);
 
+        void Fill();
+
+        /// <summary>
+        /// Highlights a node as inaccessible.
+        /// </summary>
         void MarkAsInaccessible();
+
+        /// <summary>
+        /// Checks if passed node is an ancestor of this node.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns>True, if passed node is an ancestor of this node, 
+        /// false, otherwise</returns>
+        bool IsChild(IFileSystemNode ancestor);
+
+        /// <summary>
+        /// Checks if passed node is a parent of this node.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns>True, if passed node is a parent of this node, 
+        /// false, otherwise</returns>
+        bool IsDirectChild(IFileSystemNode parent);
     }
 }

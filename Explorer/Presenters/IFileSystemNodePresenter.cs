@@ -8,12 +8,17 @@ namespace Explorer.Presenters
     /// </summary>
     public interface IFileSystemNodePresenter
     {
+        void FillNode(IFileSystemNode node);
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="source">Node that will be copied to buffer</param>
-        void CopyNodeToBuffer(FileSystemNode source);
+        /// <param name="source">Source to be copied to buffer.</param>
+        void CopyNodeToBuffer(IFileSystemNode source);
 
-        void PasteNodeFromBuffer(FileSystemNode destination);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source">Destination to be pasted from buffer.</param>
+        void PasteNodeFromBuffer(IFileSystemNode destination);
     }
 }
