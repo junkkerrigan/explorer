@@ -347,3 +347,5 @@ MigrationBackup/
 .ionide/
 
 *.lock
+*.ide-wal
+*.ide-shm
