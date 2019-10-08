@@ -6,35 +6,23 @@ using Explorer.Views;
 
 namespace Explorer.Presenters
 {
-    public class FileSystemNodePresenter : IFileSystemNodePresenter
+    public abstract class FileSystemNodePresenter : IFileSystemNodePresenter
     {
-        private readonly IFileSystemNode _view;
+        protected IFileSystemNode View { get; set; }
 
         /// <summary>
         /// Stores a clone of copied node.
         /// </summary>
-        private static IFileSystemNode _buffer = null;
+        protected static IFileSystemNode _buffer = null;
 
-        public FileSystemNodePresenter(IFileSystemNode view)
+        public FileSystemNodePresenter(IFileSystemNode view) 
         {
-            _view = view;
+            View = view;
         }
 
         public void CopyNodeToBuffer(IFileSystemNode source)
         {
             _buffer = source;
-            Console.WriteLine($"Copying to buffer: buffer path is {_buffer.Path}");
-            Console.WriteLine($"Copying to buffer: source path is {source.Path}");
-
-            foreach (var node in _buffer.SubNodes)
-            {
-                Console.WriteLine($"Copying to buffer: buffer subnode path is {node.Path}");
-            }
-
-            foreach (var node in source.SubNodes)
-            {
-                Console.WriteLine($"Copying to buffer: source subnode path is {node.Path}");
-            }
         }
 
         public void PasteNodeFromBuffer(IFileSystemNode destination)
@@ -58,68 +46,29 @@ namespace Explorer.Presenters
                 return;
             }
 
-            IFileSystemNode clone = _buffer.GetClone();
+            string newPath = Path.Combine(destination.Path, _buffer.Text);
 
-            foreach (var node in clone.SubNodes)
+            try
             {
-                Console.WriteLine($"Pasting: buffer clone subnode path is {node.Path}");
-            }
-
-            if (clone is FileNode)
-            {
-                string newFilePath = Path.Combine(destination.Path, clone.Text);
-                CopyFile(clone.Path, newFilePath);
-                clone.Path = newFilePath;
+                _buffer.CopyTo(newPath);
+                IFileSystemNode clone = _buffer.GetClone();
                 destination.AddNode(clone);
             }
-            else if (clone is FolderNode)
+            catch (FileAlreadyExistsException)
             {
-                string newFolderPath = Path.Combine(destination.Path, clone.Text);
-                CopyFolder(clone.Path, newFolderPath);
-                clone.Path = newFolderPath;
-                foreach(IFileSystemNode node in clone.SubNodes)
-                {
-                    node.Path = Path.Combine(newFolderPath, node.Text);
-                }
-                destination.AddNode(clone);
+                Console.WriteLine("Err: file exists");
+                // ShowModal();
             }
-
-            Console.WriteLine($"Cloned node: new path is {clone.Path}");
-            foreach (var node in clone.SubNodes)
-            { 
-                Console.WriteLine($"Subnode of cloned node: new path is {node.Path}");
-            }
-            // in CopyFolder destPath = dest.Path + newDirName
-        }
-
-        private void CopyFile(string sourcePath, string destinationPath) 
-        {
-            File.Copy(sourcePath, destinationPath);
-        }
-
-        private void CopyFolder(string sourcePath, string destinationPath)
-        {
-            Console.WriteLine($"Copying dir from {sourcePath} to {destinationPath}");
-            Directory.CreateDirectory(destinationPath);
-
-            string[] subDirs = Directory.GetDirectories(sourcePath);
-            foreach (string dir in subDirs)
+            catch (DirectoryAlreadyExistsException)
             {
-                string folderName = dir.Substring(dir.LastIndexOf('\\') + 1),
-                    newDestPath = Path.Combine(destinationPath, folderName);
-                CopyFolder(dir, newDestPath);
-            }
-
-            string[] innerFiles = Directory.GetFiles(sourcePath);
-            foreach (string file in innerFiles)
-            {
-                string fileName = Path.GetFileName(file),
-                    destFileName = Path.Combine(destinationPath, fileName);
-                Console.WriteLine($"Copying file from {file} to {destFileName}");
-                File.Copy(file, destFileName);
+                Console.WriteLine("Err: dir exists");
+                // ShowModal();
             }
         }
 
+        public abstract void CopyElement(string sourcePath, string destinationPath);
+
+        // TODO: override in childs
         public void FillNode(IFileSystemNode node)
         {
             if (node is FileNode || node.Filled || !node.Accessible) return;
@@ -147,7 +96,7 @@ namespace Explorer.Presenters
             node.Filled = true;
         }
 
-        private string[] GetSubFolders(IFileSystemNode node)
+        protected string[] GetSubFolders(IFileSystemNode node)
         {
             string path = node.Path;
             string[] subFolders = { };
@@ -172,10 +121,11 @@ namespace Explorer.Presenters
             return subFolders;
         }
 
-        private string[] GetInnerFiles(IFileSystemNode node)
+        protected string[] GetInnerFiles(IFileSystemNode node)
         {
             string path = node.Path;
             string[] innerFiles = { };
+                
             try
             {
                 innerFiles = Directory.GetFiles(path);
@@ -194,6 +144,88 @@ namespace Explorer.Presenters
             }
 
             return innerFiles;
+        }
+    }
+
+    public class DirectoryNodePresenter : FileSystemNodePresenter
+    {
+        public DirectoryNodePresenter(IFileSystemNode view) : base(view) 
+        {
+        }
+
+        public override void CopyElement(string sourcePath, string destinationPath)
+        {
+            Console.WriteLine($"Copying dir from {sourcePath} to {destinationPath}");
+            if (Directory.Exists(destinationPath))
+            {
+                throw new DirectoryAlreadyExistsException();
+            }
+            Directory.CreateDirectory(destinationPath);
+
+            string[] subDirs = Directory.GetDirectories(sourcePath);
+            foreach (string dir in subDirs)
+            {
+                string folderName = dir.Substring(dir.LastIndexOf('\\') + 1),
+                    newDestPath = Path.Combine(destinationPath, folderName);
+                CopyElement(dir, newDestPath);
+            }
+
+            string[] innerFiles = Directory.GetFiles(sourcePath);
+            foreach (string file in innerFiles)
+            {
+                string fileName = Path.GetFileName(file),
+                    destFileName = Path.Combine(destinationPath, fileName);
+                Console.WriteLine($"Copying file from {file} to {destFileName}");
+                File.Copy(file, destFileName);
+            }
+        }
+    }
+
+    public class FileNodePresenter : FileSystemNodePresenter
+    {
+        public FileNodePresenter(IFileSystemNode view) : base(view) 
+        {
+        }
+
+        public override void CopyElement(string sourcePath, string destinationPath)
+        {
+            if (File.Exists(destinationPath))
+            {
+                throw new FileAlreadyExistsException();
+            }
+            File.Copy(sourcePath, destinationPath);
+        }
+    }
+
+    public class FileAlreadyExistsException : IOException
+    {
+        public FileAlreadyExistsException() 
+        {
+        }
+
+        public FileAlreadyExistsException(string message) : base(message) 
+        {
+        }
+
+        public FileAlreadyExistsException(string message, Exception innerEx) :
+            base(message, innerEx) 
+        { 
+        }
+    }
+
+    public class DirectoryAlreadyExistsException : IOException
+    {
+        public DirectoryAlreadyExistsException()
+        {
+        }
+
+        public DirectoryAlreadyExistsException(string message) : base(message)
+        {
+        }
+
+        public DirectoryAlreadyExistsException(string message, Exception innerEx) :
+            base(message, innerEx)
+        {
         }
     }
 }

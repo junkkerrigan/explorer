@@ -44,23 +44,15 @@ namespace Explorer.Views
             get
             {
                 List<IFileSystemNode> subNodes = new List<IFileSystemNode>();
-                foreach(FileSystemNode node in this.Nodes)
+                foreach(IFileSystemNode child in this.Nodes)
                 {
-                    subNodes.Add(node);
+                    subNodes.Add(child);
                 }
                 return subNodes;
             }
         }
 
-        private readonly IFileSystemNodePresenter _presenter;
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="FileSystemNode"/> class.
-        /// </summary>
-        public FileSystemNode() : base() 
-        {
-            _presenter = new FileSystemNodePresenter(this);
-        }
+        protected IFileSystemNodePresenter Presenter { get; set; }    
 
         /// <summary>
         /// Initializes a new instance of <see cref="FileSystemNode"/> class
@@ -68,8 +60,6 @@ namespace Explorer.Views
         /// </summary>
         public FileSystemNode(string name) : base(name)
         {
-            _presenter = new FileSystemNodePresenter(this);
-
             this.Accessible = true;
             this.Filled = false;
             this.NodeFont = new Font("Verdana", 12);
@@ -81,13 +71,26 @@ namespace Explorer.Views
 
         public void Fill()
         {
-            _presenter.FillNode(this);
+            Presenter.FillNode(this);
+        }
+
+        public void CopyTo(string destinationPath)
+        {
+            Presenter.CopyElement(this.Path, destinationPath);
         }
 
         public void AddNode(IFileSystemNode node)
         {
             Console.WriteLine($"Adding node with path {node.Path}");
             Console.WriteLine($"to node with path {this.Path}");
+            node.Path = System.IO.Path.Combine(this.Path, node.Text);
+            if (node.Filled)
+            {
+                foreach (IFileSystemNode child in node.SubNodes)
+                {
+                    child.Path = System.IO.Path.Combine(node.Path, child.Text);
+                }
+            }
             this.Nodes.Add(node as FileSystemNode);
         }
 
@@ -95,7 +98,7 @@ namespace Explorer.Views
         {
             foreach (IFileSystemNode n in nodes)
             {
-                this.Nodes.Add(n as FileSystemNode);
+                this.AddNode(n);
             }
         }
 
@@ -105,10 +108,16 @@ namespace Explorer.Views
             this.ForeColor = Color.Gray;
         }
 
-        public abstract IFileSystemNode GetClone();
+        public IFileSystemNode GetClone()
+        {
+            return GetClone(this.Path);
+        }
+
+        public abstract IFileSystemNode GetClone(string Path);
 
         public bool IsChild(IFileSystemNode ancestor)
         {
+            // TODO: change cause cur is reference 
             FileSystemNode cur = this, 
                            parent = ancestor as FileSystemNode;
             while(cur.Parent != null)
@@ -142,12 +151,12 @@ namespace Explorer.Views
 
         private void FileSystemNode_Copy(object sender, EventArgs e)
         {
-            _presenter.CopyNodeToBuffer(this);
+            Presenter.CopyNodeToBuffer(this);
         }
 
         private void FileSystemNode_Paste(object sender, EventArgs e)
         {
-            _presenter.PasteNodeFromBuffer(this);
+            Presenter.PasteNodeFromBuffer(this);
         }
     }
 
@@ -157,24 +166,22 @@ namespace Explorer.Views
     public class DriveNode : FileSystemNode
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="DriveNode"/> class.
-        /// </summary>
-        public DriveNode() : base() { }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="DriveNode"/> class
         /// with specified name.
         /// </summary>
+
         public DriveNode(string name) : base(name)
         {
+            Presenter = new DirectoryNodePresenter(this);
+
             this.ImageIndex = this.SelectedImageIndex = (int)IconType.Drive;
         }
 
-        public override IFileSystemNode GetClone()
+        public override IFileSystemNode GetClone(string Path)
         {
             DriveNode clone = new DriveNode(this.Text)
             {
-                Path = this.Path,
+                Path = Path,
                 Accessible = this.Accessible,
             };
             clone.Fill();
@@ -188,30 +195,27 @@ namespace Explorer.Views
     public class FolderNode : FileSystemNode
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="FolderNode"/> class.
-        /// </summary>
-        public FolderNode() : base() { }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="FolderNode"/> class
         /// with specified name.
         /// </summary>
         public FolderNode(string name) : base(name)
         {
+            Presenter = new DirectoryNodePresenter(this);
+
             this.ImageIndex = this.SelectedImageIndex = (int)IconType.Folder;
         }
 
-        public override IFileSystemNode GetClone()
+        public override IFileSystemNode GetClone(string Te)
         {
             FolderNode clone = new FolderNode(this.Text)
             {
                 Path = this.Path,
                 Accessible = this.Accessible,
-            }; 
+            };
             clone.Fill();
             Console.WriteLine($"Folder clone: text is {clone.Text}\npath is {clone.Path}");
 
-            foreach(var n in clone.SubNodes)
+            foreach (var n in clone.SubNodes)
             {
                 Console.WriteLine($"Folder clone subnode: text is {clone.Text}\npath is {clone.Path}");
             }
@@ -225,24 +229,21 @@ namespace Explorer.Views
     public class FileNode : FileSystemNode
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="FileNode"/> class.
-        /// </summary>
-        public FileNode() : base() { }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="FileNode"/> class
         /// with specified name.
         /// </summary>
         public FileNode(string name) : base(name)
         {
+            Presenter = new FileNodePresenter(this);
+
             this.ImageIndex = this.SelectedImageIndex = (int)IconType.File;
         }
 
-        public override IFileSystemNode GetClone()
+        public override IFileSystemNode GetClone(string Path)
         {
             FileNode clone = new FileNode(this.Text)
             {
-                Path = this.Path,
+                Path = Path,
                 Accessible = this.Accessible,
             };
             return clone;

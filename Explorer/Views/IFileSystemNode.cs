@@ -36,7 +36,16 @@ namespace Explorer.Views
         IFileSystemNode GetClone();
 
         /// <summary>
-        /// Adds a single previously created node to the end of the list of subnodes.
+        /// Creates a new node with the same parameters but specified Path property.
+        /// </summary>
+        /// <returns>Created node.</returns>
+        IFileSystemNode GetClone(string Path);
+
+        void CopyTo(string Path);
+
+        /// <summary>
+        /// Adds a single previously created node to the end of the list of subnodes
+        /// and assigns its Path property depending on Path of this node.
         /// </summary>
         /// <param name="node"></param>
         void AddNode(IFileSystemNode node);
@@ -47,6 +56,9 @@ namespace Explorer.Views
         /// <param name="node"></param>
         void AddNodes(IFileSystemNode[] nodes);
 
+        /// <summary>
+        /// Fills node with its subnodes.
+        /// </summary>
         void Fill();
 
         /// <summary>
