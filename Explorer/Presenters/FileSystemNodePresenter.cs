@@ -8,6 +8,10 @@ namespace Explorer.Presenters
 {
     public abstract class FileSystemNodePresenter : IFileSystemNodePresenter
     {
+        // TODO: comments 
+        // TODO: code splitting
+        // TODO: async file copying
+        // TODO: error modals
         protected IFileSystemNode View { get; set; }
 
         /// <summary>
@@ -68,18 +72,15 @@ namespace Explorer.Presenters
 
         public abstract void CopyElement(string sourcePath, string destinationPath);
 
-        // TODO: override in childs
-        public void FillNode(IFileSystemNode node)
+        public virtual void FillNode(IFileSystemNode node)
         {
-            if (node is FileNode || node.Filled || !node.Accessible) return;
+            if (node.Filled || !node.Accessible) return;
             string[] subFolders = GetSubFolders(node);
             foreach (string folder in subFolders)
             {
                 string name = folder.Substring(folder.LastIndexOf("\\") + 1);
-                FolderNode folderNode = new FolderNode(name)
-                {
-                    Path = folder,
-                };
+                IFileSystemNode folderNode = node.GetNewFolderNode(name);
+                folderNode.Path = folder;
                 node.AddNode(folderNode);
             }
 
@@ -87,10 +88,8 @@ namespace Explorer.Presenters
             foreach (string file in innerFiles)
             {
                 string name = file.Substring(file.LastIndexOf("\\") + 1);
-                FileNode fileNode = new FileNode(name)
-                {
-                    Path = file,
-                };
+                IFileSystemNode fileNode = node.GetNewFileNode(name);
+                fileNode.Path = file;
                 node.AddNode(fileNode);
             }
             node.Filled = true;
@@ -185,6 +184,12 @@ namespace Explorer.Presenters
     {
         public FileNodePresenter(IFileSystemNode view) : base(view) 
         {
+        }
+
+        public override void FillNode(IFileSystemNode node)
+        {
+            node.Filled = true;
+            return;
         }
 
         public override void CopyElement(string sourcePath, string destinationPath)

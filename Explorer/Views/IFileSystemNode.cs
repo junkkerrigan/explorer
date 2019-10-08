@@ -7,6 +7,8 @@ namespace Explorer.Views
     /// </summary>
     public interface IFileSystemNode
     {
+        // TODO: comments
+
         /// <summary>
         /// Text in node.
         /// </summary>
@@ -42,6 +44,10 @@ namespace Explorer.Views
         IFileSystemNode GetClone(string Path);
 
         void CopyTo(string Path);
+
+        IFileSystemNode GetNewFolderNode(string name);
+
+        IFileSystemNode GetNewFileNode(string name);
 
         /// <summary>
         /// Adds a single previously created node to the end of the list of subnodes

@@ -8,12 +8,19 @@ namespace Explorer.Presenters
     /// </summary>
     public interface IFileSystemNodePresenter
     {
+        // TODO: comments
+
         /// <summary>
         /// Fills passed node with its subnodes.
         /// </summary>
         /// <param name="node"></param>
         void FillNode(IFileSystemNode node);
 
+        /// <summary>
+        /// Copies file system element from <paramref name="sourcePath"/> into <paramref name="destinationPath"/>.
+        /// </summary>
+        /// <param name="sourcePath"></param>
+        /// <param name="destinationPath"></param>
         void CopyElement(string sourcePath, string destinationPath);
 
         /// <summary>

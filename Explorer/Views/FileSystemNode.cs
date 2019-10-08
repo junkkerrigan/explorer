@@ -60,6 +60,8 @@ namespace Explorer.Views
         /// </summary>
         public FileSystemNode(string name) : base(name)
         {
+            // TODO: fill context menu
+            // TODO: comments
             this.Accessible = true;
             this.Filled = false;
             this.NodeFont = new Font("Verdana", 12);
@@ -79,10 +81,18 @@ namespace Explorer.Views
             Presenter.CopyElement(this.Path, destinationPath);
         }
 
+        public IFileSystemNode GetNewFolderNode(string name)
+        {
+            return new FolderNode(name);
+        }
+
+        public IFileSystemNode GetNewFileNode(string name)
+        {
+            return new FileNode(name);
+        }
+
         public void AddNode(IFileSystemNode node)
         {
-            Console.WriteLine($"Adding node with path {node.Path}");
-            Console.WriteLine($"to node with path {this.Path}");
             node.Path = System.IO.Path.Combine(this.Path, node.Text);
             if (node.Filled)
             {
@@ -185,6 +195,7 @@ namespace Explorer.Views
                 Accessible = this.Accessible,
             };
             clone.Fill();
+
             return clone;
         }
     }
@@ -213,12 +224,7 @@ namespace Explorer.Views
                 Accessible = this.Accessible,
             };
             clone.Fill();
-            Console.WriteLine($"Folder clone: text is {clone.Text}\npath is {clone.Path}");
 
-            foreach (var n in clone.SubNodes)
-            {
-                Console.WriteLine($"Folder clone subnode: text is {clone.Text}\npath is {clone.Path}");
-            }
             return clone;
         }
     }
