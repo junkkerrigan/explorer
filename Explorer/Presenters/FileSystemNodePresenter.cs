@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -25,9 +26,19 @@ namespace Explorer.Presenters
             View = view;
         }
 
-        public void CopyNodeToBuffer()
+        public virtual void OpenWithDefaultApplication()
+        { 
+        }
+
+        void IFileSystemNodePresenter.CopyNodeToBuffer()
         {
             _buffer = View;
+        }
+
+        void IFileSystemNodePresenter.CutNode()
+        {
+            _buffer = View;
+            View.Delete();
         }
 
         public async void PasteNodeFromBufferAsync()
@@ -35,13 +46,13 @@ namespace Explorer.Presenters
             if (View.IsChild(_buffer))
             {
                 Console.WriteLine("Err: child");
-                // ShowModal();
+                // TODO: ShowModal();
                 return;
             }
             else if (View == _buffer)
             {
                 Console.WriteLine("Err: same");
-                // ShowModal();
+                // TODO: ShowModal();
                 return;
             }
 
@@ -58,13 +69,13 @@ namespace Explorer.Presenters
                 catch (FileAlreadyExistsException)
                 {
                     Console.WriteLine("Err: file exists");
-                    // ShowModal();
+                    // TODO: ShowModal();
                     return false;
                 }
                 catch (DirectoryAlreadyExistsException)
                 {
                     Console.WriteLine("Err: dir exists");
-                    // ShowModal();
+                    // TODO: ShowModal();
                     return false;
                 }
                 return true;
@@ -150,12 +161,37 @@ namespace Explorer.Presenters
 
             return innerFiles;
         }
+
+        // TODO: ShowModalReallyDelete()
+        public abstract void DeleteNode();
+
+        void IFileSystemNodePresenter.ExpandNode()
+        {
+            View.Expand();
+        }
+
+        void IFileSystemNodePresenter.ExpandAllSubNodes()
+        {
+            View.ExpandAll();
+        }
+
+        void IFileSystemNodePresenter.CollapseNode()
+        {
+            View.Collapse();
+        }
     }
 
     public class DirectoryNodePresenter : FileSystemNodePresenter
     {
         public DirectoryNodePresenter(IFileSystemNode view) : base(view) 
         {
+        }
+
+        public override void DeleteNode()
+        {
+            string path = View.Path;
+            View.Delete();
+            Directory.Delete(path, true);
         }
 
         public override void CopyElement(string sourcePath, string destinationPath)
@@ -198,6 +234,11 @@ namespace Explorer.Presenters
             return;
         }
 
+        public override void OpenWithDefaultApplication()
+        {
+            Process.Start(View.Path);
+        }
+
         public override void CopyElement(string sourcePath, string destinationPath)
         {
             if (File.Exists(destinationPath))
@@ -205,6 +246,13 @@ namespace Explorer.Presenters
                 throw new FileAlreadyExistsException();
             }
             File.Copy(sourcePath, destinationPath);
+        }
+
+        public override void DeleteNode()
+        {
+            string path = View.Path;
+            View.Delete();
+            File.Delete(path);
         }
     }
 

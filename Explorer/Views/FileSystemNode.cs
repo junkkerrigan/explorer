@@ -22,7 +22,7 @@ namespace Explorer.Views
     /// </summary>
     public abstract class FileSystemNode : TreeNode, IFileSystemNode
     {
-        public new string Text
+        string IFileSystemNode.Text 
         {
             get
             {
@@ -33,6 +33,7 @@ namespace Explorer.Views
                 this.Text = value;
             }
         }
+
         public string Path { get; set; }
 
         public bool Accessible { get; set; }
@@ -67,8 +68,14 @@ namespace Explorer.Views
             this.NodeFont = new Font("Verdana", 12);
             this.ContextMenuStrip = new ContextMenuStrip();
 
+            AddContextMenuItem("Open", FileSystemNode_Open);
             AddContextMenuItem("Copy", FileSystemNode_Copy);
+            AddContextMenuItem("Cut", FileSystemNode_Cut);
             AddContextMenuItem("Paste", FileSystemNode_Paste);
+            AddContextMenuItem("Delete", FileSystemNode_Delete);
+            AddContextMenuItem("Expand", FileSystemNode_Expand);
+            AddContextMenuItem("Expand all", FileSystemNode_ExpandAll);
+            AddContextMenuItem("Collapse", FileSystemNode_Collapse);
         }
 
         public void Fill()
@@ -105,6 +112,26 @@ namespace Explorer.Views
         public void RemoveNode(IFileSystemNode node)
         {
             this.Nodes.Remove(node as FileSystemNode);
+        }
+
+        void IFileSystemNode.Delete()
+        {
+            this.Remove();
+        }
+
+        void IFileSystemNode.Expand()
+        {
+            this.Expand();
+        }
+
+        void IFileSystemNode.ExpandAll()
+        {
+            this.ExpandAll();
+        }
+
+        void IFileSystemNode.Collapse()
+        {
+            this.Collapse();
         }
 
         public void MarkAsInaccessible()
@@ -154,10 +181,25 @@ namespace Explorer.Views
             this.ContextMenuStrip.Items.Add(item);
         }
 
+        protected void FileSystemNode_Open(object sender, EventArgs e)
+        {
+            Presenter.OpenWithDefaultApplication();
+        }
+
         protected void FileSystemNode_Copy(object sender, EventArgs e)
         {
             Presenter.CopyNodeToBuffer();
         }
+
+        protected void FileSystemNode_Cut(object sender, EventArgs e)
+        {
+            Presenter.CutNode();
+        }
+
+        //protected void FileSystemNode_Move(object sender, EventArgs e)
+        //{
+        //    Presenter.MoveNode();
+        //}
 
         protected void FileSystemNode_Paste(object sender, EventArgs e)
         {
@@ -166,7 +208,22 @@ namespace Explorer.Views
 
         protected void FileSystemNode_Delete(object sender, EventArgs e)
         {
-            //Presenter.DeleteNode()
+            Presenter.DeleteNode();
+        }
+
+        protected void FileSystemNode_Expand(object sender, EventArgs e)
+        {
+            Presenter.ExpandNode();
+        }
+
+        protected void FileSystemNode_ExpandAll(object sender, EventArgs e)
+        {
+            Presenter.ExpandAllSubNodes();
+        }
+
+        protected void FileSystemNode_Collapse(object sender, EventArgs e)
+        {
+            Presenter.CollapseNode();
         }
     }
 

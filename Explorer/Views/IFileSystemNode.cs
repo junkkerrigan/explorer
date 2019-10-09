@@ -80,6 +80,14 @@ namespace Explorer.Views
 
         void RemoveNode(IFileSystemNode node);
 
+        void Delete();
+
+        void Expand();
+
+        void ExpandAll();
+
+        void Collapse();
+
         /// <summary>
         /// Fills node with its subnodes.
         /// </summary>
