@@ -17,15 +17,13 @@ namespace Explorer.Presenters
 
         public void LoadDrives()
         {
-            List<DriveNode> driveNodes = new List<DriveNode>();
+            List<IFileSystemNode> driveNodes = new List<IFileSystemNode>();
 
             DriveInfo[] drives = DriveInfo.GetDrives();
             foreach (DriveInfo d in drives)
             {
-                DriveNode dNode = new DriveNode(d.Name)
-                {
-                    Path = d.Name,
-                };
+                IFileSystemNode dNode = IFileSystemNode.NodeFactory.GetNewDriveNode(d.Name);
+                dNode.Path = d.Name;
                 driveNodes.Add(dNode);
                 dNode.Fill();
             }
@@ -35,7 +33,6 @@ namespace Explorer.Presenters
 
         public void PreloadContent(IFileSystemNode node)
         {
-            Console.WriteLine($"Expanding node with path {node.Path}");
             foreach (IFileSystemNode subNode in node.SubNodes)
             {
                 subNode.Fill();

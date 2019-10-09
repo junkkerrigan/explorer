@@ -9,15 +9,15 @@ namespace Explorer.Presenters
     /// </summary>
     class ExplorerPresenter
     {
-        private readonly IExplorer _view;
+        private IExplorer View { get; set; }
 
         /// <summary>
         /// Initializes a new instance of <see cref="ExplorerPresenter"/>.
         /// </summary>
-        /// <param name="view"></param>
+        /// <param name="View"></param>
         public ExplorerPresenter(IExplorer view)
         {
-            _view = view;
+            View = view;
         }
 
         /// <summary>
@@ -25,12 +25,12 @@ namespace Explorer.Presenters
         /// </summary>
         public void Run()
         {
-            _view.Mount();
+            View.Mount();
         }
 
         //public void CheckAccessibility(FileSystemNode node)
         //{
-        //    //if (!node.IsAccessible) _view.ShowModal();
+        //    //if (!node.IsAccessible) _Node.ShowModal();
         //}
 
         

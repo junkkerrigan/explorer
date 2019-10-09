@@ -48,11 +48,24 @@ namespace Explorer.Views
             //DirectoryView.EndUpdate();
         }
 
-        public void MountDrives(List<DriveNode> drives)
+        public void AddNode(IFileSystemNode node)
         {
-            foreach (DriveNode d in drives)
+            this.Nodes.Add(node as FileSystemNode);
+        }
+
+        public void AddNodes(IFileSystemNode[] nodes)
+        {
+            foreach (IFileSystemNode n in nodes)
             {
-                this.Nodes.Add(d);
+                this.AddNode(n);
+            }
+        }
+
+        public void MountDrives(List<IFileSystemNode> drives)
+        {
+            foreach (IFileSystemNode d in drives)
+            {
+                this.AddNode(d);
             }
         }
     }

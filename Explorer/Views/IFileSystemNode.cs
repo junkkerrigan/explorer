@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System;
 
 namespace Explorer.Views
 {
@@ -45,9 +47,23 @@ namespace Explorer.Views
 
         void CopyTo(string Path);
 
-        IFileSystemNode GetNewFolderNode(string name);
-
-        IFileSystemNode GetNewFileNode(string name);
+        public static class NodeFactory
+        {
+            public static IFileSystemNode GetNewDriveNode(string name)
+            {
+                return new DriveNode(name);
+            }
+            
+            public static IFileSystemNode GetNewFolderNode(string name)
+            {
+                return new FolderNode(name);
+            }
+            
+            public static IFileSystemNode GetNewFileNode(string name)
+            {
+                return new FileNode(name);
+            }
+        }
 
         /// <summary>
         /// Adds a single previously created node to the end of the list of subnodes
@@ -61,6 +77,8 @@ namespace Explorer.Views
         /// </summary>
         /// <param name="node"></param>
         void AddNodes(IFileSystemNode[] nodes);
+
+        void RemoveNode(IFileSystemNode node);
 
         /// <summary>
         /// Fills node with its subnodes.

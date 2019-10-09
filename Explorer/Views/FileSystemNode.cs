@@ -81,16 +81,6 @@ namespace Explorer.Views
             Presenter.CopyElement(this.Path, destinationPath);
         }
 
-        public IFileSystemNode GetNewFolderNode(string name)
-        {
-            return new FolderNode(name);
-        }
-
-        public IFileSystemNode GetNewFileNode(string name)
-        {
-            return new FileNode(name);
-        }
-
         public void AddNode(IFileSystemNode node)
         {
             node.Path = System.IO.Path.Combine(this.Path, node.Text);
@@ -110,6 +100,11 @@ namespace Explorer.Views
             {
                 this.AddNode(n);
             }
+        }
+
+        public void RemoveNode(IFileSystemNode node)
+        {
+            this.Nodes.Remove(node as FileSystemNode);
         }
 
         public void MarkAsInaccessible()
@@ -159,14 +154,19 @@ namespace Explorer.Views
             this.ContextMenuStrip.Items.Add(item);
         }
 
-        private void FileSystemNode_Copy(object sender, EventArgs e)
+        protected void FileSystemNode_Copy(object sender, EventArgs e)
         {
-            Presenter.CopyNodeToBuffer(this);
+            Presenter.CopyNodeToBuffer();
         }
 
-        private void FileSystemNode_Paste(object sender, EventArgs e)
+        protected void FileSystemNode_Paste(object sender, EventArgs e)
         {
-            Presenter.PasteNodeFromBuffer(this);
+            Presenter.PasteNodeFromBufferAsync();
+        }
+
+        protected void FileSystemNode_Delete(object sender, EventArgs e)
+        {
+            //Presenter.DeleteNode()
         }
     }
 

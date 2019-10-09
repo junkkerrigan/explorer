@@ -11,7 +11,7 @@ namespace Explorer.Presenters
         // TODO: comments
 
         /// <summary>
-        /// Fills passed node with its subnodes.
+        /// Fills <paramref name="node"/> with its subnodes.
         /// </summary>
         /// <param name="node"></param>
         void FillNode(IFileSystemNode node);
@@ -27,12 +27,12 @@ namespace Explorer.Presenters
         /// 
         /// </summary>
         /// <param name="source">Source to be copied to buffer.</param>
-        void CopyNodeToBuffer(IFileSystemNode source);
+        void CopyNodeToBuffer();
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="source">Destination to be pasted from buffer.</param>
-        void PasteNodeFromBuffer(IFileSystemNode destination);
+        void PasteNodeFromBufferAsync();
     }
 }

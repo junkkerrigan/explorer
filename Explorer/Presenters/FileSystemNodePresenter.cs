@@ -12,6 +12,7 @@ namespace Explorer.Presenters
         // TODO: code splitting
         // TODO: async file copying
         // TODO: error modals
+        // TODO: rename View
         protected IFileSystemNode View { get; set; }
 
         /// <summary>
@@ -24,49 +25,54 @@ namespace Explorer.Presenters
             View = view;
         }
 
-        public void CopyNodeToBuffer(IFileSystemNode source)
+        public void CopyNodeToBuffer()
         {
-            _buffer = source;
+            _buffer = View;
         }
 
-        public void PasteNodeFromBuffer(IFileSystemNode destination)
+        public async void PasteNodeFromBufferAsync()
         {
-            if (destination.IsChild(_buffer))
+            if (View.IsChild(_buffer))
             {
                 Console.WriteLine("Err: child");
                 // ShowModal();
                 return;
             }
-            else if (destination == _buffer)
+            else if (View == _buffer)
             {
                 Console.WriteLine("Err: same");
                 // ShowModal();
                 return;
             }
-            else if (_buffer.IsDirectChild(destination))
-            {
-                Console.WriteLine("Err: parent");
-                // ShowModal();
-                return;
-            }
 
-            string newPath = Path.Combine(destination.Path, _buffer.Text);
+            string newPath = Path.Combine(View.Path, _buffer.Text);
+            IFileSystemNode clone = _buffer.GetClone();
+            View.AddNode(clone);
 
-            try
+            bool isCopied = await Task<bool>.Factory.StartNew(() =>
             {
-                _buffer.CopyTo(newPath);
-                IFileSystemNode clone = _buffer.GetClone();
-                destination.AddNode(clone);
-            }
-            catch (FileAlreadyExistsException)
+                try
+                {
+                    _buffer.CopyTo(newPath);
+                }
+                catch (FileAlreadyExistsException)
+                {
+                    Console.WriteLine("Err: file exists");
+                    // ShowModal();
+                    return false;
+                }
+                catch (DirectoryAlreadyExistsException)
+                {
+                    Console.WriteLine("Err: dir exists");
+                    // ShowModal();
+                    return false;
+                }
+                return true;
+            });
+
+            if (!isCopied)
             {
-                Console.WriteLine("Err: file exists");
-                // ShowModal();
-            }
-            catch (DirectoryAlreadyExistsException)
-            {
-                Console.WriteLine("Err: dir exists");
-                // ShowModal();
+                View.RemoveNode(clone);
             }
         }
 
@@ -79,7 +85,7 @@ namespace Explorer.Presenters
             foreach (string folder in subFolders)
             {
                 string name = folder.Substring(folder.LastIndexOf("\\") + 1);
-                IFileSystemNode folderNode = node.GetNewFolderNode(name);
+                IFileSystemNode folderNode = IFileSystemNode.NodeFactory.GetNewFolderNode(name);
                 folderNode.Path = folder;
                 node.AddNode(folderNode);
             }
@@ -88,7 +94,7 @@ namespace Explorer.Presenters
             foreach (string file in innerFiles)
             {
                 string name = file.Substring(file.LastIndexOf("\\") + 1);
-                IFileSystemNode fileNode = node.GetNewFileNode(name);
+                IFileSystemNode fileNode = IFileSystemNode.NodeFactory.GetNewFileNode(name);
                 fileNode.Path = file;
                 node.AddNode(fileNode);
             }
@@ -154,7 +160,6 @@ namespace Explorer.Presenters
 
         public override void CopyElement(string sourcePath, string destinationPath)
         {
-            Console.WriteLine($"Copying dir from {sourcePath} to {destinationPath}");
             if (Directory.Exists(destinationPath))
             {
                 throw new DirectoryAlreadyExistsException();
@@ -174,9 +179,10 @@ namespace Explorer.Presenters
             {
                 string fileName = Path.GetFileName(file),
                     destFileName = Path.Combine(destinationPath, fileName);
-                Console.WriteLine($"Copying file from {file} to {destFileName}");
                 File.Copy(file, destFileName);
             }
+
+            // ShowModalWhenFinished();
         }
     }
 
@@ -202,7 +208,23 @@ namespace Explorer.Presenters
         }
     }
 
-    public class FileAlreadyExistsException : IOException
+    public abstract class AlreadyExistsException : IOException
+    {
+        public AlreadyExistsException()
+        {
+        }
+
+        public AlreadyExistsException(string message) : base(message)
+        {
+        }
+
+        public AlreadyExistsException(string message, Exception innerEx) :
+            base(message, innerEx)
+        {
+        }
+    }
+
+    public class FileAlreadyExistsException : AlreadyExistsException
     {
         public FileAlreadyExistsException() 
         {
@@ -218,7 +240,7 @@ namespace Explorer.Presenters
         }
     }
 
-    public class DirectoryAlreadyExistsException : IOException
+    public class DirectoryAlreadyExistsException : AlreadyExistsException
     {
         public DirectoryAlreadyExistsException()
         {
