@@ -16,7 +16,7 @@ namespace Explorer.Views
         // TODO: Improve UI
 
         public const int MainWrapperMargin = 15;
-        public const int MainWrapperPadding = 15;
+        public const int MainWrapperPadding = 10;
         public const int SpaceBetweenViews = 20;
 
         public readonly Padding ViewPadding = new Padding(20);

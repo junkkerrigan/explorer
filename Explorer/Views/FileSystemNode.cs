@@ -63,19 +63,12 @@ namespace Explorer.Views
         {
             // TODO: fill context menu
             // TODO: comments
+            // TODO: bind keys and context menu items
+
             this.Accessible = true;
             this.Filled = false;
             this.NodeFont = new Font("Verdana", 12);
             this.ContextMenuStrip = new ContextMenuStrip();
-
-            AddContextMenuItem("Open", FileSystemNode_Open);
-            AddContextMenuItem("Copy", FileSystemNode_Copy);
-            AddContextMenuItem("Cut", FileSystemNode_Cut);
-            AddContextMenuItem("Paste", FileSystemNode_Paste);
-            AddContextMenuItem("Delete", FileSystemNode_Delete);
-            AddContextMenuItem("Expand", FileSystemNode_Expand);
-            AddContextMenuItem("Expand all", FileSystemNode_ExpandAll);
-            AddContextMenuItem("Collapse", FileSystemNode_Collapse);
         }
 
         public void Fill()
@@ -225,6 +218,11 @@ namespace Explorer.Views
         {
             Presenter.CollapseNode();
         }
+
+        protected void FileSystemNode_Properties(object sender, EventArgs e)
+        {
+            // TODO: ShowModalProperties();
+        }
     }
 
     /// <summary>
@@ -242,6 +240,12 @@ namespace Explorer.Views
             Presenter = new DirectoryNodePresenter(this);
 
             this.ImageIndex = this.SelectedImageIndex = (int)IconType.Drive;
+
+            AddContextMenuItem("Paste", FileSystemNode_Paste);
+            AddContextMenuItem("Expand", FileSystemNode_Expand);
+            AddContextMenuItem("Expand all", FileSystemNode_ExpandAll);
+            AddContextMenuItem("Collapse", FileSystemNode_Collapse);
+            AddContextMenuItem("Properties", FileSystemNode_Properties);
         }
 
         public override IFileSystemNode GetClone(string Path)
@@ -271,6 +275,15 @@ namespace Explorer.Views
             Presenter = new DirectoryNodePresenter(this);
 
             this.ImageIndex = this.SelectedImageIndex = (int)IconType.Folder;
+
+            AddContextMenuItem("Copy", FileSystemNode_Copy);
+            AddContextMenuItem("Cut", FileSystemNode_Cut);
+            AddContextMenuItem("Paste", FileSystemNode_Paste);
+            AddContextMenuItem("Delete", FileSystemNode_Delete);
+            AddContextMenuItem("Expand", FileSystemNode_Expand);
+            AddContextMenuItem("Expand all", FileSystemNode_ExpandAll);
+            AddContextMenuItem("Collapse", FileSystemNode_Collapse);
+            AddContextMenuItem("Properties", FileSystemNode_Properties);
         }
 
         public override IFileSystemNode GetClone(string Te)
@@ -300,6 +313,12 @@ namespace Explorer.Views
             Presenter = new FileNodePresenter(this);
 
             this.ImageIndex = this.SelectedImageIndex = (int)IconType.File;
+
+            AddContextMenuItem("Open", FileSystemNode_Open);
+            AddContextMenuItem("Copy", FileSystemNode_Copy);
+            AddContextMenuItem("Cut", FileSystemNode_Cut);
+            AddContextMenuItem("Delete", FileSystemNode_Delete);
+            AddContextMenuItem("Properties", FileSystemNode_Properties);
         }
 
         public override IFileSystemNode GetClone(string Path)
