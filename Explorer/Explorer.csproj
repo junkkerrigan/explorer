@@ -98,6 +98,7 @@
     <Compile Include="Presenters\ExplorerPresenter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Views\FileSystemElement.cs" />
     <Compile Include="Views\FileSystemNode.cs" />
     <Compile Include="Views\FileSystemTree.cs">
       <SubType>Component</SubType>
