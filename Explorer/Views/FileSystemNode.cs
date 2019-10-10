@@ -69,6 +69,8 @@ namespace Explorer.Views
             this.Filled = false;
             this.NodeFont = new Font("Verdana", 12);
             this.ContextMenuStrip = new ContextMenuStrip();
+
+            AddContextMenuItem("Rename", FileSystemNode_Rename);
         }
 
         public void Fill()
@@ -81,7 +83,7 @@ namespace Explorer.Views
             Presenter.CopyElement(this.Path, destinationPath);
         }
 
-        public void AddNode(IFileSystemNode node)
+        public void AddSubNode(IFileSystemNode node)
         {
             node.Path = System.IO.Path.Combine(this.Path, node.Text);
             if (node.Filled)
@@ -94,15 +96,15 @@ namespace Explorer.Views
             this.Nodes.Add(node as FileSystemNode);
         }
 
-        public void AddNodes(IFileSystemNode[] nodes)
+        public void AddSubNodes(IFileSystemNode[] nodes)
         {
             foreach (IFileSystemNode n in nodes)
             {
-                this.AddNode(n);
+                this.AddSubNode(n);
             }
         }
 
-        public void RemoveNode(IFileSystemNode node)
+        public void RemoveSubNode(IFileSystemNode node)
         {
             this.Nodes.Remove(node as FileSystemNode);
         }
@@ -125,6 +127,16 @@ namespace Explorer.Views
         void IFileSystemNode.Collapse()
         {
             this.Collapse();
+        }
+
+        void IFileSystemNode.EditName()
+        {
+            this.BeginEdit();
+        }
+
+        void IFileSystemNode.EditElementName()
+        {   
+            //Presenter.Rename
         }
 
         public void MarkAsInaccessible()
@@ -217,6 +229,11 @@ namespace Explorer.Views
         protected void FileSystemNode_Collapse(object sender, EventArgs e)
         {
             Presenter.CollapseNode();
+        }
+
+        protected void FileSystemNode_Rename(object sender, EventArgs e)
+        {
+            Presenter.RenameNode();
         }
 
         protected void FileSystemNode_Properties(object sender, EventArgs e)

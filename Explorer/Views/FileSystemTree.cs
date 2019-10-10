@@ -23,29 +23,35 @@ namespace Explorer.Views
         {
             _presenter = new FileSystemTreePresenter(this);
 
-            this.ItemHeight = 30;
+            this.ItemHeight = Globals.ViewItemHeight;
             this.ShowPlusMinus = true;
             this.Dock = DockStyle.Fill;
             this.BorderStyle = BorderStyle.None;
-            this.Font = new Font("Verdana", 12);
+            this.Font = Globals.ViewItemFont;
+            this.LabelEdit = true;
+
 
             ImageList nodeIcons = new ImageList();
             nodeIcons.Images.Add(Image.FromFile("../../assets/icons/driveIcon.png"));
             nodeIcons.Images.Add(Image.FromFile("../../assets/icons/folderIcon.png"));
             nodeIcons.Images.Add(Image.FromFile("../../assets/icons/fileIcon.png"));
             this.ImageList = nodeIcons;
-            this.ImageList.ImageSize = new Size(18, 18);
+            this.ImageList.ImageSize = Globals.FileSystemNodeImageSize;
 
-            this.BeforeExpand += FileSystemTree_Expand;
+            this.BeforeExpand += FileSystemTree_BeforeExpand;
+            this.AfterLabelEdit += FileSystemTree_AfterLabelEdit;
 
             _presenter.LoadDrives();
         }
 
-        private void FileSystemTree_Expand(object sender, TreeViewCancelEventArgs e)
+        private void FileSystemTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
-            //DirectoryView.BeginUpdate();
-            _presenter.PreloadContent(e.Node as FileSystemNode);
-            //DirectoryView.EndUpdate();
+            _presenter.PreloadContent(e.Node as IFileSystemNode);
+        }
+
+        private void FileSystemTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
+        {
+            (e.Node as IFileSystemNode).EditElementName();
         }
 
         public void AddNode(IFileSystemNode node)

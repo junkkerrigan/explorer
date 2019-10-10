@@ -58,7 +58,7 @@ namespace Explorer.Presenters
 
             string newPath = Path.Combine(View.Path, _buffer.Text);
             IFileSystemNode clone = _buffer.GetClone();
-            View.AddNode(clone);
+            View.AddSubNode(clone);
 
             bool isCopied = await Task<bool>.Factory.StartNew(() =>
             {
@@ -83,7 +83,7 @@ namespace Explorer.Presenters
 
             if (!isCopied)
             {
-                View.RemoveNode(clone);
+                View.RemoveSubNode(clone);
             }
         }
 
@@ -98,7 +98,7 @@ namespace Explorer.Presenters
                 string name = folder.Substring(folder.LastIndexOf("\\") + 1);
                 IFileSystemNode folderNode = IFileSystemNode.NodeFactory.GetNewFolderNode(name);
                 folderNode.Path = folder;
-                node.AddNode(folderNode);
+                node.AddSubNode(folderNode);
             }
 
             string[] innerFiles = GetInnerFiles(node);
@@ -107,7 +107,7 @@ namespace Explorer.Presenters
                 string name = file.Substring(file.LastIndexOf("\\") + 1);
                 IFileSystemNode fileNode = IFileSystemNode.NodeFactory.GetNewFileNode(name);
                 fileNode.Path = file;
-                node.AddNode(fileNode);
+                node.AddSubNode(fileNode);
             }
             node.Filled = true;
         }
@@ -178,6 +178,11 @@ namespace Explorer.Presenters
         void IFileSystemNodePresenter.CollapseNode()
         {
             View.Collapse();
+        }
+
+        void IFileSystemNodePresenter.RenameNode()
+        {
+            View.EditName();
         }
     }
 

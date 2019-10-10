@@ -16,14 +16,14 @@ namespace Explorer.Presenters
         /// <param name="node"></param>
         void FillNode(IFileSystemNode node);
 
-        void OpenWithDefaultApplication();
+        void OpenWithDefaultApplication(); // IFSE
 
         /// <summary>
         /// Copies file system element from <paramref name="sourcePath"/> into <paramref name="destinationPath"/>.
         /// </summary>
         /// <param name="sourcePath"></param>
         /// <param name="destinationPath"></param>
-        void CopyElement(string sourcePath, string destinationPath);
+        void CopyElement(string sourcePath, string destinationPath);  // IFSE
 
         /// <summary>
         /// 
@@ -31,13 +31,13 @@ namespace Explorer.Presenters
         /// <param name="source">Source to be copied to buffer.</param>
         void CopyNodeToBuffer();
 
-        void CutNode();
+        void CutNode();  // IFSE
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="source">Destination to be pasted from buffer.</param>
-        void PasteNodeFromBufferAsync();
+        void PasteNodeFromBufferAsync();  // IFSE
 
         void DeleteNode();
 
@@ -46,5 +46,10 @@ namespace Explorer.Presenters
         void ExpandAllSubNodes();
 
         void CollapseNode();
+
+        void RenameNode();
+
+        
+
     }
 }

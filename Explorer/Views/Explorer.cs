@@ -15,10 +15,6 @@ namespace Explorer.Views
     {
         // TODO: Improve UI
 
-        public const int MainWrapperMargin = 15;
-        public const int MainWrapperPadding = 10;
-        public const int SpaceBetweenViews = 20;
-
         public readonly Padding ViewPadding = new Padding(20);
 
         private readonly Panel MainWrapper;
@@ -28,6 +24,8 @@ namespace Explorer.Views
         private readonly Panel FileViewWrapper;
 
         private readonly FileSystemTree DirectoryView;
+
+        private readonly FileList FileView;
 
         /// <summary>
         /// Initializes a new instance of <see cref="Explorer"/>.
@@ -41,17 +39,20 @@ namespace Explorer.Views
 
             MainWrapper = new Panel()
             {
-                Location = new Point(MainWrapperMargin, MainWrapperMargin),
-                Size = new Size(this.ClientSize.Width - 2 * MainWrapperMargin, 
-                    this.ClientSize.Height - 2 * MainWrapperMargin),
+                Location = new Point(Globals.MainWrapperMargin, 
+                    Globals.MainWrapperMargin),
+                Size = new Size(this.ClientSize.Width - 2 * Globals.MainWrapperMargin, 
+                    this.ClientSize.Height - 2 * Globals.MainWrapperMargin),
             };
 
             DirectoryViewWrapper = new Panel()
             {
-                Location = new Point(MainWrapperPadding, MainWrapperPadding),
+                Location = new Point(Globals.MainWrapperPadding, 
+                    Globals.MainWrapperPadding),
                 Size = new Size(
-                    (MainWrapper.Width - 2 * MainWrapperPadding - SpaceBetweenViews) / 2, 
-                    MainWrapper.Height - 2 * MainWrapperPadding),
+                    (MainWrapper.Width - 2 * Globals.MainWrapperPadding - 
+                    Globals.SpaceBetweenViews) / 2, 
+                    MainWrapper.Height - 2 * Globals.MainWrapperPadding),
                 Padding = ViewPadding,
                 BackColor = Color.White,
             };
@@ -59,9 +60,11 @@ namespace Explorer.Views
             FileViewWrapper = new Panel()
             {
                 Location = new Point(
-                    DirectoryViewWrapper.Width + MainWrapperPadding + SpaceBetweenViews, 
-                    MainWrapperPadding),
-                Size = new Size(DirectoryViewWrapper.Width, DirectoryViewWrapper.Height),
+                    DirectoryViewWrapper.Width + Globals.MainWrapperPadding + 
+                    Globals.SpaceBetweenViews, 
+                    Globals.MainWrapperPadding),
+                Size = new Size(DirectoryViewWrapper.Width, 
+                    DirectoryViewWrapper.Height),
                 Padding = ViewPadding,
                 BackColor = Color.White,
             };
@@ -69,12 +72,15 @@ namespace Explorer.Views
 
             DirectoryView = new FileSystemTree();
 
+            FileView = new FileList();
+
             this.Controls.Add(MainWrapper);
 
             MainWrapper.Controls.Add(DirectoryViewWrapper);
             MainWrapper.Controls.Add(FileViewWrapper);
 
             DirectoryViewWrapper.Controls.Add(DirectoryView);
+            FileViewWrapper.Controls.Add(FileView);
         }
 
         public void Mount()
@@ -84,17 +90,21 @@ namespace Explorer.Views
 
         private void Explorer_SizeChanged(object sender, EventArgs e)
         {
-            MainWrapper.Size = new Size(this.ClientSize.Width - 2 * MainWrapperMargin,
-                    this.ClientSize.Height - 2 * MainWrapperMargin);
+            MainWrapper.Size = new Size(this.ClientSize.Width - 
+                    2 * Globals.MainWrapperMargin,
+                this.ClientSize.Height - 2 * Globals.MainWrapperMargin);
 
             DirectoryViewWrapper.Size = new Size(
-                    (MainWrapper.Width - 2 * MainWrapperPadding - SpaceBetweenViews) / 2,
-                    MainWrapper.Height - 2 * MainWrapperPadding);
+                (MainWrapper.Width - 2 * Globals.MainWrapperPadding - 
+                    Globals.SpaceBetweenViews) / 2,
+                MainWrapper.Height - 2 * Globals.MainWrapperPadding);
 
             FileViewWrapper.Location = new Point(
-                    DirectoryViewWrapper.Width + MainWrapperPadding + SpaceBetweenViews,
-                    MainWrapperPadding);
-            FileViewWrapper.Size = new Size(DirectoryViewWrapper.Width, DirectoryViewWrapper.Height);
+                DirectoryViewWrapper.Width + Globals.MainWrapperPadding +
+                    Globals.SpaceBetweenViews,
+                Globals.MainWrapperPadding);
+            FileViewWrapper.Size = new Size(DirectoryViewWrapper.Width, 
+                DirectoryViewWrapper.Height);
         }
 
         private void Explorer_Paint(object sender, PaintEventArgs e)

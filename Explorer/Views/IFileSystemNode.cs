@@ -19,7 +19,7 @@ namespace Explorer.Views
         /// <summary>
         /// Absolute path to element.
         /// </summary>
-        string Path { get; set; }
+        string Path { get; set; } // IFSE
 
         /// <summary>
         /// Indicates if it's possible to interact with element.
@@ -45,7 +45,7 @@ namespace Explorer.Views
         /// <returns>Created node.</returns>
         IFileSystemNode GetClone(string Path);
 
-        void CopyTo(string Path);
+        void CopyTo(string Path); // IFSE
 
         public static class NodeFactory
         {
@@ -70,15 +70,15 @@ namespace Explorer.Views
         /// and assigns its Path property depending on Path of this node.
         /// </summary>
         /// <param name="node"></param>
-        void AddNode(IFileSystemNode node);
+        void AddSubNode(IFileSystemNode node);
 
         /// <summary>
         /// Adds a list of previously created nodes to the end of the list of subnodes.
         /// </summary>
         /// <param name="node"></param>
-        void AddNodes(IFileSystemNode[] nodes);
+        void AddSubNodes(IFileSystemNode[] nodes);
 
-        void RemoveNode(IFileSystemNode node);
+        void RemoveSubNode(IFileSystemNode node);
 
         void Delete();
 
@@ -87,6 +87,10 @@ namespace Explorer.Views
         void ExpandAll();
 
         void Collapse();
+
+        void EditName();
+
+        void EditElementName(); // IFSE
 
         /// <summary>
         /// Fills node with its subnodes.
