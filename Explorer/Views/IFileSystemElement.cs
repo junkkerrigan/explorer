@@ -10,6 +10,8 @@ namespace Explorer.Views
     {
         string Path { get; set; }
 
+        IFileSystemNode Node { get; set; }
+
         void CopyTo(string destinationPath);
 
         void Delete();

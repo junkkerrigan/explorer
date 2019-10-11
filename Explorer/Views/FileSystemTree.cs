@@ -51,7 +51,7 @@ namespace Explorer.Views
 
         private void FileSystemTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
         {
-            (e.Node as IFileSystemNode).EditElementName();
+            //(e.Node as IFileSystemNode).EditElementName();
         }
 
         public void AddNode(IFileSystemNode node)

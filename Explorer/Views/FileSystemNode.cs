@@ -8,13 +8,13 @@ using Explorer.Presenters;
 namespace Explorer.Views
 {
     /// <summary>
-    /// Specifies a type of file system element's icon.
+    /// Specifies indexes of types of file system elements' icons in ImageList.
     /// </summary>
-    public enum IconType
+    public static class IconTypeIndexes
     {
-        Drive,
-        Folder,
-        File
+        public const int DriveIndex = 0;
+        public const int FolderIndex = 1;
+        public const int FileIndex = 2;
     }
 
     /// <summary>
@@ -34,11 +34,21 @@ namespace Explorer.Views
             }
         }
 
-        public string Path { get; set; }
+        public string Path
+        {
+            get
+            {
+                return Element.Path;
+            }
+            set
+            {
+                Element.Path = value;
+            }
+        }
 
-        public bool Accessible { get; set; }
+        public bool IsAccessible { get; set; }
 
-        public bool Filled { get; set; }
+        public bool IsFilled { get; set; }
 
         public List<IFileSystemNode> SubNodes
         {
@@ -53,7 +63,9 @@ namespace Explorer.Views
             }
         }
 
-        protected IFileSystemNodePresenter Presenter { get; set; }    
+        protected IFileSystemNodePresenter Presenter { get; set; }
+        
+        public IFileSystemElement Element { get; set; }
 
         /// <summary>
         /// Initializes a new instance of <see cref="FileSystemNode"/> class
@@ -65,32 +77,31 @@ namespace Explorer.Views
             // TODO: comments
             // TODO: bind keys and context menu items
 
-            this.Accessible = true;
-            this.Filled = false;
-            this.NodeFont = new Font("Verdana", 12);
+            this.IsAccessible = true;
+            this.IsFilled = false;
             this.ContextMenuStrip = new ContextMenuStrip();
-
-            AddContextMenuItem("Rename", FileSystemNode_Rename);
         }
 
         public void Fill()
         {
-            Presenter.FillNode(this);
+            try
+            {
+                Presenter.FillNode();
+            }
+            catch(Exception)
+            {
+            }
         }
 
-        public void CopyTo(string destinationPath)
-        {
-            Presenter.CopyElement(this.Path, destinationPath);
-        }
-
+        // TODO: override in FileNode with NotSupported
         public void AddSubNode(IFileSystemNode node)
         {
-            node.Path = System.IO.Path.Combine(this.Path, node.Text);
-            if (node.Filled)
+            node.Element.Path = System.IO.Path.Combine(this.Path, node.Text);
+            if (node.IsFilled)
             {
                 foreach (IFileSystemNode child in node.SubNodes)
                 {
-                    child.Path = System.IO.Path.Combine(node.Path, child.Text);
+                    child.Element.Path = System.IO.Path.Combine(node.Element.Path, child.Text);
                 }
             }
             this.Nodes.Add(node as FileSystemNode);
@@ -109,7 +120,7 @@ namespace Explorer.Views
             this.Nodes.Remove(node as FileSystemNode);
         }
 
-        void IFileSystemNode.Delete()
+        void IFileSystemNode.Remove()
         {
             this.Remove();
         }
@@ -129,20 +140,20 @@ namespace Explorer.Views
             this.Collapse();
         }
 
-        void IFileSystemNode.EditName()
+        void IFileSystemNode.StartNameEditing()
         {
             this.BeginEdit();
         }
 
-        void IFileSystemNode.EditElementName()
-        {   
-            //Presenter.Rename
+        public void ShowProperties()
+        {
         }
 
         public void MarkAsInaccessible()
         {
-            this.Accessible = false;
+            this.IsAccessible = false;
             this.ForeColor = Color.Gray;
+            this.ContextMenuStrip.Items.Clear();
         }
 
         public IFileSystemNode GetClone()
@@ -168,77 +179,13 @@ namespace Explorer.Views
             return false;
         }
 
-        public bool IsDirectChild(IFileSystemNode parent)
-        {
-            return parent == this.Parent;
-        }
+        // TODO: if required, change to IFSN.Method()
 
-
-        /// <summary>
-        /// Adds new option to right-click menu.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="onClick"></param>
-        protected void AddContextMenuItem(string name, EventHandler onClick)
+        public void AddContextMenuItem(string name, Action onClick)
         {
             ToolStripMenuItem item = new ToolStripMenuItem(name);
-            item.Click += onClick;
+            item.Click += (s, e) => onClick();
             this.ContextMenuStrip.Items.Add(item);
-        }
-
-        protected void FileSystemNode_Open(object sender, EventArgs e)
-        {
-            Presenter.OpenWithDefaultApplication();
-        }
-
-        protected void FileSystemNode_Copy(object sender, EventArgs e)
-        {
-            Presenter.CopyNodeToBuffer();
-        }
-
-        protected void FileSystemNode_Cut(object sender, EventArgs e)
-        {
-            Presenter.CutNode();
-        }
-
-        //protected void FileSystemNode_Move(object sender, EventArgs e)
-        //{
-        //    Presenter.MoveNode();
-        //}
-
-        protected void FileSystemNode_Paste(object sender, EventArgs e)
-        {
-            Presenter.PasteNodeFromBufferAsync();
-        }
-
-        protected void FileSystemNode_Delete(object sender, EventArgs e)
-        {
-            Presenter.DeleteNode();
-        }
-
-        protected void FileSystemNode_Expand(object sender, EventArgs e)
-        {
-            Presenter.ExpandNode();
-        }
-
-        protected void FileSystemNode_ExpandAll(object sender, EventArgs e)
-        {
-            Presenter.ExpandAllSubNodes();
-        }
-
-        protected void FileSystemNode_Collapse(object sender, EventArgs e)
-        {
-            Presenter.CollapseNode();
-        }
-
-        protected void FileSystemNode_Rename(object sender, EventArgs e)
-        {
-            Presenter.RenameNode();
-        }
-
-        protected void FileSystemNode_Properties(object sender, EventArgs e)
-        {
-            // TODO: ShowModalProperties();
         }
     }
 
@@ -251,27 +198,21 @@ namespace Explorer.Views
         /// Initializes a new instance of <see cref="DriveNode"/> class
         /// with specified name.
         /// </summary>
-
         public DriveNode(string name) : base(name)
         {
-            Presenter = new DirectoryNodePresenter(this);
+            Presenter = new DriveNodePresenter(this);
+            Element = new DirectoryElement(this);
 
-            this.ImageIndex = this.SelectedImageIndex = (int)IconType.Drive;
-
-            AddContextMenuItem("Paste", FileSystemNode_Paste);
-            AddContextMenuItem("Expand", FileSystemNode_Expand);
-            AddContextMenuItem("Expand all", FileSystemNode_ExpandAll);
-            AddContextMenuItem("Collapse", FileSystemNode_Collapse);
-            AddContextMenuItem("Properties", FileSystemNode_Properties);
+            this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.DriveIndex;
         }
 
         public override IFileSystemNode GetClone(string Path)
         {
             DriveNode clone = new DriveNode(this.Text)
             {
-                Path = Path,
-                Accessible = this.Accessible,
+                IsAccessible = this.IsAccessible,
             };
+            clone.Path = Path;
             clone.Fill();
 
             return clone;
@@ -289,27 +230,19 @@ namespace Explorer.Views
         /// </summary>
         public FolderNode(string name) : base(name)
         {
-            Presenter = new DirectoryNodePresenter(this);
+            Presenter = new FolderNodePresenter(this);
+            Element = new DirectoryElement(this);
 
-            this.ImageIndex = this.SelectedImageIndex = (int)IconType.Folder;
-
-            AddContextMenuItem("Copy", FileSystemNode_Copy);
-            AddContextMenuItem("Cut", FileSystemNode_Cut);
-            AddContextMenuItem("Paste", FileSystemNode_Paste);
-            AddContextMenuItem("Delete", FileSystemNode_Delete);
-            AddContextMenuItem("Expand", FileSystemNode_Expand);
-            AddContextMenuItem("Expand all", FileSystemNode_ExpandAll);
-            AddContextMenuItem("Collapse", FileSystemNode_Collapse);
-            AddContextMenuItem("Properties", FileSystemNode_Properties);
+            this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FolderIndex;            
         }
 
-        public override IFileSystemNode GetClone(string Te)
+        public override IFileSystemNode GetClone(string Path)
         {
             FolderNode clone = new FolderNode(this.Text)
             {
-                Path = this.Path,
-                Accessible = this.Accessible,
+                IsAccessible = this.IsAccessible,
             };
+            clone.Path = Path;
             clone.Fill();
 
             return clone;
@@ -328,23 +261,19 @@ namespace Explorer.Views
         public FileNode(string name) : base(name)
         {
             Presenter = new FileNodePresenter(this);
+            Element = new FileElement(this);
 
-            this.ImageIndex = this.SelectedImageIndex = (int)IconType.File;
-
-            AddContextMenuItem("Open", FileSystemNode_Open);
-            AddContextMenuItem("Copy", FileSystemNode_Copy);
-            AddContextMenuItem("Cut", FileSystemNode_Cut);
-            AddContextMenuItem("Delete", FileSystemNode_Delete);
-            AddContextMenuItem("Properties", FileSystemNode_Properties);
+            this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FileIndex;
+            this.IsFilled = true;
         }
 
         public override IFileSystemNode GetClone(string Path)
         {
             FileNode clone = new FileNode(this.Text)
             {
-                Path = Path,
-                Accessible = this.Accessible,
+                IsAccessible = this.IsAccessible,
             };
+            clone.Path = Path;
             return clone;
         }
     }

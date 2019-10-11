@@ -17,19 +17,16 @@ namespace Explorer.Views
         string Text { get; set; }
 
         /// <summary>
-        /// Absolute path to element.
-        /// </summary>
-        string Path { get; set; } // IFSE
-
-        /// <summary>
         /// Indicates if it's possible to interact with element.
         /// </summary>
-        bool Accessible { get; set; }
+        bool IsAccessible { get; set; }
 
         /// <summary>
         /// Indicates if subnodes of the node are filled.
         /// </summary>
-        bool Filled { get; set; }
+        bool IsFilled { get; set; }
+
+        IFileSystemElement Element { get; set; }
 
         List<IFileSystemNode> SubNodes { get; }
 
@@ -45,9 +42,14 @@ namespace Explorer.Views
         /// <returns>Created node.</returns>
         IFileSystemNode GetClone(string Path);
 
-        void CopyTo(string Path); // IFSE
+        /// <summary>
+        /// Adds new option to right-click menu.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="onClick"></param>
+        void AddContextMenuItem(string name, Action onClick);
 
-        public static class NodeFactory
+        public static class Factory
         {
             public static IFileSystemNode GetNewDriveNode(string name)
             {
@@ -80,7 +82,7 @@ namespace Explorer.Views
 
         void RemoveSubNode(IFileSystemNode node);
 
-        void Delete();
+        void Remove();
 
         void Expand();
 
@@ -88,9 +90,9 @@ namespace Explorer.Views
 
         void Collapse();
 
-        void EditName();
+        void StartNameEditing();
 
-        void EditElementName(); // IFSE
+        void ShowProperties();
 
         /// <summary>
         /// Fills node with its subnodes.
@@ -109,13 +111,5 @@ namespace Explorer.Views
         /// <returns>True, if passed node is an ancestor of this node, 
         /// false, otherwise</returns>
         bool IsChild(IFileSystemNode ancestor);
-
-        /// <summary>
-        /// Checks if passed node is a parent of this node.
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns>True, if passed node is a parent of this node, 
-        /// false, otherwise</returns>
-        bool IsDirectChild(IFileSystemNode parent);
     }
 }

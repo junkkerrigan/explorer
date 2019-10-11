@@ -22,8 +22,8 @@ namespace Explorer.Presenters
             DriveInfo[] drives = DriveInfo.GetDrives();
             foreach (DriveInfo d in drives)
             {
-                IFileSystemNode dNode = IFileSystemNode.NodeFactory.GetNewDriveNode(d.Name);
-                dNode.Path = d.Name;
+                IFileSystemNode dNode = IFileSystemNode.Factory.GetNewDriveNode(d.Name);
+                dNode.Element.Path = d.Name;
                 driveNodes.Add(dNode);
                 dNode.Fill();
             }

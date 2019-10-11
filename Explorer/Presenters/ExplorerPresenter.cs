@@ -30,7 +30,7 @@ namespace Explorer.Presenters
 
         //public void CheckAccessibility(FileSystemNode node)
         //{
-        //    //if (!node.IsAccessible) _Node.ShowModal();
+        //    //if (!node.IsIsAccessible) _Node.ShowModal();
         //}
 
         

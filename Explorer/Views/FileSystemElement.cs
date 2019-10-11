@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -6,9 +7,17 @@ using Explorer.Presenters;
 
 namespace Explorer.Views
 {
+    // TODO: if required, remove FSE and implement IFSE directly in DE, FE
     public abstract class FileSystemElement : IFileSystemElement
     {
         public string Path { get; set; }
+
+        public IFileSystemNode Node { get; set; }
+
+        public FileSystemElement(IFileSystemNode node)
+        {
+            Node = node;
+        }
 
         void IFileSystemElement.CopyTo(string destinationPath)
         {
@@ -23,14 +32,15 @@ namespace Explorer.Views
 
         public abstract void OpenWithDefaultApplication();
 
-        void IFileSystemElement.Move(string destinationPath)
-        {
-
-        }
+        public abstract void Move(string destinationPath);
     }
 
     public class DirectoryElement : FileSystemElement
     {
+        public DirectoryElement(IFileSystemNode node) : base(node)
+        {
+        }
+
         protected override void Copy(string sourcePath, string destinationPath)
         {
             if (Directory.Exists(destinationPath))
@@ -68,10 +78,24 @@ namespace Explorer.Views
             string newPath = this.Path.Remove(this.Path.LastIndexOf('\\') + 1) + newName;
             Directory.Move(this.Path, newPath);
         }
+
+        public override void OpenWithDefaultApplication()
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Move(string destinationPath)
+        {
+            Directory.Move(this.Path, destinationPath);
+        }
     }
 
     public class FileElement : FileSystemElement
     {
+        public FileElement(IFileSystemNode node) : base(node)
+        {
+        }
+
         protected override void Copy(string sourcePath, string destinationPath)
         {
             if (File.Exists(destinationPath))
@@ -92,6 +116,16 @@ namespace Explorer.Views
         {
             string newPath = this.Path.Remove(this.Path.LastIndexOf('\\') + 1) + newName;
             File.Move(this.Path, newPath);
+        }
+
+        public override void OpenWithDefaultApplication()
+        {
+            Process.Start(this.Path);
+        }
+
+        public override void Move(string destinationPath)
+        {
+            File.Move(this.Path, destinationPath);
         }
     }
 }

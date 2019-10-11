@@ -26,19 +26,15 @@ namespace Explorer.Presenters
             View = view;
         }
 
-        public virtual void OpenWithDefaultApplication()
-        { 
-        }
-
-        void IFileSystemNodePresenter.CopyNodeToBuffer()
+        public void CopyNodeToBuffer()
         {
             _buffer = View;
         }
 
-        void IFileSystemNodePresenter.CutNode()
+        public void CutNodeToBuffer()
         {
             _buffer = View;
-            View.Delete();
+            View.Remove();
         }
 
         public async void PasteNodeFromBufferAsync()
@@ -56,7 +52,7 @@ namespace Explorer.Presenters
                 return;
             }
 
-            string newPath = Path.Combine(View.Path, _buffer.Text);
+            string newPath = Path.Combine(View.Element.Path, _buffer.Text);
             IFileSystemNode clone = _buffer.GetClone();
             View.AddSubNode(clone);
 
@@ -64,7 +60,7 @@ namespace Explorer.Presenters
             {
                 try
                 {
-                    _buffer.CopyTo(newPath);
+                    _buffer.Element.CopyTo(newPath);
                 }
                 catch (FileAlreadyExistsException)
                 {
@@ -87,34 +83,11 @@ namespace Explorer.Presenters
             }
         }
 
-        public abstract void CopyElement(string sourcePath, string destinationPath);
-
-        public virtual void FillNode(IFileSystemNode node)
-        {
-            if (node.Filled || !node.Accessible) return;
-            string[] subFolders = GetSubFolders(node);
-            foreach (string folder in subFolders)
-            {
-                string name = folder.Substring(folder.LastIndexOf("\\") + 1);
-                IFileSystemNode folderNode = IFileSystemNode.NodeFactory.GetNewFolderNode(name);
-                folderNode.Path = folder;
-                node.AddSubNode(folderNode);
-            }
-
-            string[] innerFiles = GetInnerFiles(node);
-            foreach (string file in innerFiles)
-            {
-                string name = file.Substring(file.LastIndexOf("\\") + 1);
-                IFileSystemNode fileNode = IFileSystemNode.NodeFactory.GetNewFileNode(name);
-                fileNode.Path = file;
-                node.AddSubNode(fileNode);
-            }
-            node.Filled = true;
-        }
+        public abstract void FillNode();
 
         protected string[] GetSubFolders(IFileSystemNode node)
         {
-            string path = node.Path;
+            string path = node.Element.Path;
             string[] subFolders = { };
 
             try
@@ -139,7 +112,7 @@ namespace Explorer.Presenters
 
         protected string[] GetInnerFiles(IFileSystemNode node)
         {
-            string path = node.Path;
+            string path = node.Element.Path;
             string[] innerFiles = { };
                 
             try
@@ -163,67 +136,68 @@ namespace Explorer.Presenters
         }
 
         // TODO: ShowModalReallyDelete()
-        public abstract void DeleteNode();
-
-        void IFileSystemNodePresenter.ExpandNode()
+        public void RemoveNode()
         {
-            View.Expand();
-        }
-
-        void IFileSystemNodePresenter.ExpandAllSubNodes()
-        {
-            View.ExpandAll();
-        }
-
-        void IFileSystemNodePresenter.CollapseNode()
-        {
-            View.Collapse();
-        }
-
-        void IFileSystemNodePresenter.RenameNode()
-        {
-            View.EditName();
+            View.Element.Delete();
+            View.Remove();
         }
     }
 
+    // create drive presenter
     public class DirectoryNodePresenter : FileSystemNodePresenter
     {
         public DirectoryNodePresenter(IFileSystemNode view) : base(view) 
         {
         }
 
-        public override void DeleteNode()
+        public override void FillNode()
         {
-            string path = View.Path;
-            View.Delete();
-            Directory.Delete(path, true);
-        }
-
-        public override void CopyElement(string sourcePath, string destinationPath)
-        {
-            if (Directory.Exists(destinationPath))
+            if (View.IsFilled || !View.IsAccessible) return;
+            string[] subFolders = GetSubFolders(View);
+            foreach (string folder in subFolders)
             {
-                throw new DirectoryAlreadyExistsException();
-            }
-            Directory.CreateDirectory(destinationPath);
-
-            string[] subDirs = Directory.GetDirectories(sourcePath);
-            foreach (string dir in subDirs)
-            {
-                string folderName = dir.Substring(dir.LastIndexOf('\\') + 1),
-                    newDestPath = Path.Combine(destinationPath, folderName);
-                CopyElement(dir, newDestPath);
+                string name = folder.Substring(folder.LastIndexOf("\\") + 1);
+                IFileSystemNode folderNode = IFileSystemNode.Factory.GetNewFolderNode(name);
+                folderNode.Element.Path = folder;
+                View.AddSubNode(folderNode);
             }
 
-            string[] innerFiles = Directory.GetFiles(sourcePath);
+            string[] innerFiles = GetInnerFiles(View);
             foreach (string file in innerFiles)
             {
-                string fileName = Path.GetFileName(file),
-                    destFileName = Path.Combine(destinationPath, fileName);
-                File.Copy(file, destFileName);
+                string name = file.Substring(file.LastIndexOf("\\") + 1);
+                IFileSystemNode fileNode = IFileSystemNode.Factory.GetNewFileNode(name);
+                fileNode.Element.Path = file;
+                View.AddSubNode(fileNode);
             }
+            View.IsFilled = true;
+        }
+    }
 
-            // ShowModalWhenFinished();
+    public class DriveNodePresenter : DirectoryNodePresenter
+    {
+        public DriveNodePresenter(IFileSystemNode view) : base(view)
+        {
+            View.AddContextMenuItem("Paste", this.PasteNodeFromBufferAsync);
+            View.AddContextMenuItem("Expand", View.Expand);
+            View.AddContextMenuItem("Expand all", View.ExpandAll);
+            View.AddContextMenuItem("Collapse", View.Collapse);
+            View.AddContextMenuItem("Properties", View.ShowProperties);
+        }
+    }
+
+    public class FolderNodePresenter : DirectoryNodePresenter
+    {
+        public FolderNodePresenter(IFileSystemNode view) : base(view)
+        {
+            View.AddContextMenuItem("Copy", this.CopyNodeToBuffer);
+            View.AddContextMenuItem("Cut", this.CutNodeToBuffer);
+            View.AddContextMenuItem("Paste", this.PasteNodeFromBufferAsync);
+            View.AddContextMenuItem("Delete", this.RemoveNode);
+            View.AddContextMenuItem("Expand", View.Expand);
+            View.AddContextMenuItem("Expand all", View.ExpandAll);
+            View.AddContextMenuItem("Collapse", View.Collapse);
+            View.AddContextMenuItem("Properties", View.ShowProperties);
         }
     }
 
@@ -231,33 +205,23 @@ namespace Explorer.Presenters
     {
         public FileNodePresenter(IFileSystemNode view) : base(view) 
         {
+            //try
+            //{
+            //    View.AddContextMenuItem("Open", View.Element.OpenWithDefaultApplication);
+            //}
+            //catch(Exception ex) {
+            //    Console.WriteLine(ex.GetType());
+            //    Console.WriteLine(ex.StackTrace);
+            //}
+            View.AddContextMenuItem("Copy", this.CopyNodeToBuffer);
+            View.AddContextMenuItem("Cut", this.CutNodeToBuffer);
+            View.AddContextMenuItem("Delete", this.RemoveNode);
+            View.AddContextMenuItem("Properties", View.ShowProperties);
         }
 
-        public override void FillNode(IFileSystemNode node)
+        public override void FillNode()
         {
-            node.Filled = true;
-            return;
-        }
-
-        public override void OpenWithDefaultApplication()
-        {
-            Process.Start(View.Path);
-        }
-
-        public override void CopyElement(string sourcePath, string destinationPath)
-        {
-            if (File.Exists(destinationPath))
-            {
-                throw new FileAlreadyExistsException();
-            }
-            File.Copy(sourcePath, destinationPath);
-        }
-
-        public override void DeleteNode()
-        {
-            string path = View.Path;
-            View.Delete();
-            File.Delete(path);
+            throw new NotSupportedException("Error: impossible to fill FileNode");
         }
     }
 
