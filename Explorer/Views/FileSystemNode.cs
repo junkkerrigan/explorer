@@ -34,15 +34,11 @@ namespace Explorer.Views
             }
         }
 
-        public string Path
+        IFileSystemNode IFileSystemNode.Parent
         {
             get
             {
-                return Element.Path;
-            }
-            set
-            {
-                Element.Path = value;
+                return base.Parent as IFileSystemNode;
             }
         }
 
@@ -96,18 +92,34 @@ namespace Explorer.Views
         // TODO: override in FileNode with NotSupported
         public void AddSubNode(IFileSystemNode node)
         {
-            node.Element.Path = System.IO.Path.Combine(this.Path, node.Text);
-            if (node.IsFilled)
-            {
-                foreach (IFileSystemNode child in node.SubNodes)
-                {
-                    child.Element.Path = System.IO.Path.Combine(node.Element.Path, child.Text);
-                }
-            }
+            string newPath = System.IO.Path.Combine(this.Element.Path, node.Text);
+            node.Element.UpdatePath(newPath);
             this.Nodes.Add(node as FileSystemNode);
         }
 
-        public void AddSubNodes(IFileSystemNode[] nodes)
+        public class NodeComparer : IComparer<IFileSystemNode>
+        {
+            public int Compare(IFileSystemNode X, IFileSystemNode Y)
+            {
+                if (X is FolderNode && Y is FileNode) return 1;
+                else if (X is FileNode && Y is FolderNode) return -1;
+                else return String.Compare(X.Text, Y.Text);
+            }
+        }
+
+        public void Sort()
+        {
+            List<IFileSystemNode> subNodes = this.SubNodes;
+            this.Nodes.Clear();
+            subNodes.Sort(new NodeComparer());
+            foreach (var a in subNodes)
+            {
+                Console.WriteLine(a.Text);
+            }
+            this.AddSubNodes(subNodes);
+        }
+
+        public void AddSubNodes(List<IFileSystemNode> nodes)
         {
             foreach (IFileSystemNode n in nodes)
             {
@@ -140,8 +152,9 @@ namespace Explorer.Views
             this.Collapse();
         }
 
-        void IFileSystemNode.StartNameEditing()
+        public void StartNameEditing()
         {
+            this.TreeView.LabelEdit = true;
             this.BeginEdit();
         }
 
@@ -156,12 +169,7 @@ namespace Explorer.Views
             this.ContextMenuStrip.Items.Clear();
         }
 
-        public IFileSystemNode GetClone()
-        {
-            return GetClone(this.Path);
-        }
-
-        public abstract IFileSystemNode GetClone(string Path);
+        public abstract IFileSystemNode GetClone();
 
         public bool IsChild(IFileSystemNode ancestor)
         {
@@ -200,20 +208,25 @@ namespace Explorer.Views
         /// </summary>
         public DriveNode(string name) : base(name)
         {
-            Presenter = new DriveNodePresenter(this);
             Element = new DirectoryElement(this);
+            Presenter = new DriveNodePresenter(this);
 
             this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.DriveIndex;
         }
 
-        public override IFileSystemNode GetClone(string Path)
+        public override IFileSystemNode GetClone()
         {
             DriveNode clone = new DriveNode(this.Text)
             {
+                IsFilled = this.IsFilled,
                 IsAccessible = this.IsAccessible,
             };
-            clone.Path = Path;
-            clone.Fill();
+            clone.Element.Path = this.Element.Path;
+
+            foreach (IFileSystemNode node in this.SubNodes)
+            {
+                clone.AddSubNode(node.GetClone());
+            }
 
             return clone;
         }
@@ -230,20 +243,25 @@ namespace Explorer.Views
         /// </summary>
         public FolderNode(string name) : base(name)
         {
-            Presenter = new FolderNodePresenter(this);
             Element = new DirectoryElement(this);
+            Presenter = new FolderNodePresenter(this);
 
             this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FolderIndex;            
         }
 
-        public override IFileSystemNode GetClone(string Path)
+        public override IFileSystemNode GetClone()
         {
             FolderNode clone = new FolderNode(this.Text)
             {
+                IsFilled = this.IsFilled,
                 IsAccessible = this.IsAccessible,
             };
-            clone.Path = Path;
-            clone.Fill();
+            clone.Element.Path = this.Element.Path;
+
+            foreach (IFileSystemNode node in this.SubNodes)
+            {
+                clone.AddSubNode(node.GetClone());
+            }
 
             return clone;
         }
@@ -260,20 +278,22 @@ namespace Explorer.Views
         /// </summary>
         public FileNode(string name) : base(name)
         {
-            Presenter = new FileNodePresenter(this);
             Element = new FileElement(this);
+            Presenter = new FileNodePresenter(this);
 
             this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FileIndex;
             this.IsFilled = true;
         }
 
-        public override IFileSystemNode GetClone(string Path)
+        public override IFileSystemNode GetClone()
         {
             FileNode clone = new FileNode(this.Text)
             {
+                IsFilled = this.IsFilled,
                 IsAccessible = this.IsAccessible,
             };
-            clone.Path = Path;
+            clone.Element.Path = this.Element.Path;
+
             return clone;
         }
     }

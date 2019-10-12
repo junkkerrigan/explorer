@@ -21,9 +21,26 @@ namespace Explorer.Presenters
         /// </summary>
         protected static IFileSystemNode _buffer = null;
 
+        protected Dictionary<string, Action> _contextMenuActions;
+
         public FileSystemNodePresenter(IFileSystemNode view) 
         {
             View = view;
+
+            _contextMenuActions = new Dictionary<string, Action>
+            {
+                { "Open", View.Element.OpenWithDefaultApplication },
+                { "Copy", this.CopyNodeToBuffer },
+                { "Cut", this.CutNodeToBuffer },
+                { "Paste", this.PasteNodeFromBuffer },
+                { "Delete", this.RemoveNode },
+                { "Expand", View.Expand },
+                { "Expand all", View.ExpandAll },
+                { "Collapse", View.Collapse },
+                { "Properties", View.ShowProperties },
+                { "Rename", View.StartNameEditing },
+                //{ "Move", View.StartNameEditing },
+            };
         }
 
         public void CopyNodeToBuffer()
@@ -33,8 +50,46 @@ namespace Explorer.Presenters
 
         public void CutNodeToBuffer()
         {
+            // TODO: handle pasting in same directory
             _buffer = View;
             View.Remove();
+            View.Element.Delete();
+        }
+
+        public void PasteNodeFromBuffer()
+        {
+            if (View.IsChild(_buffer))
+            {
+                Console.WriteLine("Err: child");
+                // TODO: ShowModal();
+                return;
+            }
+            else if (View == _buffer)
+            {
+                Console.WriteLine("Err: same");
+                // TODO: ShowModal();
+                return;
+            }
+
+            string newPath = Path.Combine(View.Element.Path, _buffer.Text);
+            IFileSystemNode clone = _buffer.GetClone();
+            View.AddSubNode(clone);
+            try
+            {
+                _buffer.Element.CopyTo(newPath);
+            }
+            catch (FileAlreadyExistsException)
+            {
+                Console.WriteLine("Err: file exists");
+                // TODO: ShowModal();
+                View.RemoveSubNode(clone);
+            }
+            catch (DirectoryAlreadyExistsException)
+            {
+                Console.WriteLine("Err: dir exists");
+                // TODO: ShowModal();
+                View.RemoveSubNode(clone);
+            }
         }
 
         public async void PasteNodeFromBufferAsync()
@@ -143,7 +198,6 @@ namespace Explorer.Presenters
         }
     }
 
-    // create drive presenter
     public class DirectoryNodePresenter : FileSystemNodePresenter
     {
         public DirectoryNodePresenter(IFileSystemNode view) : base(view) 
@@ -178,11 +232,15 @@ namespace Explorer.Presenters
     {
         public DriveNodePresenter(IFileSystemNode view) : base(view)
         {
-            View.AddContextMenuItem("Paste", this.PasteNodeFromBufferAsync);
-            View.AddContextMenuItem("Expand", View.Expand);
-            View.AddContextMenuItem("Expand all", View.ExpandAll);
-            View.AddContextMenuItem("Collapse", View.Collapse);
-            View.AddContextMenuItem("Properties", View.ShowProperties);
+            string[] contextMenuOptions =
+            {
+                "Paste", "Expand", "Expand all", "Collapse", "Properties",
+            };
+
+            foreach (string option in contextMenuOptions)
+            {
+                View.AddContextMenuItem(option, _contextMenuActions[option]);
+            }
         }
     }
 
@@ -190,14 +248,16 @@ namespace Explorer.Presenters
     {
         public FolderNodePresenter(IFileSystemNode view) : base(view)
         {
-            View.AddContextMenuItem("Copy", this.CopyNodeToBuffer);
-            View.AddContextMenuItem("Cut", this.CutNodeToBuffer);
-            View.AddContextMenuItem("Paste", this.PasteNodeFromBufferAsync);
-            View.AddContextMenuItem("Delete", this.RemoveNode);
-            View.AddContextMenuItem("Expand", View.Expand);
-            View.AddContextMenuItem("Expand all", View.ExpandAll);
-            View.AddContextMenuItem("Collapse", View.Collapse);
-            View.AddContextMenuItem("Properties", View.ShowProperties);
+            string[] contextMenuOptions =
+            {
+                "Copy", "Cut", "Paste", "Delete", "Rename", "Expand", "Expand all", 
+                "Collapse", "Properties",
+            };
+
+            foreach (string option in contextMenuOptions)
+            {
+                View.AddContextMenuItem(option, _contextMenuActions[option]);
+            }
         }
     }
 
@@ -205,18 +265,15 @@ namespace Explorer.Presenters
     {
         public FileNodePresenter(IFileSystemNode view) : base(view) 
         {
-            //try
-            //{
-            //    View.AddContextMenuItem("Open", View.Element.OpenWithDefaultApplication);
-            //}
-            //catch(Exception ex) {
-            //    Console.WriteLine(ex.GetType());
-            //    Console.WriteLine(ex.StackTrace);
-            //}
-            View.AddContextMenuItem("Copy", this.CopyNodeToBuffer);
-            View.AddContextMenuItem("Cut", this.CutNodeToBuffer);
-            View.AddContextMenuItem("Delete", this.RemoveNode);
-            View.AddContextMenuItem("Properties", View.ShowProperties);
+            string[] contextMenuOptions =
+            {
+                "Open", "Copy", "Cut", "Delete", "Rename", "Properties",
+            };
+
+            foreach (string option in contextMenuOptions)
+            {
+                View.AddContextMenuItem(option, _contextMenuActions[option]);
+            }
         }
 
         public override void FillNode()

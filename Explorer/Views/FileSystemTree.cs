@@ -28,8 +28,6 @@ namespace Explorer.Views
             this.Dock = DockStyle.Fill;
             this.BorderStyle = BorderStyle.None;
             this.Font = Globals.ViewItemFont;
-            this.LabelEdit = true;
-
 
             ImageList nodeIcons = new ImageList();
             nodeIcons.Images.Add(Image.FromFile("../../assets/icons/driveIcon.png"));
@@ -51,7 +49,26 @@ namespace Explorer.Views
 
         private void FileSystemTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
         {
-            //(e.Node as IFileSystemNode).EditElementName();
+            IFileSystemNode node = e.Node as IFileSystemNode;
+            try
+            {
+                node.Element.EditName(e.Label);
+            }
+            catch (FileAlreadyExistsException)
+            {
+                Console.WriteLine("File already exists");
+                e.CancelEdit = true;
+            }
+            catch (DirectoryAlreadyExistsException)
+            {
+                Console.WriteLine("Directory already exists");
+                e.CancelEdit = true;
+            }
+            finally
+            {
+                this.LabelEdit = false;
+            }
+            //node.Parent.Sort();
         }
 
         public void AddNode(IFileSystemNode node)

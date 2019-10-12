@@ -11,7 +11,6 @@ namespace Explorer.Views
     public abstract class FileSystemElement : IFileSystemElement
     {
         public string Path { get; set; }
-
         public IFileSystemNode Node { get; set; }
 
         public FileSystemElement(IFileSystemNode node)
@@ -28,9 +27,30 @@ namespace Explorer.Views
 
         public abstract void Delete();
 
-        public abstract void EditName(string newName);
+        public void EditName(string newName)
+        {
+            string newPath = this.Path.Remove(this.Path.LastIndexOf('\\') + 1) + newName;
+            try
+            {
+                this.Move(newPath);
+            }
+            catch
+            {
+                throw;
+            }
+        }
 
         public abstract void OpenWithDefaultApplication();
+
+        public void UpdatePath(string newPath)
+        {
+            this.Path = newPath;
+
+            foreach (IFileSystemNode node in this.Node.SubNodes)
+            {
+                node.Element.UpdatePath(System.IO.Path.Combine(newPath, node.Text));
+            }
+        }
 
         public abstract void Move(string destinationPath);
     }
@@ -73,12 +93,6 @@ namespace Explorer.Views
             Directory.Delete(this.Path, true);
         }
 
-        public override void EditName(string newName)
-        {
-            string newPath = this.Path.Remove(this.Path.LastIndexOf('\\') + 1) + newName;
-            Directory.Move(this.Path, newPath);
-        }
-
         public override void OpenWithDefaultApplication()
         {
             throw new NotSupportedException();
@@ -86,7 +100,20 @@ namespace Explorer.Views
 
         public override void Move(string destinationPath)
         {
-            Directory.Move(this.Path, destinationPath);
+            try
+            {
+                Directory.Move(this.Path, destinationPath);
+                this.UpdatePath(destinationPath);
+            }
+            catch (IOException)
+            {
+                throw new DirectoryAlreadyExistsException();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in FileElement.Move:");
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 
@@ -112,20 +139,36 @@ namespace Explorer.Views
             File.Delete(this.Path);
         }
 
-        public override void EditName(string newName)
-        {
-            string newPath = this.Path.Remove(this.Path.LastIndexOf('\\') + 1) + newName;
-            File.Move(this.Path, newPath);
-        }
-
         public override void OpenWithDefaultApplication()
         {
-            Process.Start(this.Path);
+            try
+            {
+                Process.Start(this.Path);
+            }
+            catch(Exception ex)
+            {
+                // TODO: ShowModalInvalidLink();
+                Console.WriteLine("Error in FileElement.OpenWithDefaultApplication");
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public override void Move(string destinationPath)
         {
-            File.Move(this.Path, destinationPath);
+            try
+            {
+                File.Move(this.Path, destinationPath);
+                this.Path = destinationPath;
+            }
+            catch(IOException)
+            {
+                throw new FileAlreadyExistsException();
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Error in FileElement.Move:");
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }

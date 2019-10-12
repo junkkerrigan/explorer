@@ -20,6 +20,8 @@ namespace Explorer.Views
 
         void OpenWithDefaultApplication();
 
+        void UpdatePath(string newPath);
+
         void Move(string destinationPath);
     }
 }

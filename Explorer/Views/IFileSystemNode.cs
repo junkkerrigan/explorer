@@ -16,6 +16,8 @@ namespace Explorer.Views
         /// </summary>
         string Text { get; set; }
 
+        IFileSystemNode Parent { get; }
+
         /// <summary>
         /// Indicates if it's possible to interact with element.
         /// </summary>
@@ -35,12 +37,6 @@ namespace Explorer.Views
         /// </summary>
         /// <returns>Created node.</returns>
         IFileSystemNode GetClone();
-
-        /// <summary>
-        /// Creates a new node with the same parameters but specified Path property.
-        /// </summary>
-        /// <returns>Created node.</returns>
-        IFileSystemNode GetClone(string Path);
 
         /// <summary>
         /// Adds new option to right-click menu.
@@ -78,7 +74,9 @@ namespace Explorer.Views
         /// Adds a list of previously created nodes to the end of the list of subnodes.
         /// </summary>
         /// <param name="node"></param>
-        void AddSubNodes(IFileSystemNode[] nodes);
+        void AddSubNodes(List<IFileSystemNode> nodes);
+
+        void Sort();
 
         void RemoveSubNode(IFileSystemNode node);
 

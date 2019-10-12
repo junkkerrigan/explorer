@@ -21,13 +21,14 @@ namespace Explorer.Presenters
         /// <param name="source">Source to be copied to buffer.</param>
         void CopyNodeToBuffer();
 
-        void CutNodeToBuffer();  // IFSE
+        void CutNodeToBuffer(); 
 
+        void PasteNodeFromBuffer();
         /// <summary>
         /// 
         /// </summary>
         /// <param name="source">Destination to be pasted from buffer.</param>
-        void PasteNodeFromBufferAsync();  // IFSE
+        void PasteNodeFromBufferAsync();  
 
         void RemoveNode(); 
     }
