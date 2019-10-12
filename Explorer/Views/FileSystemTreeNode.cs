@@ -20,9 +20,9 @@ namespace Explorer.Views
     /// <summary>
     /// Represents a node of <see cref="FileSystemTree"/>.
     /// </summary>
-    public abstract class FileSystemNode : TreeNode, IFileSystemNode
+    public abstract class FileSystemTreeNode : TreeNode, IFileSystemTreeNode
     {
-        string IFileSystemNode.Text 
+        public new string Name
         {
             get
             {
@@ -34,24 +34,24 @@ namespace Explorer.Views
             }
         }
 
-        IFileSystemNode IFileSystemNode.Parent
+        IFileSystemTreeNode IFileSystemTreeNode.Parent
         {
             get
             {
-                return base.Parent as IFileSystemNode;
+                return base.Parent as IFileSystemTreeNode;
             }
         }
 
-        public bool IsAccessible { get; set; }
-
         public bool IsFilled { get; set; }
 
-        public List<IFileSystemNode> SubNodes
+        public bool IsAccessible { get; set; }
+
+        public List<IFileSystemTreeNode> SubNodes
         {
             get
             {
-                List<IFileSystemNode> subNodes = new List<IFileSystemNode>();
-                foreach(IFileSystemNode child in this.Nodes)
+                List<IFileSystemTreeNode> subNodes = new List<IFileSystemTreeNode>();
+                foreach(IFileSystemTreeNode child in this.Nodes)
                 {
                     subNodes.Add(child);
                 }
@@ -59,20 +59,29 @@ namespace Explorer.Views
             }
         }
 
-        protected IFileSystemNodePresenter Presenter { get; set; }
+        protected FileSystemTreeNodePresenter Presenter { get; set; }
         
-        public IFileSystemElement Element { get; set; }
+        public IFileSystemItemEntity Entity { get; set; }
+
+        public IFileSystemListItem ListItem { get; set; }
+
+        public IFileSystemTree Tree
+        {
+            get
+            {
+                return this.TreeView as IFileSystemTree;
+            }
+        }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FileSystemNode"/> class
+        /// Initializes a new instance of <see cref="FileSystemTreeNode"/> class
         /// with specified name.
         /// </summary>
-        public FileSystemNode(string name) : base(name)
+        public FileSystemTreeNode(string name) : base(name)
         {
             // TODO: fill context menu
             // TODO: comments
             // TODO: bind keys and context menu items
-
             this.IsAccessible = true;
             this.IsFilled = false;
             this.ContextMenuStrip = new ContextMenuStrip();
@@ -90,64 +99,61 @@ namespace Explorer.Views
         }
 
         // TODO: override in FileNode with NotSupported
-        public void AddSubNode(IFileSystemNode node)
+        public void AddSubNode(IFileSystemTreeNode node)
         {
-            string newPath = System.IO.Path.Combine(this.Element.Path, node.Text);
-            node.Element.UpdatePath(newPath);
-            this.Nodes.Add(node as FileSystemNode);
+            string newPath = System.IO.Path.Combine(this.Entity.Path, node.Name);
+            node.Entity.UpdatePath(newPath);
+            this.Nodes.Add(node as FileSystemTreeNode);
         }
 
-        public class NodeComparer : IComparer<IFileSystemNode>
+        // TODO: if required, move or change
+        public class NodeComparer : IComparer<IFileSystemTreeNode>
         {
-            public int Compare(IFileSystemNode X, IFileSystemNode Y)
+            public int Compare(IFileSystemTreeNode X, IFileSystemTreeNode Y)
             {
-                if (X is FolderNode && Y is FileNode) return 1;
-                else if (X is FileNode && Y is FolderNode) return -1;
-                else return String.Compare(X.Text, Y.Text);
+                if (X is FolderNode && Y is FileNode) return -1;
+                else if (X is FileNode && Y is FolderNode) return 1;
+                else return String.Compare(X.Name, Y.Name);
             }
         }
 
-        public void Sort()
+        public void SortSubNodes()
         {
-            List<IFileSystemNode> subNodes = this.SubNodes;
+            List<IFileSystemTreeNode> subNodes = this.SubNodes;
             this.Nodes.Clear();
             subNodes.Sort(new NodeComparer());
-            foreach (var a in subNodes)
-            {
-                Console.WriteLine(a.Text);
-            }
             this.AddSubNodes(subNodes);
         }
 
-        public void AddSubNodes(List<IFileSystemNode> nodes)
+        public void AddSubNodes(List<IFileSystemTreeNode> nodes)
         {
-            foreach (IFileSystemNode n in nodes)
+            foreach (IFileSystemTreeNode n in nodes)
             {
                 this.AddSubNode(n);
             }
         }
 
-        public void RemoveSubNode(IFileSystemNode node)
+        public void RemoveSubNode(IFileSystemTreeNode node)
         {
-            this.Nodes.Remove(node as FileSystemNode);
+            this.Nodes.Remove(node as FileSystemTreeNode);
         }
 
-        void IFileSystemNode.Remove()
+        void IFileSystemTreeNode.Remove()
         {
             this.Remove();
         }
 
-        void IFileSystemNode.Expand()
+        void IFileSystemTreeNode.Expand()
         {
             this.Expand();
         }
 
-        void IFileSystemNode.ExpandAll()
+        void IFileSystemTreeNode.ExpandAll()
         {
             this.ExpandAll();
         }
 
-        void IFileSystemNode.Collapse()
+        void IFileSystemTreeNode.Collapse()
         {
             this.Collapse();
         }
@@ -164,21 +170,20 @@ namespace Explorer.Views
 
         public void MarkAsInaccessible()
         {
-            this.IsAccessible = false;
             this.ForeColor = Color.Gray;
             this.ContextMenuStrip.Items.Clear();
         }
 
-        public abstract IFileSystemNode GetClone();
+        public abstract IFileSystemTreeNode GetClone();
 
-        public bool IsChild(IFileSystemNode ancestor)
+        public bool IsChild(IFileSystemTreeNode ancestor)
         {
             // TODO: change cause cur is reference 
-            FileSystemNode cur = this, 
-                           parent = ancestor as FileSystemNode;
+            FileSystemTreeNode cur = this, 
+                           parent = ancestor as FileSystemTreeNode;
             while(cur.Parent != null)
             {
-                cur = cur.Parent as FileSystemNode;
+                cur = cur.Parent as FileSystemTreeNode;
                 if (cur == parent)
                 {
                     return true;
@@ -189,18 +194,19 @@ namespace Explorer.Views
 
         // TODO: if required, change to IFSN.Method()
 
-        public void AddContextMenuItem(string name, Action onClick)
+        public void AddContextMenuOption(string name, Action onClick)
         {
-            ToolStripMenuItem item = new ToolStripMenuItem(name);
-            item.Click += (s, e) => onClick();
-            this.ContextMenuStrip.Items.Add(item);
+            ToolStripMenuItem option = new ToolStripMenuItem(name);
+            option.Click += (s, e) => onClick();
+
+            this.ContextMenuStrip.Items.Add(option);
         }
     }
 
     /// <summary>
     /// Respresents a node of a system drive in <see cref="FileSystemTree"/>.
     /// </summary>
-    public class DriveNode : FileSystemNode
+    public class DriveNode : FileSystemTreeNode
     {
         /// <summary>
         /// Initializes a new instance of <see cref="DriveNode"/> class
@@ -208,22 +214,23 @@ namespace Explorer.Views
         /// </summary>
         public DriveNode(string name) : base(name)
         {
-            Element = new DirectoryElement(this);
+            Entity = new DirectoryEntity(this);
             Presenter = new DriveNodePresenter(this);
+            ListItem = new DriveItem(this);
 
             this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.DriveIndex;
         }
 
-        public override IFileSystemNode GetClone()
+        public override IFileSystemTreeNode GetClone()
         {
-            DriveNode clone = new DriveNode(this.Text)
+            DriveNode clone = new DriveNode(this.Name)
             {
                 IsFilled = this.IsFilled,
-                IsAccessible = this.IsAccessible,
             };
-            clone.Element.Path = this.Element.Path;
+            clone.Entity.Path = this.Entity.Path;
+            clone.IsAccessible = this.IsAccessible;
 
-            foreach (IFileSystemNode node in this.SubNodes)
+            foreach (IFileSystemTreeNode node in this.SubNodes)
             {
                 clone.AddSubNode(node.GetClone());
             }
@@ -235,7 +242,7 @@ namespace Explorer.Views
     /// <summary>
     /// Respresents a node of a folder in <see cref="FileSystemTree"/>.
     /// </summary>
-    public class FolderNode : FileSystemNode
+    public class FolderNode : FileSystemTreeNode
     {
         /// <summary>
         /// Initializes a new instance of <see cref="FolderNode"/> class
@@ -243,22 +250,23 @@ namespace Explorer.Views
         /// </summary>
         public FolderNode(string name) : base(name)
         {
-            Element = new DirectoryElement(this);
+            Entity = new DirectoryEntity(this);
             Presenter = new FolderNodePresenter(this);
+            ListItem = new DriveItem(this);
 
             this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FolderIndex;            
         }
 
-        public override IFileSystemNode GetClone()
+        public override IFileSystemTreeNode GetClone()
         {
-            FolderNode clone = new FolderNode(this.Text)
+            FolderNode clone = new FolderNode(this.Name)
             {
                 IsFilled = this.IsFilled,
-                IsAccessible = this.IsAccessible,
             };
-            clone.Element.Path = this.Element.Path;
+            clone.Entity.Path = this.Entity.Path;
+            clone.IsAccessible = this.IsAccessible;
 
-            foreach (IFileSystemNode node in this.SubNodes)
+            foreach (IFileSystemTreeNode node in this.SubNodes)
             {
                 clone.AddSubNode(node.GetClone());
             }
@@ -270,7 +278,7 @@ namespace Explorer.Views
     /// <summary>
     /// Respresents a node of a file in <see cref="FileSystemTree"/>.
     /// </summary>
-    public class FileNode : FileSystemNode
+    public class FileNode : FileSystemTreeNode
     {
         /// <summary>
         /// Initializes a new instance of <see cref="FileNode"/> class
@@ -278,22 +286,23 @@ namespace Explorer.Views
         /// </summary>
         public FileNode(string name) : base(name)
         {
-            Element = new FileElement(this);
+            Entity = new FileEntity(this);
             Presenter = new FileNodePresenter(this);
+            ListItem = new DriveItem(this);
 
             this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FileIndex;
             this.IsFilled = true;
         }
 
-        public override IFileSystemNode GetClone()
+        public override IFileSystemTreeNode GetClone()
         {
-            FileNode clone = new FileNode(this.Text)
+            FileNode clone = new FileNode(this.Name)
             {
                 IsFilled = this.IsFilled,
-                IsAccessible = this.IsAccessible,
             };
-            clone.Element.Path = this.Element.Path;
-
+            clone.Entity.Path = this.Entity.Path;
+            clone.IsAccessible = this.IsAccessible;
+            
             return clone;
         }
     }

@@ -6,7 +6,7 @@ using Explorer.Views;
 
 namespace Explorer.Presenters
 {
-    public class FileSystemTreePresenter : IFileSystemTreePresenter
+    public class FileSystemTreePresenter 
     {
         private readonly IFileSystemTree _view;
 
@@ -17,13 +17,13 @@ namespace Explorer.Presenters
 
         public void LoadDrives()
         {
-            List<IFileSystemNode> driveNodes = new List<IFileSystemNode>();
+            List<IFileSystemTreeNode> driveNodes = new List<IFileSystemTreeNode>();
 
             DriveInfo[] drives = DriveInfo.GetDrives();
             foreach (DriveInfo d in drives)
             {
-                IFileSystemNode dNode = IFileSystemNode.Factory.GetNewDriveNode(d.Name);
-                dNode.Element.Path = d.Name;
+                IFileSystemTreeNode dNode = IFileSystemTreeNode.Factory.GetNewDriveNode(d.Name);
+                dNode.Entity.Path = d.Name;
                 driveNodes.Add(dNode);
                 dNode.Fill();
             }
@@ -31,9 +31,9 @@ namespace Explorer.Presenters
             _view.MountDrives(driveNodes);
         }
 
-        public void PreloadContent(IFileSystemNode node)
+        public void PreloadContent(IFileSystemTreeNode node)
         {
-            foreach (IFileSystemNode subNode in node.SubNodes)
+            foreach (IFileSystemTreeNode subNode in node.SubNodes)
             {
                 subNode.Fill();
             }

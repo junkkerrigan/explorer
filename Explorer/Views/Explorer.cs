@@ -25,7 +25,7 @@ namespace Explorer.Views
 
         private readonly FileSystemTree DirectoryView;
 
-        private readonly FileList FileView;
+        private readonly FileSystemList FileView;
 
         /// <summary>
         /// Initializes a new instance of <see cref="Explorer"/>.
@@ -70,9 +70,9 @@ namespace Explorer.Views
             };
 
 
-            DirectoryView = new FileSystemTree();
-
-            FileView = new FileList();
+            FileView = new FileSystemList();
+            
+            DirectoryView = new FileSystemTree(FileView);
 
             this.Controls.Add(MainWrapper);
 

@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace Explorer.Views
 {
-    public interface IFileSystemElement 
+    public interface IFileSystemItemEntity 
     {
         string Path { get; set; }
 
-        IFileSystemNode Node { get; set; }
+
+        IFileSystemTreeNode Node { get; set; }
 
         void CopyTo(string destinationPath);
 

@@ -8,17 +8,20 @@ using Explorer.Presenters;
 namespace Explorer.Views
 {
     // TODO: if required, remove FSE and implement IFSE directly in DE, FE
-    public abstract class FileSystemElement : IFileSystemElement
+    public abstract class FileSystemItemEntity : IFileSystemItemEntity
     {
         public string Path { get; set; }
-        public IFileSystemNode Node { get; set; }
 
-        public FileSystemElement(IFileSystemNode node)
+        public bool IsAccessible { get; set; }
+
+        public IFileSystemTreeNode Node { get; set; }
+
+        public FileSystemItemEntity(IFileSystemTreeNode node)
         {
             Node = node;
         }
 
-        void IFileSystemElement.CopyTo(string destinationPath)
+        public void CopyTo(string destinationPath)
         {
             Copy(this.Path, destinationPath);
         }
@@ -46,18 +49,18 @@ namespace Explorer.Views
         {
             this.Path = newPath;
 
-            foreach (IFileSystemNode node in this.Node.SubNodes)
+            foreach (IFileSystemTreeNode node in this.Node.SubNodes)
             {
-                node.Element.UpdatePath(System.IO.Path.Combine(newPath, node.Text));
+                node.Entity.UpdatePath(System.IO.Path.Combine(newPath, node.Name));
             }
         }
 
         public abstract void Move(string destinationPath);
     }
 
-    public class DirectoryElement : FileSystemElement
+    public class DirectoryEntity : FileSystemItemEntity
     {
-        public DirectoryElement(IFileSystemNode node) : base(node)
+        public DirectoryEntity(IFileSystemTreeNode node) : base(node)
         {
         }
 
@@ -111,15 +114,15 @@ namespace Explorer.Views
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error in FileElement.Move:");
+                Console.WriteLine("Error in FileEntity.Move:");
                 Console.WriteLine(ex.Message);
             }
         }
     }
 
-    public class FileElement : FileSystemElement
+    public class FileEntity : FileSystemItemEntity
     {
-        public FileElement(IFileSystemNode node) : base(node)
+        public FileEntity(IFileSystemTreeNode node) : base(node)
         {
         }
 
@@ -148,7 +151,7 @@ namespace Explorer.Views
             catch(Exception ex)
             {
                 // TODO: ShowModalInvalidLink();
-                Console.WriteLine("Error in FileElement.OpenWithDefaultApplication");
+                Console.WriteLine("Error in FileEntity.OpenWithDefaultApplication");
                 Console.WriteLine(ex.Message);
             }
         }
@@ -166,7 +169,7 @@ namespace Explorer.Views
             }
             catch(Exception ex)
             {
-                Console.WriteLine("Error in FileElement.Move:");
+                Console.WriteLine("Error in FileEntity.Move:");
                 Console.WriteLine(ex.Message);
             }
         }

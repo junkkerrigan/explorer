@@ -10,18 +10,34 @@ namespace Explorer.Views
 {
     /// <summary>
     /// Displays hierarchical collection of file system elements, each 
-    /// represented by <see cref="FileSystemNode"/>.
+    /// represented by <see cref="FileSystemTreeNode"/>.
     /// </summary>
     public class FileSystemTree : TreeView, IFileSystemTree
     {
-        private readonly IFileSystemTreePresenter _presenter;
+        private readonly FileSystemTreePresenter _presenter;
+
+        public IFileSystemList List { get; set; }
+
+        public List<IFileSystemTreeNode> RootNodes
+        {
+            get
+            {
+                List<IFileSystemTreeNode> rootNodes = new List<IFileSystemTreeNode>();
+                foreach (IFileSystemTreeNode node in this.Nodes)
+                {
+                    rootNodes.Add(node);
+                }
+                return rootNodes;
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of <see cref="FileSystemTree"/>.
         /// </summary>
-        public FileSystemTree() : base()
+        public FileSystemTree(IFileSystemList list) : base()
         {
             _presenter = new FileSystemTreePresenter(this);
+            List = list;
 
             this.ItemHeight = Globals.ViewItemHeight;
             this.ShowPlusMinus = true;
@@ -40,19 +56,20 @@ namespace Explorer.Views
             this.AfterLabelEdit += FileSystemTree_AfterLabelEdit;
 
             _presenter.LoadDrives();
+            List.Display(this);
         }
 
         private void FileSystemTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
-            _presenter.PreloadContent(e.Node as IFileSystemNode);
+            _presenter.PreloadContent(e.Node as IFileSystemTreeNode);
         }
 
         private void FileSystemTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
         {
-            IFileSystemNode node = e.Node as IFileSystemNode;
+            IFileSystemTreeNode node = e.Node as IFileSystemTreeNode;
             try
             {
-                node.Element.EditName(e.Label);
+                node.Entity.EditName(e.Label);
             }
             catch (FileAlreadyExistsException)
             {
@@ -67,29 +84,28 @@ namespace Explorer.Views
             finally
             {
                 this.LabelEdit = false;
+                this.BeginInvoke(
+                    new Action(() => node.Parent.SortSubNodes())
+                );
             }
-            //node.Parent.Sort();
         }
 
-        public void AddNode(IFileSystemNode node)
+        public void AddNode(IFileSystemTreeNode node)
         {
-            this.Nodes.Add(node as FileSystemNode);
+            this.Nodes.Add(node as FileSystemTreeNode);
         }
 
-        public void AddNodes(IFileSystemNode[] nodes)
+        public void AddNodes(List<IFileSystemTreeNode> nodes)
         {
-            foreach (IFileSystemNode n in nodes)
+            foreach (IFileSystemTreeNode n in nodes)
             {
                 this.AddNode(n);
             }
         }
 
-        public void MountDrives(List<IFileSystemNode> drives)
+        public void MountDrives(List<IFileSystemTreeNode> drives)
         {
-            foreach (IFileSystemNode d in drives)
-            {
-                this.AddNode(d);
-            }
+            this.AddNodes(drives);
         }
     }
 }

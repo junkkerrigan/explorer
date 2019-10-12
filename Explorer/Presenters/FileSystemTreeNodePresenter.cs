@@ -7,56 +7,61 @@ using Explorer.Views;
 
 namespace Explorer.Presenters
 {
-    public abstract class FileSystemNodePresenter : IFileSystemNodePresenter
+    public abstract class FileSystemTreeNodePresenter
     {
         // TODO: comments 
         // TODO: code splitting
         // TODO: async file copying
         // TODO: error modals
         // TODO: rename View
-        protected IFileSystemNode View { get; set; }
+        protected IFileSystemTreeNode View { get; set; }
 
         /// <summary>
         /// Stores a clone of copied node.
         /// </summary>
-        protected static IFileSystemNode _buffer = null;
+        protected static IFileSystemTreeNode _buffer = null;
 
         protected Dictionary<string, Action> _contextMenuActions;
 
-        public FileSystemNodePresenter(IFileSystemNode view) 
+        public FileSystemTreeNodePresenter(IFileSystemTreeNode view) 
         {
             View = view;
 
             _contextMenuActions = new Dictionary<string, Action>
             {
-                { "Open", View.Element.OpenWithDefaultApplication },
+                { "Open", View.Entity.OpenWithDefaultApplication },
                 { "Copy", this.CopyNodeToBuffer },
                 { "Cut", this.CutNodeToBuffer },
                 { "Paste", this.PasteNodeFromBuffer },
                 { "Delete", this.RemoveNode },
-                { "Expand", View.Expand },
+                { "Expand", 
+                    () => {
+                        View.Tree.List.Display(View);
+                        View.Expand(); 
+                    } 
+                },
                 { "Expand all", View.ExpandAll },
                 { "Collapse", View.Collapse },
                 { "Properties", View.ShowProperties },
                 { "Rename", View.StartNameEditing },
-                //{ "Move", View.StartNameEditing },
+                { "Create", View.StartNameEditing },
             };
         }
 
-        public void CopyNodeToBuffer()
+        protected void CopyNodeToBuffer()
         {
             _buffer = View;
         }
 
-        public void CutNodeToBuffer()
+        protected void CutNodeToBuffer()
         {
             // TODO: handle pasting in same directory
             _buffer = View;
             View.Remove();
-            View.Element.Delete();
+            View.Entity.Delete();
         }
 
-        public void PasteNodeFromBuffer()
+        protected void PasteNodeFromBuffer()
         {
             if (View.IsChild(_buffer))
             {
@@ -71,12 +76,14 @@ namespace Explorer.Presenters
                 return;
             }
 
-            string newPath = Path.Combine(View.Element.Path, _buffer.Text);
-            IFileSystemNode clone = _buffer.GetClone();
+            string newPath = Path.Combine(View.Entity.Path, _buffer.Name);
+            IFileSystemTreeNode clone = _buffer.GetClone();
             View.AddSubNode(clone);
+            View.SortSubNodes();
+
             try
             {
-                _buffer.Element.CopyTo(newPath);
+                _buffer.Entity.CopyTo(newPath);
             }
             catch (FileAlreadyExistsException)
             {
@@ -92,7 +99,7 @@ namespace Explorer.Presenters
             }
         }
 
-        public async void PasteNodeFromBufferAsync()
+        protected async void PasteNodeFromBufferAsync()
         {
             if (View.IsChild(_buffer))
             {
@@ -107,15 +114,15 @@ namespace Explorer.Presenters
                 return;
             }
 
-            string newPath = Path.Combine(View.Element.Path, _buffer.Text);
-            IFileSystemNode clone = _buffer.GetClone();
+            string newPath = Path.Combine(View.Entity.Path, _buffer.Name);
+            IFileSystemTreeNode clone = _buffer.GetClone();
             View.AddSubNode(clone);
 
             bool isCopied = await Task<bool>.Factory.StartNew(() =>
             {
                 try
                 {
-                    _buffer.Element.CopyTo(newPath);
+                    _buffer.Entity.CopyTo(newPath);
                 }
                 catch (FileAlreadyExistsException)
                 {
@@ -140,9 +147,9 @@ namespace Explorer.Presenters
 
         public abstract void FillNode();
 
-        protected string[] GetSubFolders(IFileSystemNode node)
+        protected string[] GetSubFolders(IFileSystemTreeNode node)
         {
-            string path = node.Element.Path;
+            string path = node.Entity.Path;
             string[] subFolders = { };
 
             try
@@ -165,9 +172,9 @@ namespace Explorer.Presenters
             return subFolders;
         }
 
-        protected string[] GetInnerFiles(IFileSystemNode node)
+        protected string[] GetInnerFiles(IFileSystemTreeNode node)
         {
-            string path = node.Element.Path;
+            string path = node.Entity.Path;
             string[] innerFiles = { };
                 
             try
@@ -191,16 +198,16 @@ namespace Explorer.Presenters
         }
 
         // TODO: ShowModalReallyDelete()
-        public void RemoveNode()
+        protected void RemoveNode()
         {
-            View.Element.Delete();
+            View.Entity.Delete();
             View.Remove();
         }
     }
 
-    public class DirectoryNodePresenter : FileSystemNodePresenter
+    public class DirectoryNodePresenter : FileSystemTreeNodePresenter
     {
-        public DirectoryNodePresenter(IFileSystemNode view) : base(view) 
+        public DirectoryNodePresenter(IFileSystemTreeNode view) : base(view) 
         {
         }
 
@@ -211,8 +218,8 @@ namespace Explorer.Presenters
             foreach (string folder in subFolders)
             {
                 string name = folder.Substring(folder.LastIndexOf("\\") + 1);
-                IFileSystemNode folderNode = IFileSystemNode.Factory.GetNewFolderNode(name);
-                folderNode.Element.Path = folder;
+                IFileSystemTreeNode folderNode = IFileSystemTreeNode.Factory.GetNewFolderNode(name);
+                folderNode.Entity.Path = folder;
                 View.AddSubNode(folderNode);
             }
 
@@ -220,17 +227,18 @@ namespace Explorer.Presenters
             foreach (string file in innerFiles)
             {
                 string name = file.Substring(file.LastIndexOf("\\") + 1);
-                IFileSystemNode fileNode = IFileSystemNode.Factory.GetNewFileNode(name);
-                fileNode.Element.Path = file;
+                IFileSystemTreeNode fileNode = IFileSystemTreeNode.Factory.GetNewFileNode(name);
+                fileNode.Entity.Path = file;
                 View.AddSubNode(fileNode);
             }
+            View.SortSubNodes();
             View.IsFilled = true;
         }
     }
 
     public class DriveNodePresenter : DirectoryNodePresenter
     {
-        public DriveNodePresenter(IFileSystemNode view) : base(view)
+        public DriveNodePresenter(IFileSystemTreeNode view) : base(view)
         {
             string[] contextMenuOptions =
             {
@@ -239,14 +247,14 @@ namespace Explorer.Presenters
 
             foreach (string option in contextMenuOptions)
             {
-                View.AddContextMenuItem(option, _contextMenuActions[option]);
+                View.AddContextMenuOption(option, _contextMenuActions[option]);
             }
         }
     }
 
     public class FolderNodePresenter : DirectoryNodePresenter
     {
-        public FolderNodePresenter(IFileSystemNode view) : base(view)
+        public FolderNodePresenter(IFileSystemTreeNode view) : base(view)
         {
             string[] contextMenuOptions =
             {
@@ -256,14 +264,14 @@ namespace Explorer.Presenters
 
             foreach (string option in contextMenuOptions)
             {
-                View.AddContextMenuItem(option, _contextMenuActions[option]);
+                View.AddContextMenuOption(option, _contextMenuActions[option]);
             }
         }
     }
 
-    public class FileNodePresenter : FileSystemNodePresenter
+    public class FileNodePresenter : FileSystemTreeNodePresenter
     {
-        public FileNodePresenter(IFileSystemNode view) : base(view) 
+        public FileNodePresenter(IFileSystemTreeNode view) : base(view) 
         {
             string[] contextMenuOptions =
             {
@@ -272,13 +280,13 @@ namespace Explorer.Presenters
 
             foreach (string option in contextMenuOptions)
             {
-                View.AddContextMenuItem(option, _contextMenuActions[option]);
+                View.AddContextMenuOption(option, _contextMenuActions[option]);
             }
         }
 
         public override void FillNode()
         {
-            throw new NotSupportedException("Error: impossible to fill FileNode");
+            View.IsFilled = true;
         }
     }
 

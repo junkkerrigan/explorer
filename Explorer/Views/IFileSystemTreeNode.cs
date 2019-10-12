@@ -5,59 +5,49 @@ using System;
 namespace Explorer.Views
 {
     /// <summary>
-    /// Provides an interface to interact with <see cref="FileSystemNode"/>.
+    /// Provides an interface to interact with <see cref="FileSystemTreeNode"/>.
     /// </summary>
-    public interface IFileSystemNode
+    public interface IFileSystemTreeNode : IFileSystemItem
     {
         // TODO: comments
 
-        /// <summary>
-        /// Text in node.
-        /// </summary>
-        string Text { get; set; }
-
-        IFileSystemNode Parent { get; }
-
-        /// <summary>
-        /// Indicates if it's possible to interact with element.
-        /// </summary>
-        bool IsAccessible { get; set; }
+        IFileSystemTreeNode Parent { get; }
 
         /// <summary>
         /// Indicates if subnodes of the node are filled.
         /// </summary>
         bool IsFilled { get; set; }
 
-        IFileSystemElement Element { get; set; }
+        /// <summary>
+        /// Indicates if it's possible to interact with element.
+        /// </summary>
+        bool IsAccessible { get; set; }
 
-        List<IFileSystemNode> SubNodes { get; }
+        List<IFileSystemTreeNode> SubNodes { get; }
+
+        IFileSystemListItem ListItem { get; }
+
+        IFileSystemTree Tree { get; }
 
         /// <summary>
         /// Creates a new node with the same parameters.
         /// </summary>
         /// <returns>Created node.</returns>
-        IFileSystemNode GetClone();
-
-        /// <summary>
-        /// Adds new option to right-click menu.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="onClick"></param>
-        void AddContextMenuItem(string name, Action onClick);
+        IFileSystemTreeNode GetClone();
 
         public static class Factory
         {
-            public static IFileSystemNode GetNewDriveNode(string name)
+            public static IFileSystemTreeNode GetNewDriveNode(string name)
             {
                 return new DriveNode(name);
             }
             
-            public static IFileSystemNode GetNewFolderNode(string name)
+            public static IFileSystemTreeNode GetNewFolderNode(string name)
             {
                 return new FolderNode(name);
             }
             
-            public static IFileSystemNode GetNewFileNode(string name)
+            public static IFileSystemTreeNode GetNewFileNode(string name)
             {
                 return new FileNode(name);
             }
@@ -68,17 +58,17 @@ namespace Explorer.Views
         /// and assigns its Path property depending on Path of this node.
         /// </summary>
         /// <param name="node"></param>
-        void AddSubNode(IFileSystemNode node);
+        void AddSubNode(IFileSystemTreeNode node);
 
         /// <summary>
         /// Adds a list of previously created nodes to the end of the list of subnodes.
         /// </summary>
         /// <param name="node"></param>
-        void AddSubNodes(List<IFileSystemNode> nodes);
+        void AddSubNodes(List<IFileSystemTreeNode> nodes);
 
-        void Sort();
+        void SortSubNodes();
 
-        void RemoveSubNode(IFileSystemNode node);
+        void RemoveSubNode(IFileSystemTreeNode node);
 
         void Remove();
 
@@ -88,19 +78,10 @@ namespace Explorer.Views
 
         void Collapse();
 
-        void StartNameEditing();
-
-        void ShowProperties();
-
         /// <summary>
         /// Fills node with its subnodes.
         /// </summary>
         void Fill();
-
-        /// <summary>
-        /// Highlights a node as inaccessible.
-        /// </summary>
-        void MarkAsInaccessible();
 
         /// <summary>
         /// Checks if passed node is an ancestor of this node.
@@ -108,6 +89,11 @@ namespace Explorer.Views
         /// <param name="node"></param>
         /// <returns>True, if passed node is an ancestor of this node, 
         /// false, otherwise</returns>
-        bool IsChild(IFileSystemNode ancestor);
+        bool IsChild(IFileSystemTreeNode ancestor);
+
+        /// <summary>
+        /// Makes item inaccessible;
+        /// </summary>
+        void MarkAsInaccessible();
     }
 }
