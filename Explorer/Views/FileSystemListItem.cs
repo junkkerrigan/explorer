@@ -41,6 +41,8 @@ namespace Explorer.Views
 
         public FileSystemListItem(IFileSystemTreeNode node) : base(node.Name)
         {
+            this.IndentCount = 3;
+
             Node = node;
         }
             
@@ -64,7 +66,7 @@ namespace Explorer.Views
     {
         public DriveItem(IFileSystemTreeNode node) : base(node)
         {
-
+            this.ImageIndex = IconTypeIndexes.DriveIndex;
         }
     }
 
@@ -72,7 +74,7 @@ namespace Explorer.Views
     {
         public FolderItem(IFileSystemTreeNode node) : base(node)
         {
-
+            this.ImageIndex = IconTypeIndexes.FolderIndex;
         }
     }
 
@@ -80,7 +82,7 @@ namespace Explorer.Views
     {
         public FileItem(IFileSystemTreeNode node) : base(node)
         {
-
+            this.ImageIndex = IconTypeIndexes.FileIndex;
         }
     }
 }

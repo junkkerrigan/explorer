@@ -34,12 +34,7 @@ namespace Explorer.Presenters
                 { "Cut", this.CutNodeToBuffer },
                 { "Paste", this.PasteNodeFromBuffer },
                 { "Delete", this.RemoveNode },
-                { "Expand", 
-                    () => {
-                        View.Tree.List.Display(View);
-                        View.Expand(); 
-                    } 
-                },
+                { "Expand", View.Expand },
                 { "Expand all", View.ExpandAll },
                 { "Collapse", View.Collapse },
                 { "Properties", View.ShowProperties },

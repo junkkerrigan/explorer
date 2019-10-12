@@ -14,7 +14,7 @@ namespace Explorer.Views
     /// </summary>
     public class FileSystemTree : TreeView, IFileSystemTree
     {
-        private readonly FileSystemTreePresenter _presenter;
+        private readonly FileSystemTreePresenter Presenter;
 
         public IFileSystemList List { get; set; }
 
@@ -36,7 +36,7 @@ namespace Explorer.Views
         /// </summary>
         public FileSystemTree(IFileSystemList list) : base()
         {
-            _presenter = new FileSystemTreePresenter(this);
+            Presenter = new FileSystemTreePresenter(this);
             List = list;
 
             this.ItemHeight = Globals.ViewItemHeight;
@@ -45,23 +45,27 @@ namespace Explorer.Views
             this.BorderStyle = BorderStyle.None;
             this.Font = Globals.ViewItemFont;
 
-            ImageList nodeIcons = new ImageList();
+            ImageList nodeIcons = new ImageList
+            {
+                ImageSize = Globals.FileSystemNodeImageSize
+            };
             nodeIcons.Images.Add(Image.FromFile("../../assets/icons/driveIcon.png"));
             nodeIcons.Images.Add(Image.FromFile("../../assets/icons/folderIcon.png"));
             nodeIcons.Images.Add(Image.FromFile("../../assets/icons/fileIcon.png"));
+
             this.ImageList = nodeIcons;
-            this.ImageList.ImageSize = Globals.FileSystemNodeImageSize;
 
             this.BeforeExpand += FileSystemTree_BeforeExpand;
             this.AfterLabelEdit += FileSystemTree_AfterLabelEdit;
 
-            _presenter.LoadDrives();
+            Presenter.LoadDrives();
             List.Display(this);
         }
 
         private void FileSystemTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
-            _presenter.PreloadContent(e.Node as IFileSystemTreeNode);
+            Presenter.PreloadContent(e.Node as IFileSystemTreeNode);
+            List.Display(e.Node as IFileSystemTreeNode);
         }
 
         private void FileSystemTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)

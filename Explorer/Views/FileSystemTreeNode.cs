@@ -252,7 +252,7 @@ namespace Explorer.Views
         {
             Entity = new DirectoryEntity(this);
             Presenter = new FolderNodePresenter(this);
-            ListItem = new DriveItem(this);
+            ListItem = new FolderItem(this);
 
             this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FolderIndex;            
         }
@@ -288,7 +288,7 @@ namespace Explorer.Views
         {
             Entity = new FileEntity(this);
             Presenter = new FileNodePresenter(this);
-            ListItem = new DriveItem(this);
+            ListItem = new FileItem(this);
 
             this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FileIndex;
             this.IsFilled = true;
