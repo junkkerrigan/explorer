@@ -4,18 +4,15 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Explorer.Presenters;
 
-namespace Explorer.Views
+namespace Explorer
 {
-    /// <summary>
+     /// <summary>
     /// Displays a file manager.
     /// </summary>
     public partial class Explorer : Form, IExplorer
     {
         // TODO: Improve UI
-
-        public readonly Padding ViewPadding = new Padding(20);
 
         private readonly Panel MainWrapper;
 
@@ -26,6 +23,10 @@ namespace Explorer.Views
         private readonly FileSystemTree DirectoryView;
 
         private readonly FileSystemList FileView;
+
+        private readonly BreadCrumbPrevButton Prev;
+        
+        private readonly BreadCrumbNextButton Next;
 
         /// <summary>
         /// Initializes a new instance of <see cref="Explorer"/>.
@@ -53,7 +54,7 @@ namespace Explorer.Views
                     (MainWrapper.Width - 2 * Globals.MainWrapperPadding - 
                     Globals.SpaceBetweenViews) / 2, 
                     MainWrapper.Height - 2 * Globals.MainWrapperPadding),
-                Padding = ViewPadding,
+                Padding = new Padding(Globals.ViewPadding),
                 BackColor = Color.White,
             };
 
@@ -65,13 +66,21 @@ namespace Explorer.Views
                     Globals.MainWrapperPadding),
                 Size = new Size(DirectoryViewWrapper.Width, 
                     DirectoryViewWrapper.Height),
-                Padding = ViewPadding,
+                Padding = new Padding(Globals.ViewPadding) { Top = 60, Left = 40 },
                 BackColor = Color.White,
             };
 
-
             FileView = new FileSystemList();
-            
+
+            Prev = new BreadCrumbPrevButton()
+            {
+                Location = new Point(10, 10),
+            };
+            Next = new BreadCrumbNextButton()
+            {
+                Location = new Point(55, 10),
+            };
+
             DirectoryView = new FileSystemTree(FileView);
 
             this.Controls.Add(MainWrapper);
@@ -80,6 +89,9 @@ namespace Explorer.Views
             MainWrapper.Controls.Add(FileViewWrapper);
 
             DirectoryViewWrapper.Controls.Add(DirectoryView);
+            
+            FileViewWrapper.Controls.Add(Prev);
+            FileViewWrapper.Controls.Add(Next);
             FileViewWrapper.Controls.Add(FileView);
         }
 

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Explorer.Views
+namespace Explorer
 {
     /// <summary>
     /// Provides an interface to interact with <see cref="FileSystemTree"/>.
@@ -10,6 +10,8 @@ namespace Explorer.Views
         public List<IFileSystemTreeNode> RootNodes { get; }
 
         public IFileSystemList List { get; }
+
+        void DisplayOnListView();
 
         /// <summary>
         /// Loads drives into a <see cref="FileSystemTree"/>.

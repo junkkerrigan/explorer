@@ -3,9 +3,8 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using System.Collections.Generic;
-using Explorer.Presenters;
 
-namespace Explorer.Views
+namespace Explorer
 {
     /// <summary>
     /// Specifies indexes of types of file system elements' icons in ImageList.
@@ -87,6 +86,17 @@ namespace Explorer.Views
             this.ContextMenuStrip = new ContextMenuStrip();
         }
 
+        public void MarkAsSelected()
+        {
+            this.TreeView.SelectedNode = this;
+            (this.ListItem as ListViewItem).Selected = true;
+        }
+
+        public void DisplayOnListView()
+        {
+            this.Tree.List.Display(this);
+        }
+
         public void Fill()
         {
             try
@@ -117,12 +127,16 @@ namespace Explorer.Views
             }
         }
 
-        public void SortSubNodes()
+        public void SortSubNodes(bool display = true)
         {
             List<IFileSystemTreeNode> subNodes = this.SubNodes;
             this.Nodes.Clear();
             subNodes.Sort(new NodeComparer());
             this.AddSubNodes(subNodes);
+            if (display)
+            {
+                this.DisplayOnListView();
+            }
         }
 
         public void AddSubNodes(List<IFileSystemTreeNode> nodes)
@@ -200,110 +214,6 @@ namespace Explorer.Views
             option.Click += (s, e) => onClick();
 
             this.ContextMenuStrip.Items.Add(option);
-        }
-    }
-
-    /// <summary>
-    /// Respresents a node of a system drive in <see cref="FileSystemTree"/>.
-    /// </summary>
-    public class DriveNode : FileSystemTreeNode
-    {
-        /// <summary>
-        /// Initializes a new instance of <see cref="DriveNode"/> class
-        /// with specified name.
-        /// </summary>
-        public DriveNode(string name) : base(name)
-        {
-            Entity = new DirectoryEntity(this);
-            Presenter = new DriveNodePresenter(this);
-            ListItem = new DriveItem(this);
-
-            this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.DriveIndex;
-        }
-
-        public override IFileSystemTreeNode GetClone()
-        {
-            DriveNode clone = new DriveNode(this.Name)
-            {
-                IsFilled = this.IsFilled,
-            };
-            clone.Entity.Path = this.Entity.Path;
-            clone.IsAccessible = this.IsAccessible;
-
-            foreach (IFileSystemTreeNode node in this.SubNodes)
-            {
-                clone.AddSubNode(node.GetClone());
-            }
-
-            return clone;
-        }
-    }
-
-    /// <summary>
-    /// Respresents a node of a folder in <see cref="FileSystemTree"/>.
-    /// </summary>
-    public class FolderNode : FileSystemTreeNode
-    {
-        /// <summary>
-        /// Initializes a new instance of <see cref="FolderNode"/> class
-        /// with specified name.
-        /// </summary>
-        public FolderNode(string name) : base(name)
-        {
-            Entity = new DirectoryEntity(this);
-            Presenter = new FolderNodePresenter(this);
-            ListItem = new FolderItem(this);
-
-            this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FolderIndex;            
-        }
-
-        public override IFileSystemTreeNode GetClone()
-        {
-            FolderNode clone = new FolderNode(this.Name)
-            {
-                IsFilled = this.IsFilled,
-            };
-            clone.Entity.Path = this.Entity.Path;
-            clone.IsAccessible = this.IsAccessible;
-
-            foreach (IFileSystemTreeNode node in this.SubNodes)
-            {
-                clone.AddSubNode(node.GetClone());
-            }
-
-            return clone;
-        }
-    }
-
-    /// <summary>
-    /// Respresents a node of a file in <see cref="FileSystemTree"/>.
-    /// </summary>
-    public class FileNode : FileSystemTreeNode
-    {
-        /// <summary>
-        /// Initializes a new instance of <see cref="FileNode"/> class
-        /// with specified name.
-        /// </summary>
-        public FileNode(string name) : base(name)
-        {
-            Entity = new FileEntity(this);
-            Presenter = new FileNodePresenter(this);
-            ListItem = new FileItem(this);
-
-            this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FileIndex;
-            this.IsFilled = true;
-        }
-
-        public override IFileSystemTreeNode GetClone()
-        {
-            FileNode clone = new FileNode(this.Name)
-            {
-                IsFilled = this.IsFilled,
-            };
-            clone.Entity.Path = this.Entity.Path;
-            clone.IsAccessible = this.IsAccessible;
-            
-            return clone;
         }
     }
 }

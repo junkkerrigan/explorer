@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Explorer.Views
+namespace Explorer
 {
     /// <summary>
     /// Provides an interface to interact with <see cref="Explorer"/>.

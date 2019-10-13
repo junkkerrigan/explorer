@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Explorer.Views
+namespace Explorer
 {
     public class FileSystemList : ListView, IFileSystemList
     {
@@ -16,6 +16,19 @@ namespace Explorer.Views
             this.BorderStyle = BorderStyle.None;
             this.View = View.Tile;
             this.ContextMenu = new ContextMenu();
+
+            this.MouseDoubleClick += (s, e) =>
+            {
+                IFileSystemTreeNode nodeToDisplay =
+                    (this.SelectedItems[0] as IFileSystemListItem).Node;
+                nodeToDisplay.Fill();
+                this.Display(nodeToDisplay);
+                while (nodeToDisplay != null)
+                {
+                    nodeToDisplay.Expand();
+                    nodeToDisplay = nodeToDisplay.Parent;
+                }
+            };
 
             ImageList itemIcons = new ImageList
             {
@@ -45,8 +58,6 @@ namespace Explorer.Views
         {
             this.Items.Clear();
 
-            this.TileSize = new Size((tree as TreeView).Size.Width, 30);
-
             foreach (IFileSystemTreeNode node in tree.RootNodes)
             {
                 this.AddItem(node.ListItem);
@@ -56,6 +67,7 @@ namespace Explorer.Views
         public void Display(IFileSystemTreeNode node)
         {
             // TODO: move to presenter
+            // TODO: handle file nodes 
             this.Items.Clear();
 
             int maxWidth = this.Size.Width;

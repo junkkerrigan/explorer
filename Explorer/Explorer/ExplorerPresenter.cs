@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
-using Explorer.Views;
 
-namespace Explorer.Presenters
+namespace Explorer
 {
     /// <summary>
     /// Implements <see cref="IExplorerPresenter"/>.

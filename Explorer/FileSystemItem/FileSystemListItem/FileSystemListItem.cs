@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Explorer.Views
+namespace Explorer
 {
     public class FileSystemListItem : ListViewItem, IFileSystemListItem
     {
@@ -41,8 +41,6 @@ namespace Explorer.Views
 
         public FileSystemListItem(IFileSystemTreeNode node) : base(node.Name)
         {
-            this.IndentCount = 3;
-
             Node = node;
         }
             

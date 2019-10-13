@@ -3,11 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Explorer.Presenters;
 
-namespace Explorer.Views
+namespace Explorer
 {
-    // TODO: if required, remove FSE and implement IFSE directly in DE, FE
     public abstract class FileSystemItemEntity : IFileSystemItemEntity
     {
         public string Path { get; set; }
@@ -43,7 +41,19 @@ namespace Explorer.Views
             }
         }
 
-        public abstract void OpenWithDefaultApplication();
+        public void OpenWithDefaultApplication()
+        {
+            try
+            {
+                Process.Start(this.Path);
+            }
+            catch (Exception ex)
+            {
+                // TODO: ShowModalInvalidLink();
+                Console.WriteLine("Error in Entity.OpenWithDefaultApplication");
+                Console.WriteLine(ex.Message);
+            }
+        }
 
         public void UpdatePath(string newPath)
         {
@@ -58,9 +68,44 @@ namespace Explorer.Views
         public abstract void Move(string destinationPath);
     }
 
-    public class DirectoryEntity : FileSystemItemEntity
+    public class DriveEntity : FileSystemItemEntity
     {
-        public DirectoryEntity(IFileSystemTreeNode node) : base(node)
+        public DriveEntity(IFileSystemTreeNode node) : base(node)
+        {
+        }
+
+        protected override void Copy(string sourcePath, string destinationPath)
+        {
+            throw new NotSupportedException("Error: impossible to copy drive");
+        }
+
+        public override void Delete()
+        {
+            throw new NotSupportedException("Error: impossible to delete drive");
+        }
+
+        public override void Move(string destinationPath)
+        {
+            try
+            {
+                Directory.Move(this.Path, destinationPath);
+                this.UpdatePath(destinationPath);
+            }
+            catch (IOException)
+            {
+                throw new DirectoryAlreadyExistsException();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in FileEntity.Move:");
+                Console.WriteLine(ex.Message);
+            }
+        }
+    }
+
+    public class FolderEntity : FileSystemItemEntity
+    {
+        public FolderEntity(IFileSystemTreeNode node) : base(node)
         {
         }
 
@@ -96,11 +141,6 @@ namespace Explorer.Views
             Directory.Delete(this.Path, true);
         }
 
-        public override void OpenWithDefaultApplication()
-        {
-            throw new NotSupportedException();
-        }
-
         public override void Move(string destinationPath)
         {
             try
@@ -119,6 +159,7 @@ namespace Explorer.Views
             }
         }
     }
+
 
     public class FileEntity : FileSystemItemEntity
     {
@@ -140,20 +181,6 @@ namespace Explorer.Views
         public override void Delete()
         {
             File.Delete(this.Path);
-        }
-
-        public override void OpenWithDefaultApplication()
-        {
-            try
-            {
-                Process.Start(this.Path);
-            }
-            catch(Exception ex)
-            {
-                // TODO: ShowModalInvalidLink();
-                Console.WriteLine("Error in FileEntity.OpenWithDefaultApplication");
-                Console.WriteLine(ex.Message);
-            }
         }
 
         public override void Move(string destinationPath)

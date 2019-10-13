@@ -2,9 +2,8 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Explorer.Views;
 
-namespace Explorer.Presenters
+namespace Explorer
 {
     public class FileSystemTreePresenter 
     {

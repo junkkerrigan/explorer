@@ -4,9 +4,8 @@ using System.IO;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Explorer.Presenters;
 
-namespace Explorer.Views
+namespace Explorer
 {
     /// <summary>
     /// Displays hierarchical collection of file system elements, each 
@@ -57,20 +56,29 @@ namespace Explorer.Views
 
             this.BeforeExpand += FileSystemTree_BeforeExpand;
             this.AfterLabelEdit += FileSystemTree_AfterLabelEdit;
+            this.NodeMouseDoubleClick += (s, e) =>
+            {
+                List.Display(this.SelectedNode as IFileSystemTreeNode);
+            };
 
             Presenter.LoadDrives();
             List.Display(this);
         }
 
+        public void DisplayOnListView()
+        {
+            this.List.Display(this);
+        }
+
         private void FileSystemTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
             Presenter.PreloadContent(e.Node as IFileSystemTreeNode);
-            List.Display(e.Node as IFileSystemTreeNode);
         }
 
         private void FileSystemTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
         {
             IFileSystemTreeNode node = e.Node as IFileSystemTreeNode;
+
             try
             {
                 node.Entity.EditName(e.Label);
@@ -88,9 +96,14 @@ namespace Explorer.Views
             finally
             {
                 this.LabelEdit = false;
-                this.BeginInvoke(
-                    new Action(() => node.Parent.SortSubNodes())
-                );
+                if (!e.CancelEdit)
+                {
+                    this.BeginInvoke(
+                        new Action(() => {
+                            node.Parent.SortSubNodes();
+                        })
+                    );
+                }
             }
         }
 

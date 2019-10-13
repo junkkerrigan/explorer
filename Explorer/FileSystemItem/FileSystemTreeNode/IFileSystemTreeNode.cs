@@ -2,7 +2,7 @@
 using System.IO;
 using System;
 
-namespace Explorer.Views
+namespace Explorer
 {
     /// <summary>
     /// Provides an interface to interact with <see cref="FileSystemTreeNode"/>.
@@ -35,6 +35,10 @@ namespace Explorer.Views
         /// <returns>Created node.</returns>
         IFileSystemTreeNode GetClone();
 
+        void MarkAsSelected();
+
+        void DisplayOnListView();
+
         public static class Factory
         {
             public static IFileSystemTreeNode GetNewDriveNode(string name)
@@ -66,7 +70,7 @@ namespace Explorer.Views
         /// <param name="node"></param>
         void AddSubNodes(List<IFileSystemTreeNode> nodes);
 
-        void SortSubNodes();
+        void SortSubNodes(bool display = true);
 
         void RemoveSubNode(IFileSystemTreeNode node);
 

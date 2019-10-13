@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Explorer.Views
+namespace Explorer
 {
     public interface IFileSystemItemEntity 
     {
         string Path { get; set; }
-
 
         IFileSystemTreeNode Node { get; set; }
 

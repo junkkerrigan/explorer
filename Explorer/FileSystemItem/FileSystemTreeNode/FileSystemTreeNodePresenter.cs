@@ -3,9 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Explorer.Views;
 
-namespace Explorer.Presenters
+namespace Explorer
 {
     public abstract class FileSystemTreeNodePresenter
     {
@@ -18,6 +17,11 @@ namespace Explorer.Presenters
 
         /// <summary>
         /// Stores a clone of copied node.
+        /// </summary>
+        protected static IFileSystemTreeNode _clone = null;
+
+        /// <summary>
+        /// Stores a copied node.
         /// </summary>
         protected static IFileSystemTreeNode _buffer = null;
 
@@ -72,9 +76,14 @@ namespace Explorer.Presenters
             }
 
             string newPath = Path.Combine(View.Entity.Path, _buffer.Name);
-            IFileSystemTreeNode clone = _buffer.GetClone();
-            View.AddSubNode(clone);
-            View.SortSubNodes();
+            if (_clone == null)
+            {
+                _clone = _buffer.GetClone();
+            }
+            View.AddSubNode(_clone);
+            View.SortSubNodes(false);
+
+            bool isCopyingSucceed = true;
 
             try
             {
@@ -84,13 +93,27 @@ namespace Explorer.Presenters
             {
                 Console.WriteLine("Err: file exists");
                 // TODO: ShowModal();
-                View.RemoveSubNode(clone);
+                isCopyingSucceed = false;
             }
             catch (DirectoryAlreadyExistsException)
             {
                 Console.WriteLine("Err: dir exists");
                 // TODO: ShowModal();
-                View.RemoveSubNode(clone);
+                isCopyingSucceed = false;
+            }
+            finally
+            {
+                if (!isCopyingSucceed)
+                {
+                    View.RemoveSubNode(_clone);
+                }
+                else
+                {
+                    _clone.MarkAsSelected();
+                    _clone = null;
+                }
+                View.Expand();
+                View.DisplayOnListView();
             }
         }
 
@@ -195,8 +218,10 @@ namespace Explorer.Presenters
         // TODO: ShowModalReallyDelete()
         protected void RemoveNode()
         {
+            IFileSystemTreeNode parent = View.Parent;
             View.Entity.Delete();
             View.Remove();
+            parent.DisplayOnListView();
         }
     }
 
@@ -226,110 +251,8 @@ namespace Explorer.Presenters
                 fileNode.Entity.Path = file;
                 View.AddSubNode(fileNode);
             }
-            View.SortSubNodes();
+            View.SortSubNodes(false);
             View.IsFilled = true;
-        }
-    }
-
-    public class DriveNodePresenter : DirectoryNodePresenter
-    {
-        public DriveNodePresenter(IFileSystemTreeNode view) : base(view)
-        {
-            string[] contextMenuOptions =
-            {
-                "Paste", "Expand", "Expand all", "Collapse", "Properties",
-            };
-
-            foreach (string option in contextMenuOptions)
-            {
-                View.AddContextMenuOption(option, _contextMenuActions[option]);
-            }
-        }
-    }
-
-    public class FolderNodePresenter : DirectoryNodePresenter
-    {
-        public FolderNodePresenter(IFileSystemTreeNode view) : base(view)
-        {
-            string[] contextMenuOptions =
-            {
-                "Copy", "Cut", "Paste", "Delete", "Rename", "Expand", "Expand all", 
-                "Collapse", "Properties",
-            };
-
-            foreach (string option in contextMenuOptions)
-            {
-                View.AddContextMenuOption(option, _contextMenuActions[option]);
-            }
-        }
-    }
-
-    public class FileNodePresenter : FileSystemTreeNodePresenter
-    {
-        public FileNodePresenter(IFileSystemTreeNode view) : base(view) 
-        {
-            string[] contextMenuOptions =
-            {
-                "Open", "Copy", "Cut", "Delete", "Rename", "Properties",
-            };
-
-            foreach (string option in contextMenuOptions)
-            {
-                View.AddContextMenuOption(option, _contextMenuActions[option]);
-            }
-        }
-
-        public override void FillNode()
-        {
-            View.IsFilled = true;
-        }
-    }
-
-    public abstract class AlreadyExistsException : IOException
-    {
-        public AlreadyExistsException()
-        {
-        }
-
-        public AlreadyExistsException(string message) : base(message)
-        {
-        }
-
-        public AlreadyExistsException(string message, Exception innerEx) :
-            base(message, innerEx)
-        {
-        }
-    }
-
-    public class FileAlreadyExistsException : AlreadyExistsException
-    {
-        public FileAlreadyExistsException() 
-        {
-        }
-
-        public FileAlreadyExistsException(string message) : base(message) 
-        {
-        }
-
-        public FileAlreadyExistsException(string message, Exception innerEx) :
-            base(message, innerEx) 
-        { 
-        }
-    }
-
-    public class DirectoryAlreadyExistsException : AlreadyExistsException
-    {
-        public DirectoryAlreadyExistsException()
-        {
-        }
-
-        public DirectoryAlreadyExistsException(string message) : base(message)
-        {
-        }
-
-        public DirectoryAlreadyExistsException(string message, Exception innerEx) :
-            base(message, innerEx)
-        {
         }
     }
 }
