@@ -10,6 +10,10 @@ namespace Explorer
 {
     public abstract class FileSystemListItem : ListViewItem, IFileSystemListItem
     {
+        // TODO: highlight after changes
+        
+        // TODO: split classes
+
         string IFileSystemItem.Name
         {
             get
@@ -40,6 +44,8 @@ namespace Explorer
 
         public IFileSystemTreeNode Node { get; set; }
 
+        public FileSystemItemPresenter Presenter { get; set; }
+
         protected ContextMenuStrip RightClickMenu { get; set; }
 
         public FileSystemListItem(string name) : base(name)
@@ -49,6 +55,7 @@ namespace Explorer
         public FileSystemListItem(IFileSystemTreeNode node) : base(node.Name)
         {
             Node = node;
+
             this.RightClickMenu = new ContextMenuStrip();
         }
 
@@ -79,9 +86,9 @@ namespace Explorer
         protected void AddContextMenuOption(string name)
         {
             ToolStripMenuItem option = new ToolStripMenuItem(name);
-            //option.Click += (s, e) => 
+            option.Click += (s, e) => this.Presenter.HandleContextMenuAction(name);
 
-            //this.ContextMenuStrip.Items.Add(option);
+            this.RightClickMenu.Items.Add(option);
         }
     }
 
@@ -96,7 +103,10 @@ namespace Explorer
                 "Open", "Paste", "Properties",
             };
 
-            //fore
+            foreach(string option in contextMenuOptions)
+            {
+                this.AddContextMenuOption(option);
+            }
 
             this.Open = () =>
             {
@@ -116,6 +126,16 @@ namespace Explorer
         {
             this.ImageIndex = Globals.IconTypeIndexes.FolderIndex;
 
+            string[] contextMenuOptions =
+            {
+                "Open", "Copy", "Cut", "Paste", "Delete", "Rename", "Properties",
+            };
+
+            foreach (string option in contextMenuOptions)
+            {
+                this.AddContextMenuOption(option);
+            }
+
             this.Open = () =>
             {
                 this.Node.Fill();
@@ -133,6 +153,16 @@ namespace Explorer
         public FileItem(IFileSystemTreeNode node) : base(node)
         {
             this.ImageIndex = Globals.IconTypeIndexes.FileIndex;
+
+            string[] contextMenuOptions =
+            {
+                "Open", "Copy", "Cut", "Delete", "Rename", "Properties",
+            };
+
+            foreach (string option in contextMenuOptions)
+            {
+                this.AddContextMenuOption(option);
+            }
 
             this.Open = () =>
             {

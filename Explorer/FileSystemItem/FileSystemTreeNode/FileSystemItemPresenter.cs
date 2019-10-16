@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Explorer
 {
-    public abstract class FileSystemTreeNodePresenter
+    public abstract class FileSystemItemPresenter
     {
         // TODO: comments 
         // TODO: code splitting
@@ -27,9 +27,11 @@ namespace Explorer
 
         protected Dictionary<string, Action> _contextMenuActions;
 
-        public FileSystemTreeNodePresenter(IFileSystemTreeNode view) 
+        public FileSystemItemPresenter(IFileSystemTreeNode view) 
         {
             View = view;
+
+            View.ListItem.Presenter = this;
 
             _contextMenuActions = new Dictionary<string, Action>
             {
@@ -234,9 +236,9 @@ namespace Explorer
         }
     }
 
-    public class DirectoryNodePresenter : FileSystemTreeNodePresenter
+    public class DirectoryItemPresenter : FileSystemItemPresenter
     {
-        public DirectoryNodePresenter(IFileSystemTreeNode view) : base(view) 
+        public DirectoryItemPresenter(IFileSystemTreeNode view) : base(view) 
         {
         }
 

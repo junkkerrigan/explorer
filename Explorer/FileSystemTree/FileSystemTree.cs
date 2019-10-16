@@ -104,6 +104,7 @@ namespace Explorer
                             node.Parent.SortSubNodes();
                         })
                     );
+                    // for sorting after node name will finally be changed
                 }
                 this.LabelEdit = false;
             }

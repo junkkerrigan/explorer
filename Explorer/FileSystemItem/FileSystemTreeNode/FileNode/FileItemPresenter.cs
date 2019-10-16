@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Explorer
 {
-    public class FileNodePresenter : FileSystemTreeNodePresenter
+    public class FileItemPresenter : FileSystemItemPresenter
     {
-        public FileNodePresenter(IFileSystemTreeNode view) : base(view)
+        public FileItemPresenter(IFileSystemTreeNode view) : base(view)
         {
         }
 

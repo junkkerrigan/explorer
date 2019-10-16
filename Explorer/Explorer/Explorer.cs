@@ -46,11 +46,6 @@ namespace Explorer
                     this.ClientSize.Height - 2 * Globals.MainWrapperMargin),
             };
 
-            MainWrapper.Click += (s, e) =>
-            {
-                Console.WriteLine($"Clicked control is {(s as Control)}");
-            };
-
             DirectoryViewWrapper = new Panel()
             {
                 Location = new Point(Globals.MainWrapperPadding, 

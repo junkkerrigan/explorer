@@ -24,6 +24,7 @@ namespace Explorer
         } 
         // if implement interface member, TreeNode.Name will be using
 
+        // TODO: highlight after changes
         IFileSystemTreeNode IFileSystemTreeNode.Parent
         {
             get
@@ -38,8 +39,6 @@ namespace Explorer
 
         public bool IsAccessible { get; set; }
 
-        protected List<string> _contextMenuOptions;
-
         public List<IFileSystemTreeNode> SubNodes
         {
             get
@@ -53,7 +52,7 @@ namespace Explorer
             }
         }
 
-        protected FileSystemTreeNodePresenter Presenter { get; set; }
+        protected FileSystemItemPresenter Presenter { get; set; }
         
         public IFileSystemItemEntity Entity { get; set; }
 
@@ -179,7 +178,6 @@ namespace Explorer
 
         public void MarkAsInaccessible()
         {
-            Console.WriteLine(this.Text);
             if (!this.IsAccessible) return;
             this.IsAccessible = false;
             this.ForeColor = Color.Gray;

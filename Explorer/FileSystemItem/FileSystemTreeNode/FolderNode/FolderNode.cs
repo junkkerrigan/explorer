@@ -18,20 +18,20 @@ namespace Explorer
         public FolderNode(string name) : base(name)
         {
             Entity = new FolderEntity(this);
-            Presenter = new FolderNodePresenter(this);
             ListItem = new FolderItem(this);
+            Presenter = new FolderItemPresenter(this);
 
             this.ImageIndex = this.SelectedImageIndex = Globals.IconTypeIndexes.FolderIndex;
 
             this.Open = this.DisplayOnListView;
 
-            this._contextMenuOptions = new List<string>()
+            string[] contextMenuOptions = 
             {
                 "Open", "Copy", "Cut", "Paste", "Delete", "Rename", "Expand", 
                 "Expand all", "Collapse", "Properties",
             };
 
-            foreach (string option in this._contextMenuOptions)
+            foreach (string option in contextMenuOptions)
             {
                 this.AddContextMenuOption(option);
             }

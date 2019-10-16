@@ -98,15 +98,15 @@
     <Compile Include="Exceptions\AlreadyExistsException\DirectoryAlreadyExistsException.cs" />
     <Compile Include="Exceptions\AlreadyExistsException\FileAlreadyExistsException.cs" />
     <Compile Include="FileSystemItem\FileSystemTreeNode\DriveNode\DriveNode.cs" />
-    <Compile Include="FileSystemItem\FileSystemTreeNode\DriveNode\DriveNodePresenter.cs" />
+    <Compile Include="FileSystemItem\FileSystemTreeNode\DriveNode\DriveItemPresenter.cs" />
     <Compile Include="FileSystemItem\FileSystemTreeNode\FileNode\FileNode.cs" />
-    <Compile Include="FileSystemItem\FileSystemTreeNode\FileNode\FileNodePresenter.cs" />
+    <Compile Include="FileSystemItem\FileSystemTreeNode\FileNode\FileItemPresenter.cs" />
     <Compile Include="FileSystemItem\FileSystemTreeNode\FolderNode\FolderNode.cs" />
-    <Compile Include="FileSystemItem\FileSystemTreeNode\FolderNode\FolderNodePresenter.cs" />
+    <Compile Include="FileSystemItem\FileSystemTreeNode\FolderNode\FolderItemPresenter.cs" />
     <Compile Include="FileSystemList\FileSystemList.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="FileSystemItem\FileSystemTreeNode\FileSystemTreeNodePresenter.cs" />
+    <Compile Include="FileSystemItem\FileSystemTreeNode\FileSystemItemPresenter.cs" />
     <Compile Include="FileSystemTree\FileSystemTreePresenter.cs" />
     <Compile Include="Explorer\Explorer.cs">
       <SubType>Form</SubType>

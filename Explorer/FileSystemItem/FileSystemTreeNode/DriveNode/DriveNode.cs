@@ -18,19 +18,19 @@ namespace Explorer
         public DriveNode(string name) : base(name)
         {
             Entity = new DriveEntity(this);
-            Presenter = new DriveNodePresenter(this);
             ListItem = new DriveItem(this);
+            Presenter = new DriveItemPresenter(this);
 
             this.ImageIndex = this.SelectedImageIndex = Globals.IconTypeIndexes.DriveIndex;
 
             this.Open = this.DisplayOnListView;
 
-            this._contextMenuOptions = new List<string>()
+            string[] contextMenuOptions =
             {
                 "Open", "Paste", "Expand", "Expand all", "Collapse", "Properties",
             };
 
-            foreach (string option in this._contextMenuOptions)
+            foreach (string option in contextMenuOptions)
             {
                 this.AddContextMenuOption(option);
             }

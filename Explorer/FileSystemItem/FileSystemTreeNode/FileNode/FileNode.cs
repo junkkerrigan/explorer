@@ -18,8 +18,8 @@ namespace Explorer
         public FileNode(string name) : base(name)
         {
             Entity = new FileEntity(this);
-            Presenter = new FileNodePresenter(this);
             ListItem = new FileItem(this);
+            Presenter = new FileItemPresenter(this);
 
             this.ImageIndex = this.SelectedImageIndex = Globals.IconTypeIndexes.FileIndex;
             
@@ -27,12 +27,12 @@ namespace Explorer
 
             this.Open = this.Entity.OpenWithDefaultApplication;
 
-            this._contextMenuOptions = new List<string>()
+            string[] contextMenuOptions =
             {
                 "Open", "Copy", "Cut", "Delete", "Rename", "Properties",
             };
 
-            foreach (string option in this._contextMenuOptions)
+            foreach (string option in contextMenuOptions)
             {
                 this.AddContextMenuOption(option);
             }
