@@ -39,6 +39,8 @@ namespace Explorer
 
         void DisplayOnListView();
 
+        Action Open { get; }
+
         public static class Factory
         {
             public static IFileSystemTreeNode GetNewDriveNode(string name)

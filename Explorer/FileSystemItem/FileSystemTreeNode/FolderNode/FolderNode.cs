@@ -21,7 +21,20 @@ namespace Explorer
             Presenter = new FolderNodePresenter(this);
             ListItem = new FolderItem(this);
 
-            this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FolderIndex;
+            this.ImageIndex = this.SelectedImageIndex = Globals.IconTypeIndexes.FolderIndex;
+
+            this.Open = this.DisplayOnListView;
+
+            this._contextMenuOptions = new List<string>()
+            {
+                "Open", "Copy", "Cut", "Paste", "Delete", "Rename", "Expand", 
+                "Expand all", "Collapse", "Properties",
+            };
+
+            foreach (string option in this._contextMenuOptions)
+            {
+                this.AddContextMenuOption(option);
+            }
         }
 
         public override IFileSystemTreeNode GetClone()

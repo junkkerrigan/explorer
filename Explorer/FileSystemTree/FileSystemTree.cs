@@ -37,6 +37,7 @@ namespace Explorer
         {
             Presenter = new FileSystemTreePresenter(this);
             List = list;
+            List.Tree = this;
 
             this.ItemHeight = Globals.ViewItemHeight;
             this.ShowPlusMinus = true;
@@ -58,16 +59,16 @@ namespace Explorer
             this.AfterLabelEdit += FileSystemTree_AfterLabelEdit;
             this.NodeMouseDoubleClick += (s, e) =>
             {
-                List.Display(this.SelectedNode as IFileSystemTreeNode);
+                (this.SelectedNode as IFileSystemTreeNode).Open();
             };
 
             Presenter.LoadDrives();
-            List.Display(this);
+            List.DisplayTree();
         }
 
         public void DisplayOnListView()
         {
-            this.List.Display(this);
+            this.List.DisplayTree();
         }
 
         private void FileSystemTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
@@ -95,15 +96,16 @@ namespace Explorer
             }
             finally
             {
-                this.LabelEdit = false;
                 if (!e.CancelEdit)
                 {
+                    node.ListItem.Name = e.Label;
                     this.BeginInvoke(
                         new Action(() => {
                             node.Parent.SortSubNodes();
                         })
                     );
                 }
+                this.LabelEdit = false;
             }
         }
 

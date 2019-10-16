@@ -21,7 +21,19 @@ namespace Explorer
             Presenter = new DriveNodePresenter(this);
             ListItem = new DriveItem(this);
 
-            this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.DriveIndex;
+            this.ImageIndex = this.SelectedImageIndex = Globals.IconTypeIndexes.DriveIndex;
+
+            this.Open = this.DisplayOnListView;
+
+            this._contextMenuOptions = new List<string>()
+            {
+                "Open", "Paste", "Expand", "Expand all", "Collapse", "Properties",
+            };
+
+            foreach (string option in this._contextMenuOptions)
+            {
+                this.AddContextMenuOption(option);
+            }
         }
 
         public override IFileSystemTreeNode GetClone()

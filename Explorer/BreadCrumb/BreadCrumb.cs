@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace Explorer
 {
-    public class DriveNodePresenter : DirectoryNodePresenter
+    class BreadCrumb : Panel
     {
-        public DriveNodePresenter(IFileSystemTreeNode view) : base(view)
+        public BreadCrumb() : base()
         {
+            
         }
     }
 }

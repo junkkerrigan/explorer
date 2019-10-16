@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,5 +12,11 @@ namespace Explorer
         IFileSystemTreeNode Node { get; }
 
         IFileSystemList List { get; }
+
+        void ShowMenu();
+
+        Action Open { get; }
+
+        void MarkAsInaccessible();
     }
 }

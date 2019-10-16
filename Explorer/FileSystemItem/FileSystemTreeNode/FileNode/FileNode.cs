@@ -21,8 +21,22 @@ namespace Explorer
             Presenter = new FileNodePresenter(this);
             ListItem = new FileItem(this);
 
-            this.ImageIndex = this.SelectedImageIndex = IconTypeIndexes.FileIndex;
+            this.ImageIndex = this.SelectedImageIndex = Globals.IconTypeIndexes.FileIndex;
+            
             this.IsFilled = true;
+
+            this.Open = this.Entity.OpenWithDefaultApplication;
+
+            this._contextMenuOptions = new List<string>()
+            {
+                "Open", "Copy", "Cut", "Delete", "Rename", "Properties",
+            };
+
+            foreach (string option in this._contextMenuOptions)
+            {
+                this.AddContextMenuOption(option);
+            }
+
         }
 
         public override IFileSystemTreeNode GetClone()
@@ -33,7 +47,6 @@ namespace Explorer
             };
             clone.Entity.Path = this.Entity.Path;
             clone.IsAccessible = this.IsAccessible;
-
             return clone;
         }
     }

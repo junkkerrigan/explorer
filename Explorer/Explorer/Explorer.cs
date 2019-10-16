@@ -24,9 +24,9 @@ namespace Explorer
 
         private readonly FileSystemList FileView;
 
-        private readonly BreadCrumbPrevButton Prev;
+        //private readonly BreadCrumbPrevButton Prev;
         
-        private readonly BreadCrumbNextButton Next;
+        //private readonly BreadCrumbNextButton Next;
 
         /// <summary>
         /// Initializes a new instance of <see cref="Explorer"/>.
@@ -46,13 +46,18 @@ namespace Explorer
                     this.ClientSize.Height - 2 * Globals.MainWrapperMargin),
             };
 
+            MainWrapper.Click += (s, e) =>
+            {
+                Console.WriteLine($"Clicked control is {(s as Control)}");
+            };
+
             DirectoryViewWrapper = new Panel()
             {
                 Location = new Point(Globals.MainWrapperPadding, 
                     Globals.MainWrapperPadding),
                 Size = new Size(
                     (MainWrapper.Width - 2 * Globals.MainWrapperPadding - 
-                    Globals.SpaceBetweenViews) / 2, 
+                    Globals.SpaceBetweenViews) / 3, 
                     MainWrapper.Height - 2 * Globals.MainWrapperPadding),
                 Padding = new Padding(Globals.ViewPadding),
                 BackColor = Color.White,
@@ -61,25 +66,17 @@ namespace Explorer
             FileViewWrapper = new Panel()
             {
                 Location = new Point(
-                    DirectoryViewWrapper.Width + Globals.MainWrapperPadding + 
-                    Globals.SpaceBetweenViews, 
+                    DirectoryViewWrapper.Width + Globals.MainWrapperPadding +
+                    Globals.SpaceBetweenViews,
                     Globals.MainWrapperPadding),
-                Size = new Size(DirectoryViewWrapper.Width, 
+                Size = new Size(DirectoryViewWrapper.Width * 2,
                     DirectoryViewWrapper.Height),
-                Padding = new Padding(Globals.ViewPadding) { Top = 60, Left = 40 },
+                Padding = new Padding(Globals.ViewPadding),
                 BackColor = Color.White,
+                BorderStyle = BorderStyle.None,
             };
 
             FileView = new FileSystemList();
-
-            Prev = new BreadCrumbPrevButton()
-            {
-                Location = new Point(10, 10),
-            };
-            Next = new BreadCrumbNextButton()
-            {
-                Location = new Point(55, 10),
-            };
 
             DirectoryView = new FileSystemTree(FileView);
 
@@ -87,11 +84,10 @@ namespace Explorer
 
             MainWrapper.Controls.Add(DirectoryViewWrapper);
             MainWrapper.Controls.Add(FileViewWrapper);
+            FileViewWrapper.BringToFront();
 
             DirectoryViewWrapper.Controls.Add(DirectoryView);
             
-            FileViewWrapper.Controls.Add(Prev);
-            FileViewWrapper.Controls.Add(Next);
             FileViewWrapper.Controls.Add(FileView);
         }
 
@@ -108,14 +104,14 @@ namespace Explorer
 
             DirectoryViewWrapper.Size = new Size(
                 (MainWrapper.Width - 2 * Globals.MainWrapperPadding - 
-                    Globals.SpaceBetweenViews) / 2,
+                    Globals.SpaceBetweenViews) / 3,
                 MainWrapper.Height - 2 * Globals.MainWrapperPadding);
 
             FileViewWrapper.Location = new Point(
                 DirectoryViewWrapper.Width + Globals.MainWrapperPadding +
                     Globals.SpaceBetweenViews,
                 Globals.MainWrapperPadding);
-            FileViewWrapper.Size = new Size(DirectoryViewWrapper.Width, 
+            FileViewWrapper.Size = new Size(DirectoryViewWrapper.Width * 2, 
                 DirectoryViewWrapper.Height);
         }
 

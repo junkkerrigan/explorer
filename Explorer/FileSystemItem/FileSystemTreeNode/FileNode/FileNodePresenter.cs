@@ -10,15 +10,6 @@ namespace Explorer
     {
         public FileNodePresenter(IFileSystemTreeNode view) : base(view)
         {
-            string[] contextMenuOptions =
-            {
-                "Open", "Copy", "Cut", "Delete", "Rename", "Properties",
-            };
-
-            foreach (string option in contextMenuOptions)
-            {
-                View.AddContextMenuOption(option, _contextMenuActions[option]);
-            }
         }
 
         public override void FillNode()

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Explorer
 {
-    public class FileSystemListItem : ListViewItem, IFileSystemListItem
+    public abstract class FileSystemListItem : ListViewItem, IFileSystemListItem
     {
         string IFileSystemItem.Name
         {
@@ -39,14 +40,30 @@ namespace Explorer
 
         public IFileSystemTreeNode Node { get; set; }
 
+        protected ContextMenuStrip RightClickMenu { get; set; }
+
+        public FileSystemListItem(string name) : base(name)
+        {
+        }
+
         public FileSystemListItem(IFileSystemTreeNode node) : base(node.Name)
         {
             Node = node;
+            this.RightClickMenu = new ContextMenuStrip();
         }
-            
-        public void AddContextMenuOption(string name, Action onClick)
+
+        public Action Open { get; set; }
+
+        public void MarkAsInaccessible()
         {
-            throw new NotImplementedException();
+            this.ForeColor = Color.Gray;
+            this.Open = () => { };
+            this.RightClickMenu.Items.Clear();
+        }
+
+        public void ShowMenu()
+        {
+            this.RightClickMenu.Show(Cursor.Position);
         }
 
         public void ShowProperties()
@@ -58,13 +75,38 @@ namespace Explorer
         {
             this.BeginEdit();
         }
+
+        protected void AddContextMenuOption(string name)
+        {
+            ToolStripMenuItem option = new ToolStripMenuItem(name);
+            //option.Click += (s, e) => 
+
+            //this.ContextMenuStrip.Items.Add(option);
+        }
     }
 
     public class DriveItem : FileSystemListItem
     {
         public DriveItem(IFileSystemTreeNode node) : base(node)
         {
-            this.ImageIndex = IconTypeIndexes.DriveIndex;
+            this.ImageIndex = Globals.IconTypeIndexes.DriveIndex;
+
+            string[] contextMenuOptions =
+            {
+                "Open", "Paste", "Properties",
+            };
+
+            //fore
+
+            this.Open = () =>
+            {
+                this.Node.Fill();
+                foreach (IFileSystemTreeNode node in this.Node.SubNodes)
+                {
+                    node.Fill();
+                }
+                List.Display(this);
+            };
         }
     }
 
@@ -72,7 +114,17 @@ namespace Explorer
     {
         public FolderItem(IFileSystemTreeNode node) : base(node)
         {
-            this.ImageIndex = IconTypeIndexes.FolderIndex;
+            this.ImageIndex = Globals.IconTypeIndexes.FolderIndex;
+
+            this.Open = () =>
+            {
+                this.Node.Fill();
+                foreach(IFileSystemTreeNode node in this.Node.SubNodes)
+                {
+                    node.Fill();
+                }
+                List.Display(this);
+            };
         }
     }
 
@@ -80,7 +132,33 @@ namespace Explorer
     {
         public FileItem(IFileSystemTreeNode node) : base(node)
         {
-            this.ImageIndex = IconTypeIndexes.FileIndex;
+            this.ImageIndex = Globals.IconTypeIndexes.FileIndex;
+
+            this.Open = () =>
+            {
+                this.Entity.OpenWithDefaultApplication();
+            };
+        }
+    }
+
+    public class BackToFolder : FileSystemListItem
+    {
+        public BackToFolder() : base("...")
+        {
+            this.ImageIndex = 3;
+
+            this.Open = () =>
+            {
+                IFileSystemTreeNode parent = this.List.DisplayedNode.Parent;
+                if (parent == null)
+                {
+                    List.DisplayTree();
+                }
+                else
+                {
+                    List.Display(parent);
+                }
+            };
         }
     }
 }

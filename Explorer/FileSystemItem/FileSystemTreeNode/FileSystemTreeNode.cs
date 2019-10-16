@@ -7,16 +7,6 @@ using System.Collections.Generic;
 namespace Explorer
 {
     /// <summary>
-    /// Specifies indexes of types of file system elements' icons in ImageList.
-    /// </summary>
-    public static class IconTypeIndexes
-    {
-        public const int DriveIndex = 0;
-        public const int FolderIndex = 1;
-        public const int FileIndex = 2;
-    }
-
-    /// <summary>
     /// Represents a node of <see cref="FileSystemTree"/>.
     /// </summary>
     public abstract class FileSystemTreeNode : TreeNode, IFileSystemTreeNode
@@ -31,7 +21,8 @@ namespace Explorer
             {
                 this.Text = value;
             }
-        }
+        } 
+        // if implement interface member, TreeNode.Name will be using
 
         IFileSystemTreeNode IFileSystemTreeNode.Parent
         {
@@ -41,9 +32,13 @@ namespace Explorer
             }
         }
 
+        public Action Open { get; set; }
+
         public bool IsFilled { get; set; }
 
         public bool IsAccessible { get; set; }
+
+        protected List<string> _contextMenuOptions;
 
         public List<IFileSystemTreeNode> SubNodes
         {
@@ -78,9 +73,9 @@ namespace Explorer
         /// </summary>
         public FileSystemTreeNode(string name) : base(name)
         {
-            // TODO: fill context menu
             // TODO: comments
             // TODO: bind keys and context menu items
+
             this.IsAccessible = true;
             this.IsFilled = false;
             this.ContextMenuStrip = new ContextMenuStrip();
@@ -184,8 +179,13 @@ namespace Explorer
 
         public void MarkAsInaccessible()
         {
+            Console.WriteLine(this.Text);
+            if (!this.IsAccessible) return;
+            this.IsAccessible = false;
             this.ForeColor = Color.Gray;
             this.ContextMenuStrip.Items.Clear();
+            this.Open = () => { };
+            this.ListItem.MarkAsInaccessible();
         }
 
         public abstract IFileSystemTreeNode GetClone();
@@ -206,12 +206,10 @@ namespace Explorer
             return false;
         }
 
-        // TODO: if required, change to IFSN.Method()
-
-        public void AddContextMenuOption(string name, Action onClick)
+        protected void AddContextMenuOption(string name)
         {
             ToolStripMenuItem option = new ToolStripMenuItem(name);
-            option.Click += (s, e) => onClick();
+            option.Click += (s, e) => this.Presenter.HandleContextMenuAction(name);
 
             this.ContextMenuStrip.Items.Add(option);
         }

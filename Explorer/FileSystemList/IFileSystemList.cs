@@ -8,9 +8,15 @@ namespace Explorer
 {
     public interface IFileSystemList
     {
+        IFileSystemTree Tree { get; set; }
+
+        IFileSystemTreeNode DisplayedNode { get; }
+
         void Display(IFileSystemTreeNode node);
+
+        void Display(IFileSystemListItem item);
       
-        void Display(IFileSystemTree tree);
+        void DisplayTree();
 
         void AddItem(IFileSystemListItem item);
 

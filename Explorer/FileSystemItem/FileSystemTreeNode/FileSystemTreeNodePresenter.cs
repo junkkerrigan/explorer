@@ -33,7 +33,9 @@ namespace Explorer
 
             _contextMenuActions = new Dictionary<string, Action>
             {
-                { "Open", View.Entity.OpenWithDefaultApplication },
+                { "Open", new Action(() => View.Open()) }, 
+                // because View.Open will be initialized later in constructors 
+                // of derived classes
                 { "Copy", this.CopyNodeToBuffer },
                 { "Cut", this.CutNodeToBuffer },
                 { "Paste", this.PasteNodeFromBuffer },
@@ -43,8 +45,12 @@ namespace Explorer
                 { "Collapse", View.Collapse },
                 { "Properties", View.ShowProperties },
                 { "Rename", View.StartNameEditing },
-                { "Create", View.StartNameEditing },
             };
+        }
+
+        public void HandleContextMenuAction(string name)
+        {
+            _contextMenuActions[name]();
         }
 
         protected void CopyNodeToBuffer()
@@ -79,8 +85,11 @@ namespace Explorer
             if (_clone == null)
             {
                 _clone = _buffer.GetClone();
+                Console.WriteLine(_clone.Name);
+
             }
             View.AddSubNode(_clone);
+
             View.SortSubNodes(false);
 
             bool isCopyingSucceed = true;

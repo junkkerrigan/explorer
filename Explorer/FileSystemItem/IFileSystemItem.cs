@@ -12,13 +12,6 @@ namespace Explorer
 
         IFileSystemItemEntity Entity { get; }
 
-        /// <summary>
-        /// Adds new option to right-click menu.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="onClick"></param>
-        void AddContextMenuOption(string name, Action onClick);
-
         void StartNameEditing();
 
         void ShowProperties();

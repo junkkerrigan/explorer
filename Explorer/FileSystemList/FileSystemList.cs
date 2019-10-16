@@ -9,25 +9,45 @@ namespace Explorer
 {
     public class FileSystemList : ListView, IFileSystemList
     {
+        public IFileSystemTree Tree { get; set; }
+
+        static readonly BackToFolder backToFolder = new BackToFolder();
+
+        public IFileSystemTreeNode DisplayedNode { get; set; }
+
         public FileSystemList() : base()
         {
             this.Dock = DockStyle.Fill;
             this.Font = Globals.ViewItemFont;
             this.BorderStyle = BorderStyle.None;
             this.View = View.Tile;
-            this.ContextMenu = new ContextMenu();
+            this.TileSize = new Size(600, 30);
+
+            ContextMenuStrip ViewMenu = new ContextMenuStrip();
+            ViewMenu.Items.Add(new ToolStripMenuItem("Gen"));
+
+            this.MouseDown += (s, e) =>
+            {
+                if (e.Button == MouseButtons.Right)
+                {
+                    if (this.GetItemAt(e.X, e.Y) == null)
+                    {
+                        ViewMenu.Show(Cursor.Position);
+                    }
+                    else
+                    {
+                        IFileSystemListItem target = this.GetItemAt(e.X, e.Y) as IFileSystemListItem;
+                        target.ShowMenu();
+                    }
+                }
+            };
 
             this.MouseDoubleClick += (s, e) =>
             {
-                IFileSystemTreeNode nodeToDisplay =
-                    (this.SelectedItems[0] as IFileSystemListItem).Node;
-                nodeToDisplay.Fill();
-                this.Display(nodeToDisplay);
-                while (nodeToDisplay != null)
-                {
-                    nodeToDisplay.Expand();
-                    nodeToDisplay = nodeToDisplay.Parent;
-                }
+                if (e.Button == MouseButtons.Right) return; 
+                IFileSystemListItem selectedItem = this.SelectedItems[0] 
+                    as IFileSystemListItem;
+                selectedItem.Open();
             };
 
             ImageList itemIcons = new ImageList
@@ -37,6 +57,7 @@ namespace Explorer
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/driveIcon.png"));
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/folderIcon.png"));
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/fileIcon.png"));
+            itemIcons.Images.Add(Image.FromFile("../../assets/icons/backToFolderIcon.png"));
 
             this.LargeImageList = this.SmallImageList = itemIcons;
         }
@@ -54,11 +75,11 @@ namespace Explorer
             }
         }
 
-        public void Display(IFileSystemTree tree)
+        public void DisplayTree()
         {
             this.Items.Clear();
 
-            foreach (IFileSystemTreeNode node in tree.RootNodes)
+            foreach (IFileSystemTreeNode node in this.Tree.RootNodes)
             {
                 this.AddItem(node.ListItem);
             }
@@ -70,6 +91,8 @@ namespace Explorer
             // TODO: handle file nodes 
             this.Items.Clear();
 
+            this.View = View.Tile;
+
             int maxWidth = this.Size.Width;
 
             foreach (IFileSystemTreeNode subNode in node.SubNodes)
@@ -80,10 +103,19 @@ namespace Explorer
 
             this.TileSize = new Size(maxWidth, 30);
 
+            this.AddItem(backToFolder);
+
+            this.DisplayedNode = node;
+
             foreach (IFileSystemTreeNode subNode in node.SubNodes)
             {
                 this.AddItem(subNode.ListItem);
             }
+        }
+
+        public void Display(IFileSystemListItem item)
+        {
+            this.Display(item.Node);
         }
     }
 }
