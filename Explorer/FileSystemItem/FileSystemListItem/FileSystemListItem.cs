@@ -14,7 +14,7 @@ namespace Explorer
         
         // TODO: split classes
 
-        string IFileSystemItem.Name
+        public new string Name
         {
             get
             {
@@ -195,6 +195,23 @@ namespace Explorer
                     List.Display(parent);
                 }
             };
+        }
+    }
+
+    public class CurrentFolder : FileSystemListItem
+    {
+        public CurrentFolder(string name) : base(name)
+        {
+            this.Open = () => { };
+            this.Font = new Font("Verdana", 11, FontStyle.Italic);
+        } 
+    }
+
+    public class Separator : FileSystemListItem
+    {
+        public Separator() : base("")
+        {
+            this.Open = () => { };
         }
     }
 }

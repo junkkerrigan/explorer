@@ -13,6 +13,10 @@ namespace Explorer
 
         static readonly BackToFolder backToFolder = new BackToFolder();
 
+        static CurrentFolder currentFolder = new CurrentFolder("");
+
+        static Separator separator = new Separator();
+
         private ContextMenuStrip RightClickMenu;
 
         public IFileSystemListItem  DisplayedItem { get; set; }
@@ -57,8 +61,7 @@ namespace Explorer
                 };
 
                 createOption.DropDownItems.Add(subOption);
-            }
-            
+            }            
 
             this.MouseDown += (s, e) =>
             {
@@ -210,7 +213,6 @@ namespace Explorer
         public void Display(IFileSystemTreeNode node)
         {
             // TODO: move to presenter
-            // TODO: handle file nodes 
             this.Items.Clear();
 
             this.View = View.Tile;
@@ -225,11 +227,17 @@ namespace Explorer
 
             this.TileSize = new Size(maxWidth, 30);
 
-            this.AddItem(backToFolder);
-
             this.DisplayedNode = node;
 
             this.DisplayedItem = node.ListItem;
+
+            currentFolder.Name = this.DisplayedItem.Entity.Path;
+
+            this.AddItem(currentFolder);
+
+            this.AddItem(separator);
+
+            this.AddItem(backToFolder);
 
             foreach (IFileSystemTreeNode subNode in node.SubNodes)
             {
