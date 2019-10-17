@@ -21,13 +21,14 @@ namespace Explorer
         public static readonly Size FileSystemNodeImageSize = new Size(18, 18);
 
         /// <summary>
-        /// Specifies indexes of types of file system elements' icons in ImageList.
+        /// Specifies indexes of types of file system elements icons in ImageList.
         /// </summary>
         public static class IconTypeIndexes
         {
             public const int DriveIndex = 0;
             public const int FolderIndex = 1;
             public const int FileIndex = 2;
+            public const int BackToFolderIndex = 3;
         }
     }
 }

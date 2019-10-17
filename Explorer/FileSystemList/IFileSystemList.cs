@@ -12,6 +12,8 @@ namespace Explorer
 
         IFileSystemTreeNode DisplayedNode { get; }
 
+        IFileSystemListItem DisplayedItem { get; set; }
+
         void Display(IFileSystemTreeNode node);
 
         void Display(IFileSystemListItem item);

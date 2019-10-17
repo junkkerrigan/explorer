@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Windows.Forms;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -25,7 +26,9 @@ namespace Explorer
         /// </summary>
         protected static IFileSystemTreeNode _buffer = null;
 
-        protected Dictionary<string, Action> _contextMenuActions;
+        protected Dictionary<string, Action> _nodeContextMenuActions;
+
+        protected Dictionary<string, Action> _listItemContextMenuActions;
 
         public FileSystemItemPresenter(IFileSystemTreeNode view) 
         {
@@ -33,7 +36,44 @@ namespace Explorer
 
             View.ListItem.Presenter = this;
 
-            _contextMenuActions = new Dictionary<string, Action>
+            _listItemContextMenuActions = new Dictionary<string, Action>
+            {
+                { "Open", new Action(() => View.ListItem.Open()) }, 
+                // because View.Open will be initialized later in constructors 
+                // of derived classes
+                { "Copy", this.CopyNodeToBuffer },
+                { "Cut", this.CutNodeToBuffer },
+                { "Paste", this.PasteNodeFromBuffer },
+                { "Delete", this.RemoveNode },
+                { "Properties", View.ListItem.ShowProperties },
+                { "Rename", View.ListItem.StartNameEditing },
+                { "Create folder", () => 
+                    {
+                        IFileSystemTreeNode newFolder =
+                            IFileSystemTreeNode.Factory.GetNewFolderNode("");
+                        
+                        View.AddSubNode(newFolder);
+                        View.Collapse();
+                        View.DisplayOnListView();
+
+                        newFolder.ListItem.StartNameEditing();
+                    } 
+                },
+                { "Create file", () =>
+                    {
+                        IFileSystemTreeNode newFolder =
+                            IFileSystemTreeNode.Factory.GetNewFileNode("");
+
+                        View.AddSubNode(newFolder);
+                        View.Collapse();
+                        View.DisplayOnListView();
+
+                        newFolder.ListItem.StartNameEditing();
+                    }
+                },
+            };
+
+            _nodeContextMenuActions = new Dictionary<string, Action>
             {
                 { "Open", new Action(() => View.Open()) }, 
                 // because View.Open will be initialized later in constructors 
@@ -50,9 +90,14 @@ namespace Explorer
             };
         }
 
-        public void HandleContextMenuAction(string name)
+        public void HandleNodeContextMenuAction(string name)
         {
-            _contextMenuActions[name]();
+            _nodeContextMenuActions[name]();
+        }
+
+        public void HandleListItemContextMenuAction(string name)
+        {
+            _listItemContextMenuActions[name]();
         }
 
         protected void CopyNodeToBuffer()
@@ -227,7 +272,7 @@ namespace Explorer
         }
 
         // TODO: ShowModalReallyDelete()
-        protected void RemoveNode()
+        public void RemoveNode()
         {
             IFileSystemTreeNode parent = View.Parent;
             View.Entity.Delete();

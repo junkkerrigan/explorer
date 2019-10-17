@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.ComponentModel;
 
 namespace Explorer
 {
@@ -47,11 +48,17 @@ namespace Explorer
             {
                 Process.Start(this.Path);
             }
+            catch (Win32Exception ex)
+            {
+                // TODO: ShowModalImpossibleToOpen();
+                Console.WriteLine(ex.Message);
+            }
             catch (Exception ex)
             {
                 // TODO: ShowModalInvalidLink();
                 Console.WriteLine("Error in Entity.OpenWithDefaultApplication");
                 Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.GetType());
             }
         }
 

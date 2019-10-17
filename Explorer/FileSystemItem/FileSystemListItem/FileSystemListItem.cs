@@ -80,13 +80,19 @@ namespace Explorer
 
         public void StartNameEditing()
         {
+            this.ListView.LabelEdit = true; 
             this.BeginEdit();
+        }
+
+        public void Display()
+        {
+            this.List.Display(this);
         }
 
         protected void AddContextMenuOption(string name)
         {
             ToolStripMenuItem option = new ToolStripMenuItem(name);
-            option.Click += (s, e) => this.Presenter.HandleContextMenuAction(name);
+            option.Click += (s, e) => this.Presenter.HandleListItemContextMenuAction(name);
 
             this.RightClickMenu.Items.Add(option);
         }
@@ -175,7 +181,7 @@ namespace Explorer
     {
         public BackToFolder() : base("...")
         {
-            this.ImageIndex = 3;
+            this.ImageIndex = Globals.IconTypeIndexes.BackToFolderIndex;
 
             this.Open = () =>
             {

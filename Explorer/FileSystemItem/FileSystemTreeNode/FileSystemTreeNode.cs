@@ -52,7 +52,7 @@ namespace Explorer
             }
         }
 
-        protected FileSystemItemPresenter Presenter { get; set; }
+        public FileSystemItemPresenter Presenter { get; set; }
         
         public IFileSystemItemEntity Entity { get; set; }
 
@@ -207,7 +207,7 @@ namespace Explorer
         protected void AddContextMenuOption(string name)
         {
             ToolStripMenuItem option = new ToolStripMenuItem(name);
-            option.Click += (s, e) => this.Presenter.HandleContextMenuAction(name);
+            option.Click += (s, e) => this.Presenter.HandleNodeContextMenuAction(name);
 
             this.ContextMenuStrip.Items.Add(option);
         }

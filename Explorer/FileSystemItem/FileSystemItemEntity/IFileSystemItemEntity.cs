@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Explorer
 {
@@ -12,6 +13,31 @@ namespace Explorer
         void CopyTo(string destinationPath);
 
         void Delete();
+
+        static class Factory
+        {
+            public static void CreateNewFolder(string path)
+            {
+                
+                if (Directory.Exists(path))
+                {
+                    throw new DirectoryAlreadyExistsException();
+                }
+                Directory.CreateDirectory(path);
+            }
+
+            public static void CreateNewFile(string path)
+            {
+                try
+                {
+                    File.Create(path);
+                }
+                catch (IOException)
+                {
+                    throw new FileAlreadyExistsException();
+                }
+            }
+        }
 
         void EditName(string newName);
 

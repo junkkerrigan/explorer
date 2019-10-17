@@ -13,12 +13,14 @@ namespace Explorer
 
         IFileSystemList List { get; }
 
-        FileSystemItemPresenter Presenter { set; }
+        FileSystemItemPresenter Presenter { get; set; }
 
         void ShowMenu();
 
         Action Open { get; }
 
         void MarkAsInaccessible();
+
+        void Display();
     }
 }

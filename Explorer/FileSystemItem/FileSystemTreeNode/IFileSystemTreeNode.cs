@@ -13,6 +13,8 @@ namespace Explorer
 
         IFileSystemTreeNode Parent { get; }
 
+        FileSystemItemPresenter Presenter { get;  }
+
         /// <summary>
         /// Indicates if subnodes of the node are filled.
         /// </summary>

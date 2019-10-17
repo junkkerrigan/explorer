@@ -13,6 +13,10 @@ namespace Explorer
 
         static readonly BackToFolder backToFolder = new BackToFolder();
 
+        private ContextMenuStrip RightClickMenu;
+
+        public IFileSystemListItem  DisplayedItem { get; set; }
+
         public IFileSystemTreeNode DisplayedNode { get; set; }
 
         public FileSystemList() : base()
@@ -23,8 +27,38 @@ namespace Explorer
             this.View = View.Tile;
             this.TileSize = new Size(600, 30);
 
-            ContextMenuStrip ViewMenu = new ContextMenuStrip();
-            ViewMenu.Items.Add(new ToolStripMenuItem("Gen"));
+            RightClickMenu = new ContextMenuStrip();
+
+            string[] contextMenuOptions =
+            {
+                "Create", "Paste",
+            };
+
+            foreach (string option in contextMenuOptions)
+            {
+                this.AddContextMenuOption(option);
+            }
+
+            string[] createOptionSubItems =
+            {
+                "Folder", "File",
+            };
+
+            ToolStripMenuItem createOption = this.RightClickMenu.Items[0] 
+                as ToolStripMenuItem;
+
+            foreach (string name in createOptionSubItems)
+            {
+                ToolStripMenuItem subOption = new ToolStripMenuItem(name);
+                subOption.Click += (s, e) =>
+                {
+                    this.DisplayedItem.Presenter.HandleListItemContextMenuAction(
+                        $"Create {name.ToLower()}");
+                };
+
+                createOption.DropDownItems.Add(subOption);
+            }
+            
 
             this.MouseDown += (s, e) =>
             {
@@ -32,7 +66,7 @@ namespace Explorer
                 {
                     if (this.GetItemAt(e.X, e.Y) == null)
                     {
-                        ViewMenu.Show(Cursor.Position);
+                        RightClickMenu.Show(Cursor.Position);
                     }
                     else
                     {
@@ -48,6 +82,90 @@ namespace Explorer
                 IFileSystemListItem selectedItem = this.SelectedItems[0] 
                     as IFileSystemListItem;
                 selectedItem.Open();
+            };
+
+            this.AfterLabelEdit += (s, e) =>
+            {
+                IFileSystemListItem item = this.Items[e.Item] as IFileSystemListItem;
+
+                if (item.Name == "") // editing after creating
+                {
+                    if (e.Label == "" || e.Label == null)
+                    {
+                        Console.WriteLine("Err: empty name.");
+                        e.CancelEdit = true;
+                        item.StartNameEditing();
+                        return;
+                    }
+
+                    string path = System.IO.Path.Combine(this.DisplayedNode.Entity.Path, e.Label);
+
+                    try
+                    {
+                        if (item is FileItem) 
+                        {
+                            IFileSystemItemEntity.Factory.CreateNewFile(path);
+                        }
+                        else if (item is FolderItem)
+                        {
+                            Console.WriteLine("Folder");
+                            IFileSystemItemEntity.Factory.CreateNewFolder(path);
+                        }
+                        else
+                        {
+                            throw new NotSupportedException("Error: you can't create drive.");
+                        }
+                    }
+                    catch(AlreadyExistsException)
+                    {
+                        // ShowModalAlreadyExists();
+                        Console.WriteLine("Err: already exists.");
+                        e.CancelEdit = true;
+                        item.StartNameEditing();
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    finally
+                    {
+                        if (!e.CancelEdit)
+                        {
+                            item.Node.Name = e.Label;
+                            item.Entity.Path = path;
+                        }
+                    }
+                    return;
+                }
+
+                try
+                {
+                    item.Entity.EditName(e.Label);
+                }
+                catch (FileAlreadyExistsException)
+                {
+                    Console.WriteLine("File already exists");
+                    e.CancelEdit = true;
+                }
+                catch (DirectoryAlreadyExistsException)
+                {
+                    Console.WriteLine("Directory already exists");
+                    e.CancelEdit = true;
+                }
+                finally
+                {
+                    if (!e.CancelEdit)
+                    {
+                        item.Node.Name = e.Label;
+                        this.BeginInvoke(
+                            new Action(() => {
+                                item.Node.Parent.SortSubNodes();
+                            })
+                        );
+                        // for sorting after node name will finally be changed
+                    }
+                    this.LabelEdit = false;
+                }
             };
 
             ImageList itemIcons = new ImageList
@@ -79,6 +197,10 @@ namespace Explorer
         {
             this.Items.Clear();
 
+            this.DisplayedNode = null;
+
+            this.DisplayedItem = null;
+
             foreach (IFileSystemTreeNode node in this.Tree.RootNodes)
             {
                 this.AddItem(node.ListItem);
@@ -107,6 +229,8 @@ namespace Explorer
 
             this.DisplayedNode = node;
 
+            this.DisplayedItem = node.ListItem;
+
             foreach (IFileSystemTreeNode subNode in node.SubNodes)
             {
                 this.AddItem(subNode.ListItem);
@@ -116,6 +240,17 @@ namespace Explorer
         public void Display(IFileSystemListItem item)
         {
             this.Display(item.Node);
+        } 
+
+        protected void AddContextMenuOption(string name)
+        {
+            ToolStripMenuItem option = new ToolStripMenuItem(name);
+            option.Click += (s, e) =>
+            {
+                this.DisplayedItem.Presenter.HandleListItemContextMenuAction(name);
+            };
+
+            this.RightClickMenu.Items.Add(option);
         }
     }
 }
