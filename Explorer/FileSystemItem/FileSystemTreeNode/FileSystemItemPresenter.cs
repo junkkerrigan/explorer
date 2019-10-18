@@ -44,6 +44,15 @@ namespace Explorer
                 { "Copy", this.CopyNodeToBuffer },
                 { "Cut", this.CutNodeToBuffer },
                 { "Paste", this.PasteNodeFromBuffer },
+                { "Move", () => 
+                    {
+                        IFileSystemTreeNode parent = View.Parent;
+                        this.CutNodeToBuffer();
+                        View.ListItem.List.StartMoving();
+                        parent.DisplayOnListView();
+                    }
+                },
+                { "Move here", this.MoveNode },
                 { "Delete", this.RemoveNode },
                 { "Properties", View.ListItem.ShowProperties },
                 { "Rename", View.ListItem.StartNameEditing },
@@ -110,7 +119,66 @@ namespace Explorer
             // TODO: handle pasting in same directory
             _buffer = View;
             View.Remove();
-            View.Entity.Delete();
+        }
+
+        protected void MoveNode()
+        {
+            if (View.IsChild(_buffer))
+            {
+                Console.WriteLine("Err: child");
+                // TODO: ShowModal();
+                return;
+            }
+            else if (View == _buffer)
+            {
+                Console.WriteLine("Err: same");
+                // TODO: ShowModal();
+                return;
+            }
+
+            string newPath = Path.Combine(View.Entity.Path, _buffer.Name);
+
+            _clone = _buffer.GetClone();
+
+            View.AddSubNode(_clone);
+
+            View.SortSubNodes(false);
+
+            bool isCopyingSucceed = true;
+
+            try
+            {
+                _buffer.Entity.Move(newPath);
+            }
+            catch (FileAlreadyExistsException)
+            {
+                Console.WriteLine("Err: file exists");
+                // TODO: ShowModal();
+                isCopyingSucceed = false;
+            }
+            catch (DirectoryAlreadyExistsException)
+            {
+                Console.WriteLine("Err: dir exists");
+                // TODO: ShowModal();
+                isCopyingSucceed = false;
+            }
+            finally
+            {
+                if (!isCopyingSucceed)
+                {
+                    View.RemoveSubNode(_clone);
+                }
+                else
+                {
+                    _clone.MarkAsSelected();
+                    _clone = null;
+                    // TODO: Finish moving.
+                    //_buffer.ListItem.List.FinishMoving(); 
+                    _buffer = null;
+                }
+                View.Expand();
+                View.DisplayOnListView();
+            }
         }
 
         protected void PasteNodeFromBuffer()
@@ -312,3 +380,4 @@ namespace Explorer
         }
     }
 }
+

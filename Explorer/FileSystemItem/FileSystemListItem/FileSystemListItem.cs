@@ -96,6 +96,11 @@ namespace Explorer
 
             this.RightClickMenu.Items.Add(option);
         }
+
+        public void MoveHere()
+        {
+            this.Presenter.HandleListItemContextMenuAction("Move here");
+        }
     }
 
     public class DriveItem : FileSystemListItem
@@ -134,7 +139,7 @@ namespace Explorer
 
             string[] contextMenuOptions =
             {
-                "Open", "Copy", "Cut", "Paste", "Delete", "Rename", "Properties",
+                "Open", "Copy", "Cut", "Paste", "Move", "Delete", "Rename", "Properties",
             };
 
             foreach (string option in contextMenuOptions)
@@ -162,7 +167,7 @@ namespace Explorer
 
             string[] contextMenuOptions =
             {
-                "Open", "Copy", "Cut", "Delete", "Rename", "Properties",
+                "Open", "Copy", "Cut", "Move", "Delete", "Rename", "Properties",
             };
 
             foreach (string option in contextMenuOptions)
@@ -198,11 +203,19 @@ namespace Explorer
         }
     }
 
-    public class CurrentFolder : FileSystemListItem
+    public class CurrentLocation : FileSystemListItem
     {
-        public CurrentFolder(string name) : base(name)
+        public bool IsMoving { get; set; }
+
+        public CurrentLocation(string name) : base(name)
         {
-            this.Open = () => { };
+            this.Open = () => 
+            {
+                if (IsMoving)
+                {
+                    this.Node.ListItem.MoveHere();
+                }
+            };
             this.Font = new Font("Verdana", 11, FontStyle.Italic);
         } 
     }

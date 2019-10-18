@@ -13,7 +13,7 @@ namespace Explorer
 
         static readonly BackToFolder backToFolder = new BackToFolder();
 
-        static CurrentFolder currentFolder = new CurrentFolder("");
+        static CurrentLocation currentLocation = new CurrentLocation("");
 
         static Separator separator = new Separator();
 
@@ -231,9 +231,17 @@ namespace Explorer
 
             this.DisplayedItem = node.ListItem;
 
-            currentFolder.Name = this.DisplayedItem.Entity.Path;
+            if (currentLocation.IsMoving)
+            {
+                currentLocation.Name = $"Move to {this.DisplayedItem.Entity.Path}";
+                currentLocation.Node = this.DisplayedNode;
+            }
+            else
+            {
+                currentLocation.Name = this.DisplayedItem.Entity.Path;
+            }
 
-            this.AddItem(currentFolder);
+            this.AddItem(currentLocation);
 
             this.AddItem(separator);
 
@@ -259,6 +267,17 @@ namespace Explorer
             };
 
             this.RightClickMenu.Items.Add(option);
+        }
+
+        public void StartMoving()
+        {
+            currentLocation.IsMoving = true;
+        }
+
+        public void FinishMoving()
+        {
+            currentLocation.IsMoving = false;
+            this.Display(DisplayedNode);
         }
     }
 }

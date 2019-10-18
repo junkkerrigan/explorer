@@ -23,5 +23,9 @@ namespace Explorer
         void AddItem(IFileSystemListItem item);
 
         void AddItems(List<IFileSystemListItem> item);
+
+        void StartMoving();
+
+        void FinishMoving();
     }
 }

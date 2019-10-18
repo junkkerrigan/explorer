@@ -22,5 +22,7 @@ namespace Explorer
         void MarkAsInaccessible();
 
         void Display();
+
+        void MoveHere();
     }
 }
