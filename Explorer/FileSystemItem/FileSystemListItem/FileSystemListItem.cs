@@ -97,6 +97,14 @@ namespace Explorer
             this.RightClickMenu.Items.Add(option);
         }
 
+        protected void AddContextMenuOption(string name, Action onClick)
+        {
+            ToolStripMenuItem option = new ToolStripMenuItem(name);
+            option.Click += (s, e) => onClick();
+
+            this.RightClickMenu.Items.Add(option);
+        }
+
         public void MoveHere()
         {
             this.Presenter.HandleListItemContextMenuAction("Move here");
@@ -209,6 +217,8 @@ namespace Explorer
 
         public CurrentLocation(string name) : base(name)
         {
+            this.RightClickMenu = new ContextMenuStrip();
+
             this.Open = () => 
             {
                 if (IsMoving)
@@ -218,6 +228,22 @@ namespace Explorer
             };
             this.Font = new Font("Verdana", 11, FontStyle.Italic);
         } 
+
+        public void EnableMovingMode()
+        {
+            this.IsMoving = true;
+            this.ImageIndex = Globals.IconTypeIndexes.MoveToIndex;
+            this.AddContextMenuOption("Undo moving", () => 
+                this.Node.Presenter.HandleListItemContextMenuAction("Undo moving"));
+        }
+
+        public void DisableMovingMode()
+        {
+            this.IsMoving = false;
+            this.ImageIndex = Globals.IconTypeIndexes.NoImageIndex;
+            this.Selected = false;
+            this.RightClickMenu.Items.Clear();
+        }
     }
 
     public class Separator : FileSystemListItem

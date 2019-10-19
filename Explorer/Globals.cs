@@ -29,6 +29,8 @@ namespace Explorer
             public const int FolderIndex = 1;
             public const int FileIndex = 2;
             public const int BackToFolderIndex = 3;
+            public const int MoveToIndex = 4;
+            public const int NoImageIndex = 5;
         }
     }
 }

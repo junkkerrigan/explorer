@@ -61,7 +61,16 @@ namespace Explorer
                 };
 
                 createOption.DropDownItems.Add(subOption);
-            }            
+            }
+
+            this.ItemSelectionChanged += (s, e) =>
+            {
+                if (e.IsSelected && e.Item == currentLocation && !currentLocation.IsMoving)
+                {
+                    e.Item.Selected = false;
+                    e.Item.Focused = false;
+                }
+            };
 
             this.MouseDown += (s, e) =>
             {
@@ -81,7 +90,9 @@ namespace Explorer
 
             this.MouseDoubleClick += (s, e) =>
             {
-                if (e.Button == MouseButtons.Right) return; 
+                if (e.Button == MouseButtons.Right) return;
+                if (this.SelectedItems.Count == 0) return;
+
                 IFileSystemListItem selectedItem = this.SelectedItems[0] 
                     as IFileSystemListItem;
                 selectedItem.Open();
@@ -179,6 +190,7 @@ namespace Explorer
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/folderIcon.png"));
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/fileIcon.png"));
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/backToFolderIcon.png"));
+            itemIcons.Images.Add(Image.FromFile("../../assets/icons/moveToIcon.png"));
 
             this.LargeImageList = this.SmallImageList = itemIcons;
         }
@@ -233,7 +245,7 @@ namespace Explorer
 
             if (currentLocation.IsMoving)
             {
-                currentLocation.Name = $"Move to {this.DisplayedItem.Entity.Path}";
+                currentLocation.Name = $"    Move to {this.DisplayedItem.Entity.Path}";
                 currentLocation.Node = this.DisplayedNode;
             }
             else
@@ -271,12 +283,12 @@ namespace Explorer
 
         public void StartMoving()
         {
-            currentLocation.IsMoving = true;
+            currentLocation.EnableMovingMode();
         }
 
         public void FinishMoving()
         {
-            currentLocation.IsMoving = false;
+            currentLocation.DisableMovingMode();
             this.Display(DisplayedNode);
         }
     }

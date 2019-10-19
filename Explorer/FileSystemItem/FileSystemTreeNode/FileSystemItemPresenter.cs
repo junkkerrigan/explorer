@@ -26,6 +26,11 @@ namespace Explorer
         /// </summary>
         protected static IFileSystemTreeNode _buffer = null;
 
+        /// <summary>
+        /// Stores parent of a cut node
+        /// </summary>
+        protected static IFileSystemTreeNode _parent = null;
+
         protected Dictionary<string, Action> _nodeContextMenuActions;
 
         protected Dictionary<string, Action> _listItemContextMenuActions;
@@ -44,7 +49,7 @@ namespace Explorer
                 { "Copy", this.CopyNodeToBuffer },
                 { "Cut", this.CutNodeToBuffer },
                 { "Paste", this.PasteNodeFromBuffer },
-                { "Move", () => 
+                { "Move", () =>
                     {
                         IFileSystemTreeNode parent = View.Parent;
                         this.CutNodeToBuffer();
@@ -53,20 +58,30 @@ namespace Explorer
                     }
                 },
                 { "Move here", this.MoveNode },
+                { "Undo moving", () =>
+                    {
+                        _parent.AddSubNode(_buffer);
+                        _parent.SortSubNodes();
+                        _parent.Tree.List.FinishMoving();
+                        _parent = null;
+                        _clone = null;
+                        _buffer = null;
+                    }
+                },
                 { "Delete", this.RemoveNode },
                 { "Properties", View.ListItem.ShowProperties },
                 { "Rename", View.ListItem.StartNameEditing },
-                { "Create folder", () => 
+                { "Create folder", () =>
                     {
                         IFileSystemTreeNode newFolder =
                             IFileSystemTreeNode.Factory.GetNewFolderNode("");
-                        
+
                         View.AddSubNode(newFolder);
                         View.Collapse();
                         View.DisplayOnListView();
 
                         newFolder.ListItem.StartNameEditing();
-                    } 
+                    }
                 },
                 { "Create file", () =>
                     {
@@ -118,21 +133,17 @@ namespace Explorer
         {
             // TODO: handle pasting in same directory
             _buffer = View;
+            _parent = View.Parent;
             View.Remove();
         }
 
         protected void MoveNode()
         {
-            if (View.IsChild(_buffer))
-            {
-                Console.WriteLine("Err: child");
-                // TODO: ShowModal();
-                return;
-            }
-            else if (View == _buffer)
+            if (View == _parent)
             {
                 Console.WriteLine("Err: same");
-                // TODO: ShowModal();
+                MessageBox.Show($"Impossible to move {_buffer.Name} into the same directory",
+                    "Moving error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -171,9 +182,9 @@ namespace Explorer
                 else
                 {
                     _clone.MarkAsSelected();
+                    View.Tree.List.FinishMoving();
                     _clone = null;
-                    // TODO: Finish moving.
-                    //_buffer.ListItem.List.FinishMoving(); 
+                    _parent = null;
                     _buffer = null;
                 }
                 View.Expand();
@@ -197,12 +208,12 @@ namespace Explorer
             }
 
             string newPath = Path.Combine(View.Entity.Path, _buffer.Name);
+
             if (_clone == null)
             {
                 _clone = _buffer.GetClone();
-                Console.WriteLine(_clone.Name);
-
             }
+
             View.AddSubNode(_clone);
 
             View.SortSubNodes(false);
