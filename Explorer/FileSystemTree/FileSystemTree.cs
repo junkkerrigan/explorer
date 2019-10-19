@@ -39,15 +39,15 @@ namespace Explorer
             List = list;
             List.Tree = this;
 
-            this.ItemHeight = Globals.ViewItemHeight;
+            this.ItemHeight = Constants.ViewItemHeight;
             this.ShowPlusMinus = true;
             this.Dock = DockStyle.Fill;
             this.BorderStyle = BorderStyle.None;
-            this.Font = Globals.ViewItemFont;
+            this.Font = Constants.ViewItemFont;
 
             ImageList nodeIcons = new ImageList
             {
-                ImageSize = Globals.FileSystemNodeImageSize
+                ImageSize = Constants.FileSystemNodeImageSize
             };
             nodeIcons.Images.Add(Image.FromFile("../../assets/icons/driveIcon.png"));
             nodeIcons.Images.Add(Image.FromFile("../../assets/icons/folderIcon.png"));
@@ -84,14 +84,10 @@ namespace Explorer
             {
                 node.Entity.EditName(e.Label);
             }
-            catch (FileAlreadyExistsException)
+            catch (AlreadyExistsException)
             {
-                Console.WriteLine("File already exists");
-                e.CancelEdit = true;
-            }
-            catch (DirectoryAlreadyExistsException)
-            {
-                Console.WriteLine("Directory already exists");
+                MessageBox.Show($"Impossible to rename: {e.Label} already exists.",
+                    "Renaming error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 e.CancelEdit = true;
             }
             finally

@@ -21,7 +21,7 @@ namespace Explorer
             ListItem = new DriveItem(this);
             Presenter = new DriveItemPresenter(this);
 
-            this.ImageIndex = this.SelectedImageIndex = Globals.IconTypeIndexes.DriveIndex;
+            this.ImageIndex = this.SelectedImageIndex = Constants.IconTypeIndexes.DriveIndex;
 
             this.Open = this.DisplayOnListView;
 

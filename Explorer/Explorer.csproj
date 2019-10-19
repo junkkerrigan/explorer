@@ -123,7 +123,7 @@
     <Compile Include="FileSystemTree\FileSystemTree.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Globals.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="Explorer\IExplorer.cs" />
     <Compile Include="FileSystemItem\IFileSystemItem.cs" />
     <Compile Include="FileSystemItem\FileSystemItemEntity\IFileSystemItemEntity.cs" />

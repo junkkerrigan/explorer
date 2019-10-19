@@ -28,14 +28,11 @@ namespace Explorer
 
             public static void CreateNewFile(string path)
             {
-                try
-                {
-                    File.Create(path);
-                }
-                catch (IOException)
+                if (File.Exists(path))
                 {
                     throw new FileAlreadyExistsException();
                 }
+                File.Create(path);
             }
         }
 

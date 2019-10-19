@@ -26,7 +26,7 @@ namespace Explorer
         public FileSystemList() : base()
         {
             this.Dock = DockStyle.Fill;
-            this.Font = Globals.ViewItemFont;
+            this.Font = Constants.ViewItemFont;
             this.BorderStyle = BorderStyle.None;
             this.View = View.Tile;
             this.TileSize = new Size(600, 30);
@@ -63,6 +63,7 @@ namespace Explorer
                 createOption.DropDownItems.Add(subOption);
             }
 
+            // to prevent currentLocation from being selected or focused 
             this.ItemSelectionChanged += (s, e) =>
             {
                 if (e.IsSelected && e.Item == currentLocation && !currentLocation.IsMoving)
@@ -106,7 +107,10 @@ namespace Explorer
                 {
                     if (e.Label == "" || e.Label == null)
                     {
-                        Console.WriteLine("Err: empty name.");
+                        string itemType = (item is FolderItem) ? "folder" : "file";
+
+                        MessageBox.Show($"Impossible to create {itemType} with empty name.",
+                            "Creating error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         e.CancelEdit = true;
                         item.StartNameEditing();
                         return;
@@ -122,7 +126,6 @@ namespace Explorer
                         }
                         else if (item is FolderItem)
                         {
-                            Console.WriteLine("Folder");
                             IFileSystemItemEntity.Factory.CreateNewFolder(path);
                         }
                         else
@@ -132,8 +135,8 @@ namespace Explorer
                     }
                     catch(AlreadyExistsException)
                     {
-                        // ShowModalAlreadyExists();
-                        Console.WriteLine("Err: already exists.");
+                        MessageBox.Show($"Impossible to create: {e.Label} already exists.",
+                            "Creating error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         e.CancelEdit = true;
                         item.StartNameEditing();
                     }
@@ -156,14 +159,10 @@ namespace Explorer
                 {
                     item.Entity.EditName(e.Label);
                 }
-                catch (FileAlreadyExistsException)
+                catch (AlreadyExistsException)
                 {
-                    Console.WriteLine("File already exists");
-                    e.CancelEdit = true;
-                }
-                catch (DirectoryAlreadyExistsException)
-                {
-                    Console.WriteLine("Directory already exists");
+                    MessageBox.Show($"Impossible to rename: {e.Label} already exists.",
+                            "Renaming error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     e.CancelEdit = true;
                 }
                 finally
@@ -182,6 +181,7 @@ namespace Explorer
                 }
             };
 
+            // TODO: move to Globals
             ImageList itemIcons = new ImageList
             {
                 ImageSize = new Size(25, 25)
@@ -190,6 +190,7 @@ namespace Explorer
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/folderIcon.png"));
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/fileIcon.png"));
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/backToFolderIcon.png"));
+            itemIcons.Images.Add(Image.FromFile("../../assets/icons/currentLocationIcon.png"));
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/moveToIcon.png"));
 
             this.LargeImageList = this.SmallImageList = itemIcons;
@@ -234,7 +235,7 @@ namespace Explorer
             foreach (IFileSystemTreeNode subNode in node.SubNodes)
             {
                 maxWidth = System.Math.Max(maxWidth, 40 + 
-                    TextRenderer.MeasureText(subNode.Name, Globals.ViewItemFont).Width);
+                    TextRenderer.MeasureText(subNode.Name, Constants.ViewItemFont).Width);
             }
 
             this.TileSize = new Size(maxWidth, 30);
@@ -245,12 +246,14 @@ namespace Explorer
 
             if (currentLocation.IsMoving)
             {
-                currentLocation.Name = $"    Move to {this.DisplayedItem.Entity.Path}";
+                currentLocation.Name = 
+                    $"    Move {this.DisplayedNode.Presenter.Buffer.Name}" +
+                    $" to {this.DisplayedItem.Entity.Path}";
                 currentLocation.Node = this.DisplayedNode;
             }
             else
             {
-                currentLocation.Name = this.DisplayedItem.Entity.Path;
+                currentLocation.Name = $"    {this.DisplayedItem.Entity.Path}";
             }
 
             this.AddItem(currentLocation);

@@ -32,6 +32,8 @@ namespace Explorer
         /// <param name="node"></param>
         void AddNodes(List<IFileSystemTreeNode> nodes);
 
-        //void ShowModal();
+        void BeginUpdate();
+
+        void EndUpdate();
     }
 }

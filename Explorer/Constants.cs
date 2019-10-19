@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Explorer
 {
-    public static class Globals
+    public static class Constants
     {
         public const int MainWrapperMargin = 15;
 
@@ -29,8 +29,17 @@ namespace Explorer
             public const int FolderIndex = 1;
             public const int FileIndex = 2;
             public const int BackToFolderIndex = 3;
-            public const int MoveToIndex = 4;
-            public const int NoImageIndex = 5;
+            public const int CurrentLocationIndex = 4;
+            public const int MoveToIndex = 5;
+            public const int NoImageIndex = 6;
         }
+    }
+
+    public static class BufferElementState
+    {
+        public const int Empty = 0;
+        public const int Copied = 1;
+        public const int Cut = 2;
+        public const int Moving = 3;
     }
 }

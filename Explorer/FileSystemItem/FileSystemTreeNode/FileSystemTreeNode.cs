@@ -146,26 +146,6 @@ namespace Explorer
             this.Nodes.Remove(node as FileSystemTreeNode);
         }
 
-        void IFileSystemTreeNode.Remove()
-        {
-            this.Remove();
-        }
-
-        void IFileSystemTreeNode.Expand()
-        {
-            this.Expand();
-        }
-
-        void IFileSystemTreeNode.ExpandAll()
-        {
-            this.ExpandAll();
-        }
-
-        void IFileSystemTreeNode.Collapse()
-        {
-            this.Collapse();
-        }
-
         public void StartNameEditing()
         {
             this.TreeView.LabelEdit = true;
@@ -182,7 +162,11 @@ namespace Explorer
             this.IsAccessible = false;
             this.ForeColor = Color.Gray;
             this.ContextMenuStrip.Items.Clear();
-            this.Open = () => { };
+            this.Open = () =>
+            {
+                MessageBox.Show($"Impossible to open: {this.Name} is inaccesible.",
+                    "Opening error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            };
             this.ListItem.MarkAsInaccessible();
         }
 

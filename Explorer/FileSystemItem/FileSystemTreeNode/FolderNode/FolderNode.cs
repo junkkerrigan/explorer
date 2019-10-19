@@ -21,7 +21,7 @@ namespace Explorer
             ListItem = new FolderItem(this);
             Presenter = new FolderItemPresenter(this);
 
-            this.ImageIndex = this.SelectedImageIndex = Globals.IconTypeIndexes.FolderIndex;
+            this.ImageIndex = this.SelectedImageIndex = Constants.IconTypeIndexes.FolderIndex;
 
             this.Open = this.DisplayOnListView;
 

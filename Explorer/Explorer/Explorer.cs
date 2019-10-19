@@ -40,33 +40,33 @@ namespace Explorer
 
             MainWrapper = new Panel()
             {
-                Location = new Point(Globals.MainWrapperMargin, 
-                    Globals.MainWrapperMargin),
-                Size = new Size(this.ClientSize.Width - 2 * Globals.MainWrapperMargin, 
-                    this.ClientSize.Height - 2 * Globals.MainWrapperMargin),
+                Location = new Point(Constants.MainWrapperMargin, 
+                    Constants.MainWrapperMargin),
+                Size = new Size(this.ClientSize.Width - 2 * Constants.MainWrapperMargin, 
+                    this.ClientSize.Height - 2 * Constants.MainWrapperMargin),
             };
 
             DirectoryViewWrapper = new Panel()
             {
-                Location = new Point(Globals.MainWrapperPadding, 
-                    Globals.MainWrapperPadding),
+                Location = new Point(Constants.MainWrapperPadding, 
+                    Constants.MainWrapperPadding),
                 Size = new Size(
-                    (MainWrapper.Width - 2 * Globals.MainWrapperPadding - 
-                    Globals.SpaceBetweenViews) / 3, 
-                    MainWrapper.Height - 2 * Globals.MainWrapperPadding),
-                Padding = new Padding(Globals.ViewPadding),
+                    (MainWrapper.Width - 2 * Constants.MainWrapperPadding - 
+                    Constants.SpaceBetweenViews) / 3, 
+                    MainWrapper.Height - 2 * Constants.MainWrapperPadding),
+                Padding = new Padding(Constants.ViewPadding),
                 BackColor = Color.White,
             };
 
             FileViewWrapper = new Panel()
             {
                 Location = new Point(
-                    DirectoryViewWrapper.Width + Globals.MainWrapperPadding +
-                    Globals.SpaceBetweenViews,
-                    Globals.MainWrapperPadding),
+                    DirectoryViewWrapper.Width + Constants.MainWrapperPadding +
+                    Constants.SpaceBetweenViews,
+                    Constants.MainWrapperPadding),
                 Size = new Size(DirectoryViewWrapper.Width * 2,
                     DirectoryViewWrapper.Height),
-                Padding = new Padding(Globals.ViewPadding),
+                Padding = new Padding(Constants.ViewPadding),
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.None,
             };
@@ -94,18 +94,18 @@ namespace Explorer
         private void Explorer_SizeChanged(object sender, EventArgs e)
         {
             MainWrapper.Size = new Size(this.ClientSize.Width - 
-                    2 * Globals.MainWrapperMargin,
-                this.ClientSize.Height - 2 * Globals.MainWrapperMargin);
+                    2 * Constants.MainWrapperMargin,
+                this.ClientSize.Height - 2 * Constants.MainWrapperMargin);
 
             DirectoryViewWrapper.Size = new Size(
-                (MainWrapper.Width - 2 * Globals.MainWrapperPadding - 
-                    Globals.SpaceBetweenViews) / 3,
-                MainWrapper.Height - 2 * Globals.MainWrapperPadding);
+                (MainWrapper.Width - 2 * Constants.MainWrapperPadding - 
+                    Constants.SpaceBetweenViews) / 3,
+                MainWrapper.Height - 2 * Constants.MainWrapperPadding);
 
             FileViewWrapper.Location = new Point(
-                DirectoryViewWrapper.Width + Globals.MainWrapperPadding +
-                    Globals.SpaceBetweenViews,
-                Globals.MainWrapperPadding);
+                DirectoryViewWrapper.Width + Constants.MainWrapperPadding +
+                    Constants.SpaceBetweenViews,
+                Constants.MainWrapperPadding);
             FileViewWrapper.Size = new Size(DirectoryViewWrapper.Width * 2, 
                 DirectoryViewWrapper.Height);
         }

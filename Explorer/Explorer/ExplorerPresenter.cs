@@ -25,13 +25,6 @@ namespace Explorer
         public void Run()
         {
             View.Mount();
-        }
-
-        //public void CheckAccessibility(FileSystemNode node)
-        //{
-        //    //if (!node.IsIsAccessible) _Node.ShowModal();
-        //}
-
-        
+        }        
     }
 }

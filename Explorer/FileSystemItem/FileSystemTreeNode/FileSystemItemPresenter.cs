@@ -26,10 +26,20 @@ namespace Explorer
         /// </summary>
         protected static IFileSystemTreeNode _buffer = null;
 
+        public IFileSystemTreeNode Buffer 
+        { 
+            get
+            {
+                return _buffer;
+            }
+        }
+
         /// <summary>
         /// Stores parent of a cut node
         /// </summary>
         protected static IFileSystemTreeNode _parent = null;
+
+        protected static int _bufferElementState = BufferElementState.Empty;
 
         protected Dictionary<string, Action> _nodeContextMenuActions;
 
@@ -51,21 +61,34 @@ namespace Explorer
                 { "Paste", this.PasteNodeFromBuffer },
                 { "Move", () =>
                     {
-                        IFileSystemTreeNode parent = View.Parent;
+                        if (_bufferElementState == BufferElementState.Moving)
+                        {
+                            MessageBox.Show(
+                                $"Impossible to move {View.Name} while {_buffer.Name} is moving",
+                                "Moving error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+                        if (_bufferElementState == BufferElementState.Cut)
+                        {
+                            this.UndoCutting();
+                        }
+
                         this.CutNodeToBuffer();
-                        View.ListItem.List.StartMoving();
-                        parent.DisplayOnListView();
+
+                        _parent.Tree.List.StartMoving();
+                        _parent.DisplayOnListView();
+
+                        _bufferElementState = BufferElementState.Moving;
                     }
                 },
                 { "Move here", this.MoveNode },
-                { "Undo moving", () =>
+                { "Cancel moving", () =>
                     {
-                        _parent.AddSubNode(_buffer);
-                        _parent.SortSubNodes();
-                        _parent.Tree.List.FinishMoving();
-                        _parent = null;
-                        _clone = null;
-                        _buffer = null;
+                        this.UndoCutting(true);
+
+                        View.Tree.List.FinishMoving();
+
+                        _bufferElementState = BufferElementState.Empty;
                     }
                 },
                 { "Delete", this.RemoveNode },
@@ -126,22 +149,69 @@ namespace Explorer
 
         protected void CopyNodeToBuffer()
         {
+            if (_bufferElementState == BufferElementState.Moving)
+            {
+                MessageBox.Show(
+                    $"Impossible to copy {View.Name} while {_buffer.Name} is moving",
+                    "Copying error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (_bufferElementState == BufferElementState.Cut)
+            {
+                if (_parent == this.View.Tree.List.DisplayedNode)
+                {
+                    this.UndoCutting(true);
+                }
+                else
+                {
+                    this.UndoCutting();
+                }
+            }
             _buffer = View;
+            _bufferElementState = BufferElementState.Copied;
         }
 
         protected void CutNodeToBuffer()
         {
-            // TODO: handle pasting in same directory
+            if (_bufferElementState == BufferElementState.Moving)
+            {
+                MessageBox.Show(
+                    $"Impossible to cut {View.Name} while {_buffer.Name} is moving",
+                    "Cutting error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (_bufferElementState == BufferElementState.Cut)
+            {
+                if (_parent == this.View.Tree.List.DisplayedNode)
+                {
+                    this.UndoCutting(true);
+                }
+                else
+                {
+                    this.UndoCutting();
+                }
+            }
             _buffer = View;
             _parent = View.Parent;
             View.Remove();
+            _parent.DisplayOnListView();
+            _bufferElementState = BufferElementState.Cut;
+        }
+
+        protected void UndoCutting(bool displayParent = false)
+        {
+            _parent.AddSubNode(_buffer);
+            _parent.SortSubNodes(displayParent);
+            _buffer.ListItem.Selected = false;
+            _parent = null;
+            _buffer = null;
+            _bufferElementState = BufferElementState.Empty;
         }
 
         protected void MoveNode()
         {
             if (View == _parent)
             {
-                Console.WriteLine("Err: same");
                 MessageBox.Show($"Impossible to move {_buffer.Name} into the same directory",
                     "Moving error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -155,27 +225,21 @@ namespace Explorer
 
             View.SortSubNodes(false);
 
-            bool isCopyingSucceed = true;
+            bool isMovingSucceed = true;
 
             try
             {
                 _buffer.Entity.Move(newPath);
             }
-            catch (FileAlreadyExistsException)
+            catch (AlreadyExistsException)
             {
-                Console.WriteLine("Err: file exists");
-                // TODO: ShowModal();
-                isCopyingSucceed = false;
-            }
-            catch (DirectoryAlreadyExistsException)
-            {
-                Console.WriteLine("Err: dir exists");
-                // TODO: ShowModal();
-                isCopyingSucceed = false;
+                MessageBox.Show($"Impossible to move: {_buffer.Name} already exists.",
+                    "Moving error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                isMovingSucceed = false;
             }
             finally
             {
-                if (!isCopyingSucceed)
+                if (!isMovingSucceed)
                 {
                     View.RemoveSubNode(_clone);
                 }
@@ -186,6 +250,7 @@ namespace Explorer
                     _clone = null;
                     _parent = null;
                     _buffer = null;
+                    _bufferElementState = BufferElementState.Empty;
                 }
                 View.Expand();
                 View.DisplayOnListView();
@@ -194,16 +259,28 @@ namespace Explorer
 
         protected void PasteNodeFromBuffer()
         {
-            if (View.IsChild(_buffer))
+            if (_buffer == null)
             {
-                Console.WriteLine("Err: child");
-                // TODO: ShowModal();
+                MessageBox.Show("Nothing to paste.", "Pasting error", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            else if (View == _buffer)
+            if (View.IsChild(_buffer))
             {
-                Console.WriteLine("Err: same");
-                // TODO: ShowModal();
+                MessageBox.Show($"Impossible to paste {_buffer.Name} into child directory.",
+                    "Pasting error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (View == _parent && _bufferElementState == BufferElementState.Cut)
+            {
+                MessageBox.Show($"Impossible to paste {_buffer.Name} into the same directory.",
+                    "Pasting error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (View == _buffer)
+            {
+                MessageBox.Show($"Impossible to paste {_buffer.Name} into itself.",
+                    "Pasting error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -213,6 +290,8 @@ namespace Explorer
             {
                 _clone = _buffer.GetClone();
             }
+
+            View.Tree.BeginUpdate();
 
             View.AddSubNode(_clone);
 
@@ -224,16 +303,10 @@ namespace Explorer
             {
                 _buffer.Entity.CopyTo(newPath);
             }
-            catch (FileAlreadyExistsException)
+            catch (AlreadyExistsException)
             {
-                Console.WriteLine("Err: file exists");
-                // TODO: ShowModal();
-                isCopyingSucceed = false;
-            }
-            catch (DirectoryAlreadyExistsException)
-            {
-                Console.WriteLine("Err: dir exists");
-                // TODO: ShowModal();
+                MessageBox.Show($"Impossible to paste: {_buffer.Name} already exists.",
+                    "Pasting error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 isCopyingSucceed = false;
             }
             finally
@@ -245,10 +318,17 @@ namespace Explorer
                 else
                 {
                     _clone.MarkAsSelected();
+                    if (_bufferElementState == BufferElementState.Cut)
+                    {
+                        _buffer = null;
+                        _parent = null;
+                    }
                     _clone = null;
+                    _bufferElementState = BufferElementState.Empty;
+                    View.Expand();
+                    View.DisplayOnListView();
                 }
-                View.Expand();
-                View.DisplayOnListView();
+                View.Tree.EndUpdate();
             }
         }
 
@@ -350,9 +430,12 @@ namespace Explorer
             return innerFiles;
         }
 
-        // TODO: ShowModalReallyDelete()
         public void RemoveNode()
         {
+            DialogResult reallyDelete =  MessageBox.Show(
+                $"Are you sure you want to delete {View.Name}?", "Deleting", 
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (reallyDelete != DialogResult.Yes) return;
             IFileSystemTreeNode parent = View.Parent;
             View.Entity.Delete();
             View.Remove();

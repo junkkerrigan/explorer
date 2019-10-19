@@ -19,6 +19,8 @@ namespace Explorer
 
         Action Open { get; }
 
+        bool Selected { get; set; }
+
         void MarkAsInaccessible();
 
         void Display();

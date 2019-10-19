@@ -21,7 +21,7 @@ namespace Explorer
             ListItem = new FileItem(this);
             Presenter = new FileItemPresenter(this);
 
-            this.ImageIndex = this.SelectedImageIndex = Globals.IconTypeIndexes.FileIndex;
+            this.ImageIndex = this.SelectedImageIndex = Constants.IconTypeIndexes.FileIndex;
             
             this.IsFilled = true;
 

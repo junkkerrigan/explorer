@@ -64,7 +64,11 @@ namespace Explorer
         public void MarkAsInaccessible()
         {
             this.ForeColor = Color.Gray;
-            this.Open = () => { };
+            this.Open = () =>
+            {
+                MessageBox.Show($"Impossible to open: {this.Name} is inaccesible.",
+                    "Opening error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            };
             this.RightClickMenu.Items.Clear();
         }
 
@@ -115,7 +119,7 @@ namespace Explorer
     {
         public DriveItem(IFileSystemTreeNode node) : base(node)
         {
-            this.ImageIndex = Globals.IconTypeIndexes.DriveIndex;
+            this.ImageIndex = Constants.IconTypeIndexes.DriveIndex;
 
             string[] contextMenuOptions =
             {
@@ -143,7 +147,7 @@ namespace Explorer
     {
         public FolderItem(IFileSystemTreeNode node) : base(node)
         {
-            this.ImageIndex = Globals.IconTypeIndexes.FolderIndex;
+            this.ImageIndex = Constants.IconTypeIndexes.FolderIndex;
 
             string[] contextMenuOptions =
             {
@@ -171,7 +175,7 @@ namespace Explorer
     {
         public FileItem(IFileSystemTreeNode node) : base(node)
         {
-            this.ImageIndex = Globals.IconTypeIndexes.FileIndex;
+            this.ImageIndex = Constants.IconTypeIndexes.FileIndex;
 
             string[] contextMenuOptions =
             {
@@ -194,7 +198,7 @@ namespace Explorer
     {
         public BackToFolder() : base("...")
         {
-            this.ImageIndex = Globals.IconTypeIndexes.BackToFolderIndex;
+            this.ImageIndex = Constants.IconTypeIndexes.BackToFolderIndex;
 
             this.Open = () =>
             {
@@ -218,6 +222,7 @@ namespace Explorer
         public CurrentLocation(string name) : base(name)
         {
             this.RightClickMenu = new ContextMenuStrip();
+            this.ImageIndex = Constants.IconTypeIndexes.CurrentLocationIndex;
 
             this.Open = () => 
             {
@@ -232,15 +237,15 @@ namespace Explorer
         public void EnableMovingMode()
         {
             this.IsMoving = true;
-            this.ImageIndex = Globals.IconTypeIndexes.MoveToIndex;
-            this.AddContextMenuOption("Undo moving", () => 
-                this.Node.Presenter.HandleListItemContextMenuAction("Undo moving"));
+            this.ImageIndex = Constants.IconTypeIndexes.MoveToIndex;
+            this.AddContextMenuOption("Cancel moving", () => 
+                this.Node.Presenter.HandleListItemContextMenuAction("Cancel moving"));
         }
 
         public void DisableMovingMode()
         {
             this.IsMoving = false;
-            this.ImageIndex = Globals.IconTypeIndexes.NoImageIndex;
+            this.ImageIndex = Constants.IconTypeIndexes.CurrentLocationIndex;
             this.Selected = false;
             this.RightClickMenu.Items.Clear();
         }

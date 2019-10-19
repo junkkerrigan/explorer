@@ -4,6 +4,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using System.Windows.Forms;
 
 namespace Explorer
 {
@@ -48,14 +49,13 @@ namespace Explorer
             {
                 Process.Start(this.Path);
             }
-            catch (Win32Exception ex)
+            catch (Win32Exception)
             {
-                // TODO: ShowModalImpossibleToOpen();
-                Console.WriteLine(ex.Message);
+                MessageBox.Show($"Impossible to open {this.Node.Name}.", "Opening error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                // TODO: ShowModalInvalidLink();
                 Console.WriteLine("Error in Entity.OpenWithDefaultApplication");
                 Console.WriteLine(ex.Message);
                 Console.WriteLine(ex.GetType());
@@ -145,7 +145,19 @@ namespace Explorer
 
         public override void Delete()
         {
-            Directory.Delete(this.Path, true);
+            try
+            {
+                Directory.Delete(this.Path, true);
+            }
+            catch (IOException)
+            {
+                MessageBox.Show($"Impossible to delete {this.Node.Name}.", "Deleting error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public override void Move(string destinationPath)
@@ -187,7 +199,19 @@ namespace Explorer
 
         public override void Delete()
         {
-            File.Delete(this.Path);
+            try
+            {
+                File.Delete(this.Path);
+            }
+            catch(IOException)
+            {
+                MessageBox.Show($"Impossible to delete {this.Node.Name}.", "Deleting error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public override void Move(string destinationPath)
