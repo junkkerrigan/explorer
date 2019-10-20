@@ -18,6 +18,8 @@ namespace Explorer
 
         private readonly MenuStrip MainMenu;
 
+        private readonly BottomButtonPanel BottomButtonPanel;
+
         private readonly Panel DirectoryViewWrapper;
 
         private readonly Panel FileViewWrapper;
@@ -33,7 +35,9 @@ namespace Explorer
         {
             InitializeComponent();
             this.BackColor = Color.FromArgb(236, 233, 216);
-            this.BackColor = Color.FromArgb(236, 233, 216);
+
+            // to key pressing
+            this.KeyPreview = true;
 
             MainWrapper = new Panel()
             {
@@ -47,11 +51,21 @@ namespace Explorer
 
             MainMenu = new MainMenu(FileView);
 
+            BottomButtonPanel = new BottomButtonPanel(FileView)
+            {
+                Location = new Point(Constants.MainWrapperPadding,
+                    MainWrapper.Height - Constants.MainWrapperPadding
+                    - Constants.BottomButtonsHeight),
+
+                Size = new Size(MainWrapper.Width - 2 * Constants.MainWrapperPadding,
+                    Constants.BottomButtonsHeight)
+            };
+
             DirectoryView = new FileSystemTree(FileView);
 
             DirectoryViewWrapper = new Panel()
             {
-                Location = new Point(Constants.MainWrapperPaddingHorizontal, 
+                Location = new Point(Constants.MainWrapperPadding, 
                     MainMenu.Height + Constants.MainMenuMarginBottom),
                 Size = new Size(MainWrapperFreeSpaceWidth() / 3, 
                     MainWrapperFreeSpaceHeight()),
@@ -61,7 +75,7 @@ namespace Explorer
 
             FileViewWrapper = new Panel()
             {
-                Location = new Point(Constants.MainWrapperPaddingHorizontal 
+                Location = new Point(Constants.MainWrapperPadding 
                     + DirectoryViewWrapper.Width + Constants.SpaceBetweenViews,
                     MainMenu.Height + Constants.MainMenuMarginBottom),
                 Size = new Size(MainWrapperFreeSpaceWidth() - DirectoryViewWrapper.Width ,
@@ -76,6 +90,7 @@ namespace Explorer
             MainWrapper.Controls.Add(MainMenu);
             MainWrapper.Controls.Add(DirectoryViewWrapper);
             MainWrapper.Controls.Add(FileViewWrapper);
+            MainWrapper.Controls.Add(BottomButtonPanel);
 
             DirectoryViewWrapper.Controls.Add(DirectoryView);
             
@@ -83,12 +98,6 @@ namespace Explorer
 
             this.Paint += Explorer_Paint;
             this.SizeChanged += Explorer_SizeChanged;
-
-            //MainWrapper.Paint += (s, e) =>
-            //{
-            //    e.Graphics.DrawLine(new Pen(Color.White, 2), 0, MainMenu.Height,
-            //        MainWrapper.Width, MainMenu.Height);
-            //};
         }
 
         public void Mount()
@@ -107,9 +116,9 @@ namespace Explorer
                 MainWrapperFreeSpaceHeight());
 
             FileViewWrapper.Location = new Point(
-                DirectoryViewWrapper.Width + Constants.MainWrapperPaddingHorizontal +
+                DirectoryViewWrapper.Width + Constants.MainWrapperPadding +
                     Constants.SpaceBetweenViews,
-                Constants.MainWrapperPaddingVertical);
+                MainMenu.Height + Constants.MainMenuMarginBottom);
 
             FileViewWrapper.Size = new Size(MainWrapperFreeSpaceWidth() 
                 - DirectoryViewWrapper.Width, 
@@ -125,14 +134,14 @@ namespace Explorer
 
         private int MainWrapperFreeSpaceWidth()
         {
-            return MainWrapper.Width - 2 * Constants.MainWrapperPaddingHorizontal
+            return MainWrapper.Width - 2 * Constants.MainWrapperPadding
                 - Constants.SpaceBetweenViews;
         }
 
         private int MainWrapperFreeSpaceHeight()
         {
             return MainWrapper.Height - MainMenu.Height - Constants.MainMenuMarginBottom
-                - Constants.MainWrapperPaddingVertical;
+                - Constants.BottomButtonsHeight - 2 * Constants.MainWrapperPadding;
         }
     }
 }

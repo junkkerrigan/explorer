@@ -8,13 +8,13 @@ namespace Explorer
     {
         public const int MainWrapperMargin = 10;
 
-        public const int MainWrapperPaddingHorizontal = 20;
-        
-        public const int MainWrapperPaddingVertical = 10;
+        public const int MainWrapperPadding = 10;
 
         public const int SpaceBetweenViews = 20;
 
         public const int MainMenuMarginBottom = 10;
+
+        public const int BottomButtonsHeight = 50;
 
         public const int ViewItemHeight = 30;
 

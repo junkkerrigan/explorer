@@ -27,8 +27,9 @@ namespace Explorer
         {
             get
             {
-                if (this.SelectedItems.Count == 0) return null;
-
+                if (this.SelectedItems.Count == 0 || 
+                    this.SelectedItems[0] is BackToFolder) return null;
+                
                 return (this.SelectedItems[0] as IFileSystemListItem);
             }
         }
@@ -73,15 +74,20 @@ namespace Explorer
                 createOption.DropDownItems.Add(subOption);
             }
 
+            this.KeyUp += (s, e) =>
+            {
+                if (e.KeyCode == Keys.VolumeUp && this.SelectedItem is FileItem)
+                {
+                    // TODO: open editor
+                }
+            };
+
             // to prevent from being selected or focused 
             this.ItemSelectionChanged += (s, e) =>
             {
                 if (e.IsSelected)
                 {
-                    if (
-                        //(e.Item == currentLocation && !currentLocation.IsMoving) ||
-                        !(e.Item as IFileSystemListItem).IsAccessible
-                    )
+                    if (!(e.Item as IFileSystemListItem).IsAccessible)
                     {
                         e.Item.Selected = false;
                         e.Item.Focused = false;

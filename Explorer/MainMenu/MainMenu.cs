@@ -18,6 +18,7 @@ namespace Explorer
 
             this.Font = new Font("Verdana", 12);
             this.BackColor = Color.Transparent;
+            this.Padding = new Padding(0, 5, 0, 0);
 
             var general = new ToolStripMenuItem("General");
 
@@ -94,7 +95,7 @@ namespace Explorer
             option.Click += (s, e) =>
             {
                 IFileSystemListItem selected = List.SelectedItem;
-                if (selected == null || selected is BackToFolder)
+                if (selected == null)
                 {
                     MessageBox.Show(
                         $"Impossible to {option.Text.ToLower()}: nothing is selected.", 

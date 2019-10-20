@@ -82,6 +82,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BottomButtonPanel\BottomButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="BottomButtonPanel\BottomButtonPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Exceptions\AlreadyExistsException\AlreadyExistsException.cs" />
     <Compile Include="Exceptions\AlreadyExistsException\DirectoryAlreadyExistsException.cs" />
     <Compile Include="Exceptions\AlreadyExistsException\FileAlreadyExistsException.cs" />
