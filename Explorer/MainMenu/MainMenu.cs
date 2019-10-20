@@ -12,34 +12,37 @@ namespace Explorer
     {
         private readonly IFileSystemList List;
 
+        private readonly IFileSystemTree Tree;
+
         public MainMenu(IFileSystemList list) : base()
         {
             List = list;
+            Tree = list.Tree;
 
             this.Font = new Font("Verdana", 12);
             this.BackColor = Color.Transparent;
-            this.Padding = new Padding(0, 5, 0, 0);
+            this.Padding = new Padding(5, 10, 0, 10);
 
-            var general = new ToolStripMenuItem("General");
+            ToolStripMenuItem general = new ToolStripMenuItem("General");
 
-            var create = new ToolStripMenuItem("Create");
+            ToolStripMenuItem create = new ToolStripMenuItem("Create");
 
-            var folder = new ToolStripMenuItem("Folder");
+            ToolStripMenuItem folder = new ToolStripMenuItem("Folder");
             AssignGeneralMenuOption(folder, "Create folder");
 
-            var file = new ToolStripMenuItem("File");
+            ToolStripMenuItem file = new ToolStripMenuItem("File");
             AssignGeneralMenuOption(file, "Create file");
 
             create.DropDownItems.Add(folder);
             create.DropDownItems.Add(file);
 
-            var paste = new ToolStripMenuItem("Paste");
+            ToolStripMenuItem paste = new ToolStripMenuItem("Paste");
             AssignGeneralMenuOption(paste, "Paste");
 
-            var undoCut = new ToolStripMenuItem("Undo cut");
+            ToolStripMenuItem undoCut = new ToolStripMenuItem("Undo cut");
             AssignGeneralMenuOption(undoCut, "Undo cut");
 
-            var cancelMoving = new ToolStripMenuItem("Cancel moving");
+            ToolStripMenuItem cancelMoving = new ToolStripMenuItem("Cancel moving");
             AssignGeneralMenuOption(cancelMoving, "Cancel moving");
 
             general.DropDownItems.AddRange(new ToolStripMenuItem[]
@@ -47,24 +50,24 @@ namespace Explorer
                 create, paste, undoCut, cancelMoving,
             });
 
-            var selected = new ToolStripMenuItem("Selected");
+            ToolStripMenuItem selected = new ToolStripMenuItem("Selected");
 
-            var open = new ToolStripMenuItem("Open");
+            ToolStripMenuItem open = new ToolStripMenuItem("Open");
             AssignSelectedMenuOption(open, "Open");
 
-            var copy = new ToolStripMenuItem("Copy");
+            ToolStripMenuItem copy = new ToolStripMenuItem("Copy");
             AssignSelectedMenuOption(copy, "Copy");
 
-            var cut = new ToolStripMenuItem("Cut");
+            ToolStripMenuItem cut = new ToolStripMenuItem("Cut");
             AssignSelectedMenuOption(cut, "Cut");
 
-            var move = new ToolStripMenuItem("Move");
+            ToolStripMenuItem move = new ToolStripMenuItem("Move");
             AssignSelectedMenuOption(move, "Move");
 
-            var rename = new ToolStripMenuItem("Rename");
+            ToolStripMenuItem rename = new ToolStripMenuItem("Rename");
             AssignSelectedMenuOption(rename, "Rename");
 
-            var delete = new ToolStripMenuItem("Delete");
+            ToolStripMenuItem delete = new ToolStripMenuItem("Delete");
             AssignSelectedMenuOption(delete, "Delete");
 
             selected.DropDownItems.AddRange(new ToolStripMenuItem[]
@@ -72,13 +75,13 @@ namespace Explorer
                 open, copy, cut, move, rename, delete,
             });
 
-            var faq = new ToolStripMenuItem("FAQ");
+            ToolStripMenuItem faq = new ToolStripMenuItem("FAQ");
             faq.Click += (s, e) =>
             {
                 MessageBox.Show("", "FAQ");
             };
 
-            var help = new ToolStripMenuItem("Help");
+            ToolStripMenuItem help = new ToolStripMenuItem("Help");
             help.Click += (s, e) =>
             {
                 MessageBox.Show("Enter your question or try to find the answer in FAQ.", "Help");
@@ -94,22 +97,23 @@ namespace Explorer
         {
             option.Click += (s, e) =>
             {
-                IFileSystemListItem selected = List.SelectedItem;
-                if (selected == null)
+                IFileSystemListItem selectedItem = List.SelectedItem;
+
+                if (selectedItem == null)
                 {
                     MessageBox.Show(
                         $"Impossible to {option.Text.ToLower()}: nothing is selected.", 
                         "Operation error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                else if (selected is DriveItem && option.Text != "Open")
+                else if (selectedItem is DriveItem && option.Text != "Open")
                 {
                     MessageBox.Show(
-                        $"Impossible to {option.Text.ToLower()} {selected.Name}.",
+                        $"Impossible to {option.Text.ToLower()} {selectedItem.Name}.",
                         "Operation error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 else
                 {
-                    selected.Presenter.HandleListItemAction(action);
+                    selectedItem.Presenter.HandleListItemAction(action);
                 }
             };
         }
@@ -118,10 +122,10 @@ namespace Explorer
         {
             option.Click += (s, e) =>
             {
-                IFileSystemListItem selected = List.DisplayedItem;
-                if (selected != null)
+                IFileSystemListItem selectedItem = List.DisplayedItem;
+                if (selectedItem != null)
                 {
-                    selected.Presenter.HandleListItemAction(action);
+                    selectedItem.Presenter.HandleListItemAction(action);
                 }
             };
         }

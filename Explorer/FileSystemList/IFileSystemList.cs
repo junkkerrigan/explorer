@@ -10,6 +10,10 @@ namespace Explorer
     {
         IFileSystemTree Tree { get; set; }
 
+        SearchBox SearchBox { get; set; }
+
+        List<IFileSystemListItem> RootItems { get; }
+
         IFileSystemListItem SelectedItem { get; }
 
         IFileSystemTreeNode DisplayedNode { get; }
@@ -19,7 +23,9 @@ namespace Explorer
         void Display(IFileSystemTreeNode node);
 
         void Display(IFileSystemListItem item);
-      
+
+        void UpdateRefresh();
+
         void DisplayTree();
 
         void AddItem(IFileSystemListItem item);

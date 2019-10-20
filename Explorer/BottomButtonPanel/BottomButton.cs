@@ -13,8 +13,7 @@ namespace Explorer
         public BottomButton(string text) : base()
         {
             this.FlatStyle = FlatStyle.Flat;
-            this.FlatAppearance.BorderSize = 1;
-            this.FlatAppearance.BorderColor = Color.Gray;
+            this.FlatAppearance.BorderSize = 0;
             this.Text = text;
             this.Height = Constants.BottomButtonsHeight;
             this.Width = 150;

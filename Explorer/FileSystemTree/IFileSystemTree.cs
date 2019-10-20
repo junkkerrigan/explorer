@@ -7,9 +7,9 @@ namespace Explorer
     /// </summary>
     public interface IFileSystemTree
     {
-        public List<IFileSystemTreeNode> RootNodes { get; }
+        List<IFileSystemTreeNode> RootNodes { get; }
 
-        public IFileSystemList List { get; }
+        IFileSystemList List { get; }
 
         void DisplayOnListView();
 

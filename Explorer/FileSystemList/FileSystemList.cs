@@ -11,6 +11,8 @@ namespace Explorer
     {
         public IFileSystemTree Tree { get; set; }
 
+        public SearchBox SearchBox { get; set; }
+
         static readonly BackToFolder backToFolder = new BackToFolder();
 
         static CurrentLocation currentLocation = new CurrentLocation("");
@@ -18,6 +20,25 @@ namespace Explorer
         static Separator separator = new Separator();
 
         private ContextMenuStrip RightClickMenu;
+
+        public List<IFileSystemListItem> RootItems 
+        { 
+            get 
+            {
+                List<IFileSystemListItem> items = new List<IFileSystemListItem>();
+
+                foreach(IFileSystemListItem item in this.Items)
+                {
+                    // if real item but not staff item
+                    if (item.Node != null && item.Entity != null)
+                    items.Add(item);
+                }
+
+                return items;
+            }
+        }
+
+
 
         public IFileSystemListItem  DisplayedItem { get; set; }
 
@@ -41,6 +62,7 @@ namespace Explorer
             this.BorderStyle = BorderStyle.None;
             this.View = View.Tile;
             this.TileSize = new Size(600, 30);
+            this.OwnerDraw = true;
 
             RightClickMenu = new ContextMenuStrip();
 
@@ -79,6 +101,84 @@ namespace Explorer
                 if (e.KeyCode == Keys.VolumeUp && this.SelectedItem is FileItem)
                 {
                     // TODO: open editor
+                }
+            };
+
+            this.DrawItem += (s, e) =>
+            {
+                if (this.SearchBox.Text == "" || e.Item is CurrentLocation || 
+                    e.Item is BackToFolder || e.Item is Separator)
+                {
+                    e.DrawDefault = true;
+                    return;
+                }
+
+                List<int> matches = SearchByKeywords(this.SearchBox.Text, e.Item.Text);
+
+                string[] chunks = e.Item.Text.Split(new char[] { ' ' });
+
+                string highlight;
+
+                bool isMatch = false;
+
+                for (int i = 0; i < chunks.Length; i++)
+                {
+                    string chunk = chunks[i];
+
+                    highlight = chunk.Substring(0, matches[i]);
+
+                    if (highlight.Length > 0) isMatch = true;
+                }
+
+                if (!isMatch)
+                {
+                    e.DrawDefault = true;
+                    return;
+                }
+
+                Font ordinaryFont = new Font("Verdana", 13);
+                Font highlightFont = new Font("Verdana", 14, FontStyle.Bold);
+
+                Brush ordinaryBrush = new SolidBrush(Color.Black);
+                Brush highlightBrush = new SolidBrush(Color.Red);
+
+                int idx = e.Item.ImageIndex;
+
+                if (idx >= 0 && idx < this.SmallImageList.Images.Count)
+                {
+                    Image icon = this.SmallImageList.Images[idx];
+                    e.Graphics.DrawImage(icon, new Point(e.Bounds.X, e.Bounds.Y));
+                }
+
+                float left = this.SmallImageList.ImageSize.Width + 2,
+                    top = e.Bounds.Top + 3;
+
+                string ordinary;
+
+                SizeF size;
+
+                for (int i = 0; i < chunks.Length; i++)
+                {
+                    string chunk = chunks[i];
+
+                    highlight = chunk.Substring(0, matches[i]);
+
+                    e.Graphics.DrawString(highlight, highlightFont, highlightBrush, left, 
+                        top - 2);
+
+                    size = e.Graphics.MeasureString(highlight, highlightFont);
+                    Console.WriteLine($"Width of -{highlight}- is {size.Width}");
+
+                    left += size.Width;
+
+                    ordinary = chunk.Substring(matches[i]);
+                    
+                    e.Graphics.DrawString(ordinary, ordinaryFont, ordinaryBrush, left, top);
+
+                    size = e.Graphics.MeasureString(ordinary, ordinaryFont);
+                    Console.WriteLine($"Width of -{ordinary}- is {size.Width}");
+
+                    left += size.Width;
                 }
             };
 
@@ -142,7 +242,7 @@ namespace Explorer
 
                     try
                     {
-                        if (item is FileItem) 
+                        if (item is FileItem)
                         {
                             IFileSystemItemEntity.Factory.CreateNewFile(path);
                         }
@@ -155,14 +255,14 @@ namespace Explorer
                             throw new NotSupportedException("Error: you can't create drive.");
                         }
                     }
-                    catch(AlreadyExistsException)
+                    catch (AlreadyExistsException)
                     {
                         MessageBox.Show($"Impossible to create: {e.Label} already exists.",
                             "Creating error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         e.CancelEdit = true;
                         item.StartNameEditing();
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                     }
@@ -177,15 +277,24 @@ namespace Explorer
                     return;
                 }
 
+
+
                 try
                 {
                     item.Entity.EditName(e.Label);
                 }
                 catch (AlreadyExistsException)
                 {
-                    MessageBox.Show($"Impossible to rename: {e.Label} already exists.",
+                    if (e.Label == null || e.Label == "")
+                    {
+                        e.CancelEdit = true;
+                    }
+                    else if (e.Label != item.Name)
+                    {
+                        MessageBox.Show($"Impossible to rename: {e.Label} already exists.",
                             "Renaming error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    e.CancelEdit = true;
+                        e.CancelEdit = true;
+                    }
                 }
                 finally
                 {
@@ -216,6 +325,39 @@ namespace Explorer
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/moveToIcon.png"));
 
             this.LargeImageList = this.SmallImageList = itemIcons;
+        }
+
+        private List<int> SearchByKeywords(string query, string text)
+        {
+            string[] keywords = query.Split(
+                  new char[] { ' ' },
+                  StringSplitOptions.RemoveEmptyEntries);
+
+            string[] textwords = text.Split(new char[] { ' ' });
+
+            List<int> matches = new List<int>(textwords.Length);
+
+            for (int i = 0; i < textwords.Length; i++)
+            {
+                matches.Add(0);
+            }
+
+            for(int i = 0; i < keywords.Length; i++)
+            {
+                for (int j = 0; j < textwords.Length; j++)
+                {
+                    string textword = textwords[j].ToLower(),
+                        keyword = keywords[i].ToLower();
+                    int idx = textword.IndexOf(keyword);
+
+                    if (textword == keyword || idx == 0)
+                    {
+                        matches[i] = Math.Max(matches[i], keyword.Length);
+                    }
+                }
+            }
+
+            return matches;
         }
 
         public void AddItem(IFileSystemListItem item)
@@ -294,6 +436,18 @@ namespace Explorer
         {
             this.Display(item.Node);
         } 
+
+        public void UpdateRefresh()
+        {
+            if (this.DisplayedNode == null)
+            {
+                this.DisplayTree();
+            }
+            else
+            {
+                this.Display(DisplayedNode);
+            }
+        }
 
         protected void AddContextMenuOption(string name)
         {

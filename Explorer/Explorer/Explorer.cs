@@ -16,9 +16,11 @@ namespace Explorer
 
         private readonly Panel MainWrapper;
 
-        private readonly MenuStrip MainMenu;
+        private readonly MainMenu MainMenu;
 
         private readonly BottomButtonPanel BottomButtonPanel;
+
+        private readonly SearchBox SearchBox;
 
         private readonly Panel DirectoryViewWrapper;
 
@@ -49,7 +51,17 @@ namespace Explorer
 
             FileView = new FileSystemList();
 
+            DirectoryView = new FileSystemTree(FileView);
+
             MainMenu = new MainMenu(FileView);
+
+            SearchBox = new SearchBox(FileView)
+            {
+                Location = new Point(MainWrapper.Width - Constants.MainWrapperPadding
+                    - 300 - 30, 5),
+                Size = new Size(300, 5),
+                BorderStyle = BorderStyle.FixedSingle,
+            };            
 
             BottomButtonPanel = new BottomButtonPanel(FileView)
             {
@@ -60,8 +72,6 @@ namespace Explorer
                 Size = new Size(MainWrapper.Width - 2 * Constants.MainWrapperPadding,
                     Constants.BottomButtonsHeight)
             };
-
-            DirectoryView = new FileSystemTree(FileView);
 
             DirectoryViewWrapper = new Panel()
             {
@@ -91,6 +101,8 @@ namespace Explorer
             MainWrapper.Controls.Add(DirectoryViewWrapper);
             MainWrapper.Controls.Add(FileViewWrapper);
             MainWrapper.Controls.Add(BottomButtonPanel);
+            MainWrapper.Controls.Add(SearchBox);
+            SearchBox.BringToFront();
 
             DirectoryViewWrapper.Controls.Add(DirectoryView);
             
@@ -123,6 +135,14 @@ namespace Explorer
             FileViewWrapper.Size = new Size(MainWrapperFreeSpaceWidth() 
                 - DirectoryViewWrapper.Width, 
                 MainWrapperFreeSpaceHeight());
+
+            BottomButtonPanel.Location = new Point(Constants.MainWrapperPadding,
+                MainWrapper.Height - Constants.MainWrapperPadding
+                - Constants.BottomButtonsHeight);
+
+            BottomButtonPanel.Size = new Size(
+                MainWrapper.Width - 2 * Constants.MainWrapperPadding,
+                Constants.BottomButtonsHeight);
         }
 
         private void Explorer_Paint(object sender, PaintEventArgs e)
