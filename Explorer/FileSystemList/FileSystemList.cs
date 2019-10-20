@@ -23,6 +23,16 @@ namespace Explorer
 
         public IFileSystemTreeNode DisplayedNode { get; set; }
 
+        public IFileSystemListItem SelectedItem
+        {
+            get
+            {
+                if (this.SelectedItems.Count == 0) return null;
+
+                return (this.SelectedItems[0] as IFileSystemListItem);
+            }
+        }
+
         public FileSystemList() : base()
         {
             this.Dock = DockStyle.Fill;
@@ -56,20 +66,26 @@ namespace Explorer
                 ToolStripMenuItem subOption = new ToolStripMenuItem(name);
                 subOption.Click += (s, e) =>
                 {
-                    this.DisplayedItem.Presenter.HandleListItemContextMenuAction(
+                    this.DisplayedItem.Presenter.HandleListItemAction(
                         $"Create {name.ToLower()}");
                 };
 
                 createOption.DropDownItems.Add(subOption);
             }
 
-            // to prevent currentLocation from being selected or focused 
+            // to prevent from being selected or focused 
             this.ItemSelectionChanged += (s, e) =>
             {
-                if (e.IsSelected && e.Item == currentLocation && !currentLocation.IsMoving)
+                if (e.IsSelected)
                 {
-                    e.Item.Selected = false;
-                    e.Item.Focused = false;
+                    if (
+                        //(e.Item == currentLocation && !currentLocation.IsMoving) ||
+                        !(e.Item as IFileSystemListItem).IsAccessible
+                    )
+                    {
+                        e.Item.Selected = false;
+                        e.Item.Focused = false;
+                    }
                 }
             };
 
@@ -278,7 +294,7 @@ namespace Explorer
             ToolStripMenuItem option = new ToolStripMenuItem(name);
             option.Click += (s, e) =>
             {
-                this.DisplayedItem.Presenter.HandleListItemContextMenuAction(name);
+                this.DisplayedItem.Presenter.HandleListItemAction(name);
             };
 
             this.RightClickMenu.Items.Add(option);

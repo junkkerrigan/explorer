@@ -10,6 +10,8 @@ namespace Explorer
     {
         IFileSystemTree Tree { get; set; }
 
+        IFileSystemListItem SelectedItem { get; }
+
         IFileSystemTreeNode DisplayedNode { get; }
 
         IFileSystemListItem DisplayedItem { get; set; }

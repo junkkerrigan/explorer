@@ -16,6 +16,8 @@ namespace Explorer
 
         private readonly Panel MainWrapper;
 
+        private readonly MenuStrip MainMenu;
+
         private readonly Panel DirectoryViewWrapper;
 
         private readonly Panel FileViewWrapper;
@@ -24,10 +26,6 @@ namespace Explorer
 
         private readonly FileSystemList FileView;
 
-        //private readonly BreadCrumbPrevButton Prev;
-        
-        //private readonly BreadCrumbNextButton Next;
-
         /// <summary>
         /// Initializes a new instance of <see cref="Explorer"/>.
         /// </summary>
@@ -35,8 +33,7 @@ namespace Explorer
         {
             InitializeComponent();
             this.BackColor = Color.FromArgb(236, 233, 216);
-            this.Paint += Explorer_Paint;
-            this.SizeChanged += Explorer_SizeChanged;
+            this.BackColor = Color.FromArgb(236, 233, 216);
 
             MainWrapper = new Panel()
             {
@@ -46,44 +43,52 @@ namespace Explorer
                     this.ClientSize.Height - 2 * Constants.MainWrapperMargin),
             };
 
+            FileView = new FileSystemList();
+
+            MainMenu = new MainMenu(FileView);
+
+            DirectoryView = new FileSystemTree(FileView);
+
             DirectoryViewWrapper = new Panel()
             {
-                Location = new Point(Constants.MainWrapperPadding, 
-                    Constants.MainWrapperPadding),
-                Size = new Size(
-                    (MainWrapper.Width - 2 * Constants.MainWrapperPadding - 
-                    Constants.SpaceBetweenViews) / 3, 
-                    MainWrapper.Height - 2 * Constants.MainWrapperPadding),
+                Location = new Point(Constants.MainWrapperPaddingHorizontal, 
+                    MainMenu.Height + Constants.MainMenuMarginBottom),
+                Size = new Size(MainWrapperFreeSpaceWidth() / 3, 
+                    MainWrapperFreeSpaceHeight()),
                 Padding = new Padding(Constants.ViewPadding),
                 BackColor = Color.White,
             };
 
             FileViewWrapper = new Panel()
             {
-                Location = new Point(
-                    DirectoryViewWrapper.Width + Constants.MainWrapperPadding +
-                    Constants.SpaceBetweenViews,
-                    Constants.MainWrapperPadding),
-                Size = new Size(DirectoryViewWrapper.Width * 2,
-                    DirectoryViewWrapper.Height),
+                Location = new Point(Constants.MainWrapperPaddingHorizontal 
+                    + DirectoryViewWrapper.Width + Constants.SpaceBetweenViews,
+                    MainMenu.Height + Constants.MainMenuMarginBottom),
+                Size = new Size(MainWrapperFreeSpaceWidth() - DirectoryViewWrapper.Width ,
+                    MainWrapperFreeSpaceHeight()),
                 Padding = new Padding(Constants.ViewPadding),
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.None,
             };
 
-            FileView = new FileSystemList();
-
-            DirectoryView = new FileSystemTree(FileView);
-
             this.Controls.Add(MainWrapper);
 
+            MainWrapper.Controls.Add(MainMenu);
             MainWrapper.Controls.Add(DirectoryViewWrapper);
             MainWrapper.Controls.Add(FileViewWrapper);
-            FileViewWrapper.BringToFront();
 
             DirectoryViewWrapper.Controls.Add(DirectoryView);
             
             FileViewWrapper.Controls.Add(FileView);
+
+            this.Paint += Explorer_Paint;
+            this.SizeChanged += Explorer_SizeChanged;
+
+            //MainWrapper.Paint += (s, e) =>
+            //{
+            //    e.Graphics.DrawLine(new Pen(Color.White, 2), 0, MainMenu.Height,
+            //        MainWrapper.Width, MainMenu.Height);
+            //};
         }
 
         public void Mount()
@@ -93,21 +98,22 @@ namespace Explorer
 
         private void Explorer_SizeChanged(object sender, EventArgs e)
         {
-            MainWrapper.Size = new Size(this.ClientSize.Width - 
-                    2 * Constants.MainWrapperMargin,
+            MainWrapper.Size = new Size(this.ClientSize.Width  
+                    - 2 * Constants.MainWrapperMargin,
                 this.ClientSize.Height - 2 * Constants.MainWrapperMargin);
 
             DirectoryViewWrapper.Size = new Size(
-                (MainWrapper.Width - 2 * Constants.MainWrapperPadding - 
-                    Constants.SpaceBetweenViews) / 3,
-                MainWrapper.Height - 2 * Constants.MainWrapperPadding);
+                MainWrapperFreeSpaceWidth() / 3,
+                MainWrapperFreeSpaceHeight());
 
             FileViewWrapper.Location = new Point(
-                DirectoryViewWrapper.Width + Constants.MainWrapperPadding +
+                DirectoryViewWrapper.Width + Constants.MainWrapperPaddingHorizontal +
                     Constants.SpaceBetweenViews,
-                Constants.MainWrapperPadding);
-            FileViewWrapper.Size = new Size(DirectoryViewWrapper.Width * 2, 
-                DirectoryViewWrapper.Height);
+                Constants.MainWrapperPaddingVertical);
+
+            FileViewWrapper.Size = new Size(MainWrapperFreeSpaceWidth() 
+                - DirectoryViewWrapper.Width, 
+                MainWrapperFreeSpaceHeight());
         }
 
         private void Explorer_Paint(object sender, PaintEventArgs e)
@@ -115,6 +121,18 @@ namespace Explorer
             Pen p = new Pen(Color.White, 4);
             Rectangle border = new Rectangle(MainWrapper.Location, MainWrapper.Size);
             e.Graphics.DrawRectangle(p, border);
+        }
+
+        private int MainWrapperFreeSpaceWidth()
+        {
+            return MainWrapper.Width - 2 * Constants.MainWrapperPaddingHorizontal
+                - Constants.SpaceBetweenViews;
+        }
+
+        private int MainWrapperFreeSpaceHeight()
+        {
+            return MainWrapper.Height - MainMenu.Height - Constants.MainMenuMarginBottom
+                - Constants.MainWrapperPaddingVertical;
         }
     }
 }

@@ -58,6 +58,7 @@ namespace Explorer
                 // of derived classes
                 { "Copy", this.CopyNodeToBuffer },
                 { "Cut", this.CutNodeToBuffer },
+                { "Undo cut", new Action(() => this.UndoCut(true)) },
                 { "Paste", this.PasteNodeFromBuffer },
                 { "Move", () =>
                     {
@@ -70,7 +71,7 @@ namespace Explorer
                         }
                         if (_bufferElementState == BufferElementState.Cut)
                         {
-                            this.UndoCutting();
+                            this.UndoCut();
                         }
 
                         this.CutNodeToBuffer();
@@ -84,7 +85,7 @@ namespace Explorer
                 { "Move here", this.MoveNode },
                 { "Cancel moving", () =>
                     {
-                        this.UndoCutting(true);
+                        this.UndoCut(true);
 
                         View.Tree.List.FinishMoving();
 
@@ -127,6 +128,7 @@ namespace Explorer
                 // of derived classes
                 { "Copy", this.CopyNodeToBuffer },
                 { "Cut", this.CutNodeToBuffer },
+                { "Undo cut", new Action(() => this.UndoCut(true)) },
                 { "Paste", this.PasteNodeFromBuffer },
                 { "Delete", this.RemoveNode },
                 { "Expand", View.Expand },
@@ -137,12 +139,12 @@ namespace Explorer
             };
         }
 
-        public void HandleNodeContextMenuAction(string name)
+        public void HandleNodeAction(string name)
         {
             _nodeContextMenuActions[name]();
         }
 
-        public void HandleListItemContextMenuAction(string name)
+        public void HandleListItemAction(string name)
         {
             _listItemContextMenuActions[name]();
         }
@@ -160,11 +162,11 @@ namespace Explorer
             {
                 if (_parent == this.View.Tree.List.DisplayedNode)
                 {
-                    this.UndoCutting(true);
+                    this.UndoCut(true);
                 }
                 else
                 {
-                    this.UndoCutting();
+                    this.UndoCut();
                 }
             }
             _buffer = View;
@@ -184,11 +186,11 @@ namespace Explorer
             {
                 if (_parent == this.View.Tree.List.DisplayedNode)
                 {
-                    this.UndoCutting(true);
+                    this.UndoCut(true);
                 }
                 else
                 {
-                    this.UndoCutting();
+                    this.UndoCut();
                 }
             }
             _buffer = View;
@@ -198,13 +200,18 @@ namespace Explorer
             _bufferElementState = BufferElementState.Cut;
         }
 
-        protected void UndoCutting(bool displayParent = false)
+        protected void UndoCut(bool displayParent = false)
         {
+            if (_buffer == null) return;
+
             _parent.AddSubNode(_buffer);
             _parent.SortSubNodes(displayParent);
+
             _buffer.ListItem.Selected = false;
+
             _parent = null;
             _buffer = null;
+
             _bufferElementState = BufferElementState.Empty;
         }
 

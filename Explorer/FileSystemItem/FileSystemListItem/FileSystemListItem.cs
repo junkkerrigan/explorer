@@ -44,6 +44,11 @@ namespace Explorer
 
         public IFileSystemTreeNode Node { get; set; }
 
+        public virtual bool IsAccessible
+        {
+            get => Node.IsAccessible;
+        }
+
         public FileSystemItemPresenter Presenter { get; set; }
 
         protected ContextMenuStrip RightClickMenu { get; set; }
@@ -96,7 +101,7 @@ namespace Explorer
         protected void AddContextMenuOption(string name)
         {
             ToolStripMenuItem option = new ToolStripMenuItem(name);
-            option.Click += (s, e) => this.Presenter.HandleListItemContextMenuAction(name);
+            option.Click += (s, e) => this.Presenter.HandleListItemAction(name);
 
             this.RightClickMenu.Items.Add(option);
         }
@@ -111,7 +116,7 @@ namespace Explorer
 
         public void MoveHere()
         {
-            this.Presenter.HandleListItemContextMenuAction("Move here");
+            this.Presenter.HandleListItemAction("Move here");
         }
     }
 
@@ -196,6 +201,11 @@ namespace Explorer
 
     public class BackToFolder : FileSystemListItem
     {
+        public override bool IsAccessible
+        {
+            get => true;
+        }
+
         public BackToFolder() : base("...")
         {
             this.ImageIndex = Constants.IconTypeIndexes.BackToFolderIndex;
@@ -217,6 +227,11 @@ namespace Explorer
 
     public class CurrentLocation : FileSystemListItem
     {
+        public override bool IsAccessible 
+        {
+            get => IsMoving; 
+        }
+
         public bool IsMoving { get; set; }
 
         public CurrentLocation(string name) : base(name)
@@ -239,7 +254,7 @@ namespace Explorer
             this.IsMoving = true;
             this.ImageIndex = Constants.IconTypeIndexes.MoveToIndex;
             this.AddContextMenuOption("Cancel moving", () => 
-                this.Node.Presenter.HandleListItemContextMenuAction("Cancel moving"));
+                this.Node.Presenter.HandleListItemAction("Cancel moving"));
         }
 
         public void DisableMovingMode()
