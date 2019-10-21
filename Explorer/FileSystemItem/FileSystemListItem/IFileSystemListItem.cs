@@ -28,5 +28,7 @@ namespace Explorer
         void Display();
 
         void MoveHere();
+
+        bool IsFileSystemItem();
     }
 }

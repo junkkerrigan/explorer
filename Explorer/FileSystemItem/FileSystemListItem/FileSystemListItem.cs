@@ -118,6 +118,11 @@ namespace Explorer
         {
             this.Presenter.HandleListItemAction("Move here");
         }
+
+        public bool IsFileSystemItem()
+        {
+            return (this.Node != null && this.Entity != null);
+        }
     }
 
     public class DriveItem : FileSystemListItem

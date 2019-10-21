@@ -106,14 +106,20 @@ namespace Explorer
 
             this.DrawItem += (s, e) =>
             {
-                if (this.SearchBox.Text == "" || e.Item is CurrentLocation || 
-                    e.Item is BackToFolder || e.Item is Separator)
+                if (this.SearchBox.Text == "" || 
+                    !(e.Item as IFileSystemListItem).IsFileSystemItem())
                 {
                     e.DrawDefault = true;
                     return;
                 }
 
                 List<int> matches = SearchByKeywords(this.SearchBox.Text, e.Item.Text);
+
+                if (matches == null)
+                {
+                    e.DrawDefault = true;
+                    return;
+                }
 
                 string[] chunks = e.Item.Text.Split(new char[] { ' ' });
 
@@ -167,7 +173,6 @@ namespace Explorer
                         top - 2);
 
                     size = e.Graphics.MeasureString(highlight, highlightFont);
-                    Console.WriteLine($"Width of -{highlight}- is {size.Width}");
 
                     left += size.Width;
 
@@ -176,7 +181,6 @@ namespace Explorer
                     e.Graphics.DrawString(ordinary, ordinaryFont, ordinaryBrush, left, top);
 
                     size = e.Graphics.MeasureString(ordinary, ordinaryFont);
-                    Console.WriteLine($"Width of -{ordinary}- is {size.Width}");
 
                     left += size.Width;
                 }
@@ -342,6 +346,13 @@ namespace Explorer
                 matches.Add(0);
             }
 
+            List<bool> used = new List<bool>(keywords.Length);
+
+            for(int i = 0; i < keywords.Length; i++)
+            {
+                used.Add(false);
+            }
+
             for(int i = 0; i < keywords.Length; i++)
             {
                 for (int j = 0; j < textwords.Length; j++)
@@ -352,9 +363,15 @@ namespace Explorer
 
                     if (textword == keyword || idx == 0)
                     {
-                        matches[i] = Math.Max(matches[i], keyword.Length);
+                        used[i] = true;
+                        matches[j] = Math.Max(matches[j], keyword.Length);
                     }
                 }
+            }
+
+            for (int i = 0; i < used.Count; i++)
+            {
+                if (!used[i]) return null;
             }
 
             return matches;
