@@ -33,6 +33,28 @@ namespace Explorer
             this.ContextMenuStrip = new ContextMenuStrip();
             this.AddContextMenuOption("Toggle Case", new Action(() => Editor.ToggleCase()));
             this.AddContextMenuOption("Save", new Action(() => Editor.Save()));
+
+            ToolStripMenuItem saveAs = new ToolStripMenuItem("Save as...");
+
+            ToolStripMenuItem html = new ToolStripMenuItem(".html");
+            html.Click += (s, e) =>
+            {
+                Editor.SaveAs(".html");
+            };
+
+            ToolStripMenuItem txt = new ToolStripMenuItem(".txt");
+            txt.Click += (s, e) =>
+            {
+                Editor.SaveAs(".txt");
+            };
+
+            saveAs.DropDownItems.AddRange(new ToolStripMenuItem[]
+            {
+                html, txt,
+            });
+
+            this.ContextMenuStrip.Items.Add(saveAs);
+
             this.AddContextMenuOption("Check orthography", new Action(
                 () =>
                 {

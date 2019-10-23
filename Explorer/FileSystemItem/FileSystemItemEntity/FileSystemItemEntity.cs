@@ -221,6 +221,8 @@ namespace Explorer
         {
             try
             {
+                Console.WriteLine(this.Path);
+                Console.WriteLine(this);
                 File.Move(this.Path, destinationPath);
                 this.Path = destinationPath;
             }
@@ -255,9 +257,18 @@ namespace Explorer
     {
         public string Text { get; set; }
 
+        public FileEntity FileEntity { get; set; }
+
+        public new string Path
+        {
+            get => FileEntity.Path;
+            set => FileEntity.Path = value;
+        }
+
         public TextFileEntity(FileEntity file) : base(file.Node)
         {
-            this.Path = file.Path;
+            FileEntity = file;
+
             this.Text = "";
         }
 
@@ -289,6 +300,84 @@ namespace Explorer
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
+            }
+        }
+    }
+
+    public abstract class Saver
+    {
+        protected TextFileEntity TextFile { get; set; }
+
+        public Saver(TextFileEntity file)
+        {
+            TextFile = file;
+        }
+
+        public abstract void Save();
+    }
+
+    public class HTMLSaver : Saver
+    {
+        public HTMLSaver(TextFileEntity file) : base(file)
+        {
+        }
+
+        public override void Save()
+        {
+            TextFile.Save();
+
+            string newPath = Path.ChangeExtension(TextFile.Path, ".html");
+
+            try
+            {
+                TextFile.FileEntity.Move(newPath);
+
+                TextFile.Path = newPath;
+
+                TextFile.Node.Name = Path.GetFileName(newPath);
+
+                TextFile.Node.ListItem.Name = Path.GetFileName(newPath);
+
+                TextFile.Node.ListItem.List.UpdateRefresh();
+            }
+            catch(AlreadyExistsException)
+            {
+                MessageBox.Show($"Impossible to save:"
+                    + $" {Path.GetFileName(newPath)} already exists.", "Saving error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+    }
+
+    public class TXTSaver : Saver
+    {
+        public TXTSaver(TextFileEntity file) : base(file)
+        {
+        }
+
+        public override void Save()
+        {
+            TextFile.Save();
+            
+            string newPath = Path.ChangeExtension(TextFile.Path, ".txt");
+
+            try
+            {
+                TextFile.FileEntity.Move(newPath);
+
+                TextFile.Path = newPath;
+
+                TextFile.Node.Name = Path.GetFileName(newPath);
+
+                TextFile.Node.ListItem.Name = Path.GetFileName(newPath);
+
+                TextFile.Node.ListItem.List.UpdateRefresh();
+            }
+            catch (AlreadyExistsException)
+            {
+                MessageBox.Show($"Impossible to save:"
+                    + $" {Path.GetFileName(newPath)} already exists.", "Saving error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

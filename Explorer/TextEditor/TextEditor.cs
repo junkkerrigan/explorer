@@ -17,6 +17,8 @@ namespace Explorer
 
         public bool IsSaved { get; set; }
 
+        public Saver Saver;
+
         public TextEditor() : base()
         {
             // TODO: add save button
@@ -39,6 +41,47 @@ namespace Explorer
             if (this.IsSaved) return;
             this.Text = this.Text.Substring(1); // without asterisk
             IsSaved = true;
+        }
+
+        public void SaveAs(string extension)
+        {
+            DisplayedFile.Write(TextArea.Text);
+
+            string text = this.Text.Trim(new char[] { '*' });
+
+            int idx = text.LastIndexOf('.');
+
+            if (extension == ".html")
+            {
+                Saver = new HTMLSaver(DisplayedFile);
+                Saver.Save();
+
+                if (idx == -1)
+                {
+                    text += ".html";
+                }
+                else
+                {
+                    text = text.Substring(0, idx) + ".html";
+                }
+
+            }
+            else if (extension == ".txt")
+            {
+                Saver = new TXTSaver(DisplayedFile);
+                Saver.Save();
+
+                if (idx == -1)
+                {
+                    text += ".txt";
+                }
+                else
+                {
+                    text = text.Substring(0, idx) + ".txt";
+                }
+            }
+
+            this.Text = text;
         }
 
         public void IndicateUnsavedChanges()
