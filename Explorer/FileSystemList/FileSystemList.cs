@@ -100,7 +100,9 @@ namespace Explorer
             {
                 if (e.KeyCode == Keys.VolumeUp && this.SelectedItem is FileItem)
                 {
-                    // TODO: open editor
+                    TextEditor editor = new TextEditor();
+
+                    editor.Open(this.SelectedItem);
                 }
             };
 

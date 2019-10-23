@@ -131,6 +131,16 @@
     <Compile Include="SearchBox\SearchBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="TextEditor\OrthographyChecker.cs" />
+    <Compile Include="TextEditor\OrthographyMenu.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="TextEditor\TextArea.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="TextEditor\TextEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

@@ -5,14 +5,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Windows.Forms;
+using System.Text;
 
 namespace Explorer
 {
     public abstract class FileSystemItemEntity : IFileSystemItemEntity
     {
         public string Path { get; set; }
-
-        public bool IsAccessible { get; set; }
 
         public IFileSystemTreeNode Node { get; set; }
 
@@ -228,6 +227,48 @@ namespace Explorer
             catch(Exception ex)
             {
                 Console.WriteLine("Error in FileEntity.Move:");
+                Console.WriteLine(ex.Message);
+            }
+        }
+    }
+
+    public class TextFileEntity : FileEntity
+    {
+        public string Text { get; set; }
+
+        public TextFileEntity(FileEntity file) : base(file.Node)
+        {
+            this.Path = file.Path;
+            this.Text = "";
+        }
+
+        public string Read()
+        {
+            try
+            {
+                this.Text = File.ReadAllText(this.Path, Encoding.GetEncoding(1251));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return this.Text;
+        }
+
+        public void Write(string text)
+        {
+            this.Text = text;
+        }
+
+        public void Save()
+        {
+            try
+            {
+                File.WriteAllText(this.Path, this.Text);
+            }
+            catch(Exception ex)
+            {
                 Console.WriteLine(ex.Message);
             }
         }
