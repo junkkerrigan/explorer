@@ -9,7 +9,7 @@ using System.Drawing;
 
 namespace Explorer
 {
-    class TextEditor : Form
+    public class TextEditor : Form
     {
         private readonly TextArea TextArea;
 
@@ -49,22 +49,79 @@ namespace Explorer
 
         public void CheckOrthography()
         {
+            int curPos = TextArea.GetCharIndexFromPosition(TextArea.MouseRelativeLocation);
+            string text = TextArea.Text;
 
+            if (text == "") return;
+
+            // looking for the word to check
+            int start, end;
+
+            while (curPos >= 0 && text[curPos] != ' ' && text[curPos] != '\n') curPos--;
+
+            start = (curPos == 0) ? 0 : curPos + 1;
+            end = text.IndexOf(' ', start);
+
+            if (end == -1)
+            {
+                end = text.IndexOf('\n', start);
+                
+                if (end == -1)
+                {
+                    end = text.Length;
+                }
+            }
+
+            string word = text.Substring(start, end - start);
+
+            if (word == " " || word == "") return;
+
+            TextArea.CurrentWordStart = start;
+            TextArea.CurrentWordEnd = end;
+
+            // checking the word
+            if (OrthographyChecker.IsCorrect(word))
+            {
+                TextArea.ShowCorrect(word);
+            }
+            else
+            {
+                List<string> suggestions = OrthographyChecker.GetSimilar(word);
+
+                TextArea.ShowSuggestions(word, suggestions);
+            }
+        }
+
+        public void ChangeCurrentWordBy(string newWord)
+        {
+            string text = TextArea.Text;
+            int start = TextArea.CurrentWordStart, end = TextArea.CurrentWordEnd;
+
+            text = text.Substring(0, start) + newWord 
+                + text.Substring(end);
+
+            TextArea.Text = text;
         }
 
         public void ToggleCase()
         {
-            string selectedText = TextArea.SelectedText;
+            string selectedText = TextArea.SelectedText,
+                text = TextArea.Text;
+
             int start = TextArea.SelectionStart, length = TextArea.SelectionLength;
 
             if (selectedText == selectedText.ToUpper())
             {
-                TextArea.Text = TextArea.Text.Replace(selectedText, selectedText.ToLower());
+                text = text.Substring(0, start) + selectedText.ToLower()
+                    + text.Substring(start + length);
             }
             else
             {
-                TextArea.Text = TextArea.Text.Replace(selectedText, selectedText.ToUpper());
+                text = text.Substring(0, start) + selectedText.ToUpper()
+                    + text.Substring(start + length);
             }
+
+            TextArea.Text = text;
 
             TextArea.Select(start, length);
         }

@@ -9,23 +9,40 @@ using System.Windows.Forms;
 
 namespace Explorer
 {
-    class TextArea : RichTextBox
+    public class TextArea : RichTextBox
     {
         public TextEditor Editor { get; set; }
 
-        
+        public Point MouseRelativeLocation { get; set; }
+
+        public Point MouseAbsoluteLocation { get; set; }
+
+        public int CurrentWordStart { get; set; }
+
+        public int CurrentWordEnd { get; set; }
+
+        public OrthographyContextMenu OrthographyMenu { get; set; }
 
         public TextArea() : base()
         {
             this.Dock = DockStyle.Fill;
             this.BorderStyle = BorderStyle.None;
             this.Font = Constants.ViewItemFont;
-            
+            this.CurrentWordStart = this.CurrentWordEnd = 0;
+
             this.ContextMenuStrip = new ContextMenuStrip();
             this.AddContextMenuOption("Toggle Case", new Action(() => Editor.ToggleCase()));
             this.AddContextMenuOption("Save", new Action(() => Editor.Save()));
-            this.AddContextMenuOption("Check orthography",
-                new Action(() => Editor.CheckOrthography()));
+            this.AddContextMenuOption("Check orthography", new Action(
+                () =>
+                {
+                    this.MouseAbsoluteLocation = this.ContextMenuStrip.Bounds.Location;
+                    Editor.CheckOrthography();
+                }
+            ));
+
+            this.OrthographyMenu = new OrthographyContextMenu();
+            this.OrthographyMenu.TextArea = this;
 
             this.TextChanged += (s, e) =>
             {
@@ -35,11 +52,28 @@ namespace Explorer
                 }
 
             };
+
+            this.MouseUp += (s, e) =>
+            {
+                MouseRelativeLocation = e.Location;
+            };
         }
 
         public void Display(string text)
         {
             this.Text = text;
+        }
+
+        public void ShowCorrect(string word)
+        {
+            this.OrthographyMenu.DisplayCorrect(word);
+            this.OrthographyMenu.Show(MouseAbsoluteLocation);
+        }
+
+        public void ShowSuggestions(string word, List<string> suggestions)
+        {
+            this.OrthographyMenu.DisplaySuggestions(word, suggestions);
+            this.OrthographyMenu.Show(MouseAbsoluteLocation);
         }
 
         private void AddContextMenuOption(string name, Action onClick)
