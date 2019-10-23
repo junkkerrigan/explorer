@@ -106,10 +106,22 @@ namespace Explorer
 
             this.DrawItem += (s, e) =>
             {
-                if (this.SearchBox.Text == "" || 
-                    !(e.Item as IFileSystemListItem).IsFileSystemItem())
+                e.DrawDefault = true; // if custom render, changing below
+
+                if (this.SearchBox.Text == "")
                 {
-                    e.DrawDefault = true;
+                    return;
+                }
+
+                IFileSystemListItem item = e.Item as IFileSystemListItem;
+
+                if (!item.IsFileSystemItem() || !item.IsAccessible)
+                {
+                    return;
+                }
+
+                if (this.SearchBox.SearchOnly && !e.Item.Text.EndsWith(".html"))
+                {
                     return;
                 }
 
@@ -117,7 +129,6 @@ namespace Explorer
 
                 if (matches == null)
                 {
-                    e.DrawDefault = true;
                     return;
                 }
 
@@ -125,6 +136,8 @@ namespace Explorer
 
                 string highlight;
 
+                
+                // check if name contains all the keywords
                 bool isMatch = false;
 
                 for (int i = 0; i < chunks.Length; i++)
@@ -138,7 +151,6 @@ namespace Explorer
 
                 if (!isMatch)
                 {
-                    e.DrawDefault = true;
                     return;
                 }
 
@@ -184,6 +196,8 @@ namespace Explorer
 
                     left += size.Width;
                 }
+
+                e.DrawDefault = false;
             };
 
             // to prevent from being selected or focused 

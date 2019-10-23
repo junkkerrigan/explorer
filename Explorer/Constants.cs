@@ -19,7 +19,9 @@ namespace Explorer
         public const int ViewItemHeight = 30;
 
         public const int ViewPadding = 20;
-
+        
+        public const int SearchBoxWidth = 300;
+        
         public static readonly Font ViewItemFont = new Font("Verdana", 12);
 
         public static readonly Size FileSystemNodeImageSize = new Size(18, 18);

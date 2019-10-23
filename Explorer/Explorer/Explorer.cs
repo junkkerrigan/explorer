@@ -30,6 +30,8 @@ namespace Explorer
 
         private readonly FileSystemList FileView;
 
+        private readonly CheckBox SearchOnly;
+
         /// <summary>
         /// Initializes a new instance of <see cref="Explorer"/>.
         /// </summary>
@@ -55,13 +57,28 @@ namespace Explorer
 
             MainMenu = new MainMenu(FileView);
 
-            SearchBox = new SearchBox(FileView)
+            SearchOnly = new CheckBox()
+            {
+                Size = new Size(175, 20),
+                Text = "Search for HTML files only",
+            };
+
+            SearchOnly.AutoSize = false;
+
+            SearchOnly.CheckedChanged += (s, e) =>
+            {
+                FileView.UpdateRefresh();
+            };
+
+            SearchBox = new SearchBox(SearchOnly, FileView)
             {
                 Location = new Point(MainWrapper.Width - Constants.MainWrapperPadding
-                    - 300 - 30, 5),
-                Size = new Size(300, 5),
+                    - Constants.SearchBoxWidth - 30, 5),
+                Size = new Size(Constants.SearchBoxWidth, 1),
                 BorderStyle = BorderStyle.FixedSingle,
-            };            
+            };
+
+            SearchOnly.Location = new Point(SearchBox.Left - 175, SearchBox.Top + 5);
 
             BottomButtonPanel = new BottomButtonPanel(FileView)
             {
@@ -102,7 +119,9 @@ namespace Explorer
             MainWrapper.Controls.Add(FileViewWrapper);
             MainWrapper.Controls.Add(BottomButtonPanel);
             MainWrapper.Controls.Add(SearchBox);
+            MainWrapper.Controls.Add(SearchOnly);
             SearchBox.BringToFront();
+            SearchOnly.BringToFront();
 
             DirectoryViewWrapper.Controls.Add(DirectoryView);
             
