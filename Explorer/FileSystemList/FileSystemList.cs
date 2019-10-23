@@ -205,13 +205,10 @@ namespace Explorer
             // to prevent from being selected or focused 
             this.ItemSelectionChanged += (s, e) =>
             {
-                if (e.IsSelected)
+                if (e.IsSelected && !(e.Item as IFileSystemListItem).IsAccessible)
                 {
-                    if (!(e.Item as IFileSystemListItem).IsAccessible)
-                    {
-                        e.Item.Selected = false;
-                        e.Item.Focused = false;
-                    }
+                    e.Item.Selected = false;
+                    e.Item.Focused = false;
                 }
             };
 
@@ -238,6 +235,27 @@ namespace Explorer
 
                 IFileSystemListItem selectedItem = this.SelectedItems[0] 
                     as IFileSystemListItem;
+
+                if (currentLocation.IsMerging)
+                {
+                    try
+                    {
+                        currentLocation.Node.Entity.MergeTo(selectedItem.Entity.Path);
+                    }
+                    catch
+                    {
+                        MessageBox.Show($"Impossible to merge {currentLocation.Node.Name}"
+                            + $" to {selectedItem.Name}.", "Merging error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+
+                    TextEditor editor = new TextEditor();
+                    editor.Open(selectedItem);
+
+                    this.FinishMerging();
+                    return;
+                }
+
                 selectedItem.Open();
             };
 
@@ -443,10 +461,15 @@ namespace Explorer
 
             if (currentLocation.IsMoving)
             {
-                currentLocation.Name = 
+                currentLocation.Name =
                     $"    Move {this.DisplayedNode.Presenter.Buffer.Name}" +
                     $" to {this.DisplayedItem.Entity.Path}";
                 currentLocation.Node = this.DisplayedNode;
+            }
+            else if (currentLocation.IsMerging)
+            {
+                currentLocation.Name =
+                    $"    Merge {currentLocation.Node.Name} to...";
             }
             else
             {
@@ -502,6 +525,18 @@ namespace Explorer
         {
             currentLocation.DisableMovingMode();
             this.Display(DisplayedNode);
+        }
+
+        public void StartMerging(IFileSystemTreeNode node)
+        {
+            currentLocation.EnableMergingMode();
+            currentLocation.Node = node;
+        }
+
+        public void FinishMerging()
+        {
+            currentLocation.DisableMergingMode();
+            this.UpdateRefresh();
         }
     }
 }

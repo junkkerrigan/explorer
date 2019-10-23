@@ -72,6 +72,10 @@ namespace Explorer
         }
 
         public abstract void Move(string destinationPath);
+
+        public virtual void MergeTo(string filePath)
+        {
+        }
     }
 
     public class DriveEntity : FileSystemItemEntity
@@ -229,6 +233,21 @@ namespace Explorer
                 Console.WriteLine("Error in FileEntity.Move:");
                 Console.WriteLine(ex.Message);
             }
+        }
+
+        public override void MergeTo(string filePath)
+        {
+            string text = File.ReadAllText(this.Path);
+
+            try
+            {
+                File.AppendAllText(filePath, text);
+            }
+            catch
+            {
+                throw;
+            }
+            
         }
     }
 

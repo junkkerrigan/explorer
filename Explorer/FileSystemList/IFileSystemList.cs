@@ -34,6 +34,8 @@ namespace Explorer
 
         void StartMoving();
 
+        void StartMerging(IFileSystemTreeNode node);
+
         void FinishMoving();
     }
 }

@@ -57,6 +57,8 @@ namespace Explorer
             {
                 MouseRelativeLocation = e.Location;
             };
+
+
         }
 
         public void Display(string text)

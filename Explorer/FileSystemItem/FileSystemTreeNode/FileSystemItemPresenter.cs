@@ -26,6 +26,8 @@ namespace Explorer
         /// </summary>
         protected static IFileSystemTreeNode _buffer = null;
 
+        public IFileSystemTreeNode MergingNode { get; set; }
+
         public IFileSystemTreeNode Buffer 
         { 
             get
@@ -81,6 +83,12 @@ namespace Explorer
 
                         _bufferElementState = BufferElementState.Moving;
                     }
+                },
+                { "Merge",  () => 
+                    {
+                        View.Tree.List.StartMerging(View);
+                        View.Tree.List.UpdateRefresh();
+                    } 
                 },
                 { "Move here", this.MoveNode },
                 { "Cancel moving", () =>
@@ -139,7 +147,7 @@ namespace Explorer
             };
         }
 
-        public void HandleNodeAction(string name)
+        public void HandleTreeNodeAction(string name)
         {
             _nodeContextMenuActions[name]();
         }

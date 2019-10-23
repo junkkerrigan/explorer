@@ -43,5 +43,7 @@ namespace Explorer
         void UpdatePath(string newPath);
 
         void Move(string destinationPath);
+
+        void MergeTo(string filePath);
     }
 }

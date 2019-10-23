@@ -46,7 +46,18 @@ namespace Explorer
 
         public virtual bool IsAccessible
         {
-            get => Node.IsAccessible;
+            get 
+            {
+                try {
+                    return Node.IsAccessible;
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+                return false;
+            }
         }
 
         public FileSystemItemPresenter Presenter { get; set; }
@@ -189,7 +200,7 @@ namespace Explorer
 
             string[] contextMenuOptions =
             {
-                "Open", "Copy", "Cut", "Move", "Delete", "Rename", "Properties",
+                "Open", "Copy", "Cut", "Move", "Merge", "Delete", "Rename", "Properties",
             };
 
             foreach (string option in contextMenuOptions)
@@ -239,6 +250,8 @@ namespace Explorer
 
         public bool IsMoving { get; set; }
 
+        public bool IsMerging { get; set; }
+
         public CurrentLocation(string name) : base(name)
         {
             this.RightClickMenu = new ContextMenuStrip();
@@ -267,6 +280,19 @@ namespace Explorer
             this.IsMoving = false;
             this.ImageIndex = Constants.IconTypeIndexes.CurrentLocationIndex;
             this.Selected = false;
+            this.RightClickMenu.Items.Clear();
+        }
+
+        public void EnableMergingMode()
+        {
+            this.IsMerging = true;
+            this.AddContextMenuOption("Cancel merging", () =>
+                this.Node.Presenter.HandleListItemAction("Cancel merging"));
+        }
+
+        public void DisableMergingMode()
+        {
+            this.IsMerging = false;
             this.RightClickMenu.Items.Clear();
         }
     }

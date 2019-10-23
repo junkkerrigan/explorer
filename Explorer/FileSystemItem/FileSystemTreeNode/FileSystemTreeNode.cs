@@ -191,7 +191,7 @@ namespace Explorer
         protected void AddContextMenuOption(string name)
         {
             ToolStripMenuItem option = new ToolStripMenuItem(name);
-            option.Click += (s, e) => this.Presenter.HandleNodeAction(name);
+            option.Click += (s, e) => this.Presenter.HandleTreeNodeAction(name);
 
             this.ContextMenuStrip.Items.Add(option);
         }

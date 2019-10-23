@@ -28,16 +28,16 @@ namespace Explorer
             int n = firstWord.Length + 1;
             int m = secondWord.Length + 1;
 
-            int[,] arrayD = new int[n, m];
+            int[,] dist = new int[n, m];
 
             for (int i = 0; i < n; i++)
             {
-                arrayD[i, 0] = i;
+                dist[i, 0] = i;
             }
 
             for (int j = 0; j < m; j++)
             {
-                arrayD[0, j] = j;
+                dist[0, j] = j;
             }
 
             for (int i = 1; i < n; i++)
@@ -46,19 +46,19 @@ namespace Explorer
                 {
                     int cost = firstWord[i - 1] == secondWord[j - 1] ? 0 : 1;
 
-                    arrayD[i, j] = Min(arrayD[i - 1, j] + 1,          
-                        arrayD[i, j - 1] + 1, arrayD[i - 1, j - 1] + cost); 
+                    dist[i, j] = Min(dist[i - 1, j] + 1,          
+                        dist[i, j - 1] + 1, dist[i - 1, j - 1] + cost); 
 
                     if (i > 1 && j > 1
                         && firstWord[i - 1] == secondWord[j - 2]
                         && firstWord[i - 2] == secondWord[j - 1])
                     {
-                        arrayD[i, j] = Math.Min(arrayD[i, j], arrayD[i - 2, j - 2] + cost); 
+                        dist[i, j] = Math.Min(dist[i, j], dist[i - 2, j - 2] + cost); 
                     }
                 }
             }
 
-            return arrayD[n - 1, m - 1];
+            return dist[n - 1, m - 1];
         }
 
         public static bool IsCorrect(string word)
