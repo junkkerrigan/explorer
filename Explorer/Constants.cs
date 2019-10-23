@@ -37,7 +37,8 @@ namespace Explorer
             public const int BackToFolderIndex = 3;
             public const int CurrentLocationIndex = 4;
             public const int MoveToIndex = 5;
-            public const int NoImageIndex = 6;
+            public const int MergeIndex = 6;
+            public const int NoImageIndex = 7;
         }
     }
 

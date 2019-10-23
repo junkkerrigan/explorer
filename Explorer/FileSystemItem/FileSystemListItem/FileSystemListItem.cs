@@ -286,6 +286,9 @@ namespace Explorer
         public void EnableMergingMode()
         {
             this.IsMerging = true;
+
+            this.ImageIndex = Constants.IconTypeIndexes.MergeIndex;
+
             this.AddContextMenuOption("Cancel merging", () =>
                 this.Node.Presenter.HandleListItemAction("Cancel merging"));
         }
@@ -293,6 +296,9 @@ namespace Explorer
         public void DisableMergingMode()
         {
             this.IsMerging = false;
+
+            this.ImageIndex = Constants.IconTypeIndexes.CurrentLocationIndex;
+
             this.RightClickMenu.Items.Clear();
         }
     }

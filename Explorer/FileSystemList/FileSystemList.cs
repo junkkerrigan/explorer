@@ -236,7 +236,7 @@ namespace Explorer
                 IFileSystemListItem selectedItem = this.SelectedItems[0] 
                     as IFileSystemListItem;
 
-                if (currentLocation.IsMerging)
+                if (currentLocation.IsMerging && selectedItem is FileItem)
                 {
                     try
                     {
@@ -249,10 +249,11 @@ namespace Explorer
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
 
+                    this.FinishMerging();
+
                     TextEditor editor = new TextEditor();
                     editor.Open(selectedItem);
 
-                    this.FinishMerging();
                     return;
                 }
 
@@ -315,8 +316,6 @@ namespace Explorer
                     return;
                 }
 
-
-
                 try
                 {
                     item.Entity.EditName(e.Label);
@@ -361,6 +360,7 @@ namespace Explorer
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/backToFolderIcon.png"));
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/currentLocationIcon.png"));
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/moveToIcon.png"));
+            itemIcons.Images.Add(Image.FromFile("../../assets/icons/mergeIcon.png"));
 
             this.LargeImageList = this.SmallImageList = itemIcons;
         }
