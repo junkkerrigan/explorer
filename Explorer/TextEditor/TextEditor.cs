@@ -19,6 +19,11 @@ namespace Explorer
 
         public Saver Saver;
 
+        private string DisplayedFileName
+        {
+            get => IsSaved ? this.Text : this.Text.Substring(1);
+        }
+
         public TextEditor() : base()
         {
             // TODO: add save button
@@ -31,6 +36,25 @@ namespace Explorer
             TextArea = new TextArea();
             TextArea.Editor = this;
             this.Controls.Add(TextArea);
+
+            this.FormClosing += (s, e) =>
+            {
+                if (!IsSaved)
+                {
+                    DialogResult save = MessageBox.Show(
+                        "You have unsaved changes. Do you want to save it?",
+                        DisplayedFileName, MessageBoxButtons.YesNoCancel,
+                        MessageBoxIcon.Warning);
+                    if (save == DialogResult.Yes)
+                    {
+                        Save();
+                    }
+                    else if (save == DialogResult.Cancel)
+                    {
+                        e.Cancel = true;
+                    }
+                }
+            };
         }
         
         public void Save()
