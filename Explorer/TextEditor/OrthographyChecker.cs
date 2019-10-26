@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,19 +9,16 @@ namespace Explorer
 {
     public static class OrthographyChecker
     {
-        private static List<string> Vocabulary = new List<string>()
+        private static readonly List<string> WordList = new List<string>() { "f" };
+
+        static OrthographyChecker()
         {
-            "a",
-            "B",
-            "b",
-            "sd",
-            "hello",
-            "world",
-            "oop",
-            "foo",
-            "bar",
-            "lose",
-        };
+            string wordlist = File.ReadAllText("../../assets/wordlist/wordlist.txt");
+            string[] words = wordlist.Split(new char[] { '\n' },
+                StringSplitOptions.RemoveEmptyEntries);
+
+            WordList = new List<string>(words);
+        }
 
         private static int Min(int a, int b, int c) => Math.Min(Math.Min(a, b), c);
 
@@ -64,7 +62,7 @@ namespace Explorer
 
         public static bool IsCorrect(string word)
         {
-            return Vocabulary.Contains(word);
+            return WordList.Contains(word);
         }
 
         public static List<string> GetSimilar(string word)
@@ -72,7 +70,7 @@ namespace Explorer
             int minDist = word.Length;
             List<string> similar = new List<string>();
 
-            foreach(string suggestion in Vocabulary)
+            foreach(string suggestion in WordList)
             {
                 int curDist = DamerauLevenshteinDistance(word, suggestion);
                 

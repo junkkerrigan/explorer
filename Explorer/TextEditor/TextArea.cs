@@ -13,10 +13,6 @@ namespace Explorer
     {
         public TextEditor Editor { get; set; }
 
-        public Point MouseRelativeLocation { get; set; }
-
-        public Point MouseAbsoluteLocation { get; set; }
-
         public TextArea() : base()
         {
             this.Dock = DockStyle.Fill;
@@ -51,7 +47,6 @@ namespace Explorer
             this.AddContextMenuOption("Check orthography", new Action(
                 () =>
                 {
-                    this.MouseAbsoluteLocation = this.ContextMenuStrip.Bounds.Location;
                     Editor.CheckOrthography();
                 }
             ));
@@ -66,13 +61,6 @@ namespace Explorer
                 }
 
             };
-
-            this.MouseUp += (s, e) =>
-            {
-                MouseRelativeLocation = e.Location;
-            };
-
-
         }
 
         public void Display(string text)
@@ -91,7 +79,7 @@ namespace Explorer
         {
             OrthographyContextMenu IncorrectMenu = new OrthographyContextMenu(this);
             IncorrectMenu.DisplaySuggestions(word, suggestions);
-            IncorrectMenu.Show(this, target, ToolStripDropDownDirection.);
+            IncorrectMenu.Show(this, target);
         }
 
         private void AddContextMenuOption(string name, Action onClick)

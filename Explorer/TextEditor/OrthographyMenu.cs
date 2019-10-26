@@ -15,6 +15,8 @@ namespace Explorer
         public OrthographyContextMenu(TextArea textArea) : base()
         {
             TextArea = textArea;
+
+            this.MaximumSize = new Size(200, 200);
         }
 
         public void DisplayCorrect(string word)
@@ -134,9 +136,9 @@ namespace Explorer
             }
 
             string word = Selection.Substring(wordStart, wordEnd - wordStart + 1);
+            word = ShortenWord(word);
 
             SetCursorToWordEnd();
-
             Point target = TextArea.GetPositionFromCharIndex(
                 BeforeSelection.Length + wordStart);
 
@@ -152,6 +154,15 @@ namespace Explorer
                 TextArea.ShowSuggestions(word,
                     OrthographyChecker.GetSimilar(word), target);
             }
+        }
+
+        private static string ShortenWord(string word)
+        {
+            string newWord =
+                (word.Length > 17)
+                ? word.Substring(0, 17) + "..."
+                : word;
+            return newWord;
         }
 
         public static void ReplaceWord(string newWord)
