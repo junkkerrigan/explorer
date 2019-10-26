@@ -195,6 +195,10 @@ namespace Explorer
             {
                 throw new FileAlreadyExistsException();
             }
+            else if (Directory.Exists(destinationPath))
+            {
+                throw new DirectoryAlreadyExistsException();
+            }
             File.Copy(sourcePath, destinationPath);
 
             // ShowModalWhenFinished();

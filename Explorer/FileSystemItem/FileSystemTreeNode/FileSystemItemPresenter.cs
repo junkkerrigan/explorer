@@ -318,9 +318,16 @@ namespace Explorer
             {
                 _buffer.Entity.CopyTo(newPath);
             }
-            catch (AlreadyExistsException)
+            catch (DirectoryAlreadyExistsException)
             {
-                MessageBox.Show($"Impossible to paste: {_buffer.Name} already exists.",
+                MessageBox.Show("Impossible to paste: directory with name"
+                    + $" {_buffer.Name} already exists.", "Pasting error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                isCopyingSucceed = false;
+            }
+            catch (FileAlreadyExistsException)
+            {
+                MessageBox.Show($"Impossible to paste: {_buffer.Name} already exists.", 
                     "Pasting error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 isCopyingSucceed = false;
             }
