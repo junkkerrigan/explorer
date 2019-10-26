@@ -17,18 +17,11 @@ namespace Explorer
 
         public Point MouseAbsoluteLocation { get; set; }
 
-        public int CurrentWordStart { get; set; }
-
-        public int CurrentWordEnd { get; set; }
-
-        public OrthographyContextMenu OrthographyMenu { get; set; }
-
         public TextArea() : base()
         {
             this.Dock = DockStyle.Fill;
             this.BorderStyle = BorderStyle.None;
             this.Font = Constants.ViewItemFont;
-            this.CurrentWordStart = this.CurrentWordEnd = 0;
 
             this.ContextMenuStrip = new ContextMenuStrip();
             this.AddContextMenuOption("Toggle Case", new Action(() => Editor.ToggleCase()));
@@ -63,8 +56,7 @@ namespace Explorer
                 }
             ));
 
-            this.OrthographyMenu = new OrthographyContextMenu();
-            this.OrthographyMenu.TextArea = this;
+            SuggestionsShower.TextArea = this;
 
             this.TextChanged += (s, e) =>
             {
@@ -88,16 +80,18 @@ namespace Explorer
             this.Text = text;
         }
 
-        public void ShowCorrect(string word)
+        public void ShowCorrect(string word, Point target)
         {
-            this.OrthographyMenu.DisplayCorrect(word);
-            this.OrthographyMenu.Show(MouseAbsoluteLocation);
+            OrthographyContextMenu CorrectMenu = new OrthographyContextMenu(this);
+            CorrectMenu.DisplayCorrect(word);
+            CorrectMenu.Show(this, target);
         }
 
-        public void ShowSuggestions(string word, List<string> suggestions)
+        public void ShowSuggestions(string word, List<string> suggestions, Point target)
         {
-            this.OrthographyMenu.DisplaySuggestions(word, suggestions);
-            this.OrthographyMenu.Show(MouseAbsoluteLocation);
+            OrthographyContextMenu IncorrectMenu = new OrthographyContextMenu(this);
+            IncorrectMenu.DisplaySuggestions(word, suggestions);
+            IncorrectMenu.Show(this, target, ToolStripDropDownDirection.);
         }
 
         private void AddContextMenuOption(string name, Action onClick)

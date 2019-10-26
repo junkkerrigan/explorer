@@ -92,58 +92,65 @@ namespace Explorer
 
         public void CheckOrthography()
         {
-            int curPos = TextArea.GetCharIndexFromPosition(TextArea.MouseRelativeLocation);
+            char[] delimiters = new char[] { ' ', '\n' };
+
+            int begin = TextArea.SelectionStart, len = TextArea.SelectionLength,
+                end = begin + len - 1;
             string text = TextArea.Text;
 
-            if (text == "") return;
+            if (len == 0) return;
 
-            // looking for the word to check
-            int start, end;
-
-            while (curPos >= 0 && text[curPos] != ' ' && text[curPos] != '\n') curPos--;
-
-            start = (curPos == 0) ? 0 : curPos + 1;
-            end = text.IndexOf(' ', start);
-
-            if (end == -1)
+            if (delimiters.Contains(text[begin]))
             {
-                end = text.IndexOf('\n', start);
-                
-                if (end == -1)
+                while (
+                    begin <= end
+                    && (delimiters.Contains(text[begin])))
                 {
-                    end = text.Length;
+                    begin++;
                 }
-            }
-
-            string word = text.Substring(start, end - start);
-
-            if (word == " " || word == "") return;
-
-            TextArea.CurrentWordStart = start;
-            TextArea.CurrentWordEnd = end;
-
-            // checking the word
-            if (OrthographyChecker.IsCorrect(word))
-            {
-                TextArea.ShowCorrect(word);
             }
             else
             {
-                List<string> suggestions = OrthographyChecker.GetSimilar(word);
-
-                TextArea.ShowSuggestions(word, suggestions);
+                while(
+                    begin > 0
+                    && !delimiters.Contains(text[begin - 1]))
+                {
+                    begin--;
+                }
             }
-        }
 
-        public void ChangeCurrentWordBy(string newWord)
-        {
-            string text = TextArea.Text;
-            int start = TextArea.CurrentWordStart, end = TextArea.CurrentWordEnd;
+            if (delimiters.Contains(text[end]))
+            {
+                while (
+                    end > begin
+                    && delimiters.Contains(text[end]))
+                {
+                    end--;
+                }
+            }
+            else
+            {
+                while (
+                    end < text.Length - 1
+                    && !delimiters.Contains(text[end + 1]))
+                {
+                    end++;
+                }
+            }
 
-            text = text.Substring(0, start) + newWord 
-                + text.Substring(end);
+            if (begin > end) return;
 
-            TextArea.Text = text;
+            TextArea.SelectionLength = 0;
+
+            SuggestionsShower.Reset();
+            SuggestionsShower.BeforeSelection = text.Substring(0, begin);
+            SuggestionsShower.Selection = text.Substring(begin, end - begin + 1);
+            if (end < text.Length - 1)
+            {
+                SuggestionsShower.AfterSelection = text.Substring(end + 1);
+            }
+
+            SuggestionsShower.Show();
         }
 
         public void ToggleCase()

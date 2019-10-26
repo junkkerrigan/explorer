@@ -19,6 +19,7 @@ namespace Explorer
             "oop",
             "foo",
             "bar",
+            "lose",
         };
 
         private static int Min(int a, int b, int c) => Math.Min(Math.Min(a, b), c);
