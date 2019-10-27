@@ -13,12 +13,6 @@ namespace Explorer
 
         public SearchBox SearchBox { get; set; }
 
-        static readonly BackToFolder backToFolder = new BackToFolder();
-
-        static CurrentLocation currentLocation = new CurrentLocation("");
-
-        private ContextMenuStrip RightClickMenu;
-
         public List<IFileSystemListItem> RootItems 
         { 
             get 
@@ -51,6 +45,18 @@ namespace Explorer
             }
         }
 
+        private readonly BackToFolder backToFolder = new BackToFolder();
+        private readonly Separator separator = new Separator();
+        private readonly CurrentLocation currentLocation = new CurrentLocation();
+        private readonly Mover mover = new Mover();
+        private readonly Merger merger = new Merger();
+
+        private readonly ContextMenuStrip RightClickMenu;
+        
+        private bool IsMoving; // move to constants as enum and implement CurrentAction
+        private bool IsChoosingMergeWith;
+        private bool IsChoosingMergeTo;
+
         public FileSystemList() : base()
         {
             this.Dock = DockStyle.Fill;
@@ -60,6 +66,7 @@ namespace Explorer
             this.TileSize = new Size(600, 35);
             this.OwnerDraw = true;
             this.LabelEdit = false;
+
             RightClickMenu = new ContextMenuStrip();
 
             // open editor
@@ -96,6 +103,7 @@ namespace Explorer
                     }
                 }
             };
+
             // to prevent from being selected or focused 
             this.ItemSelectionChanged += (s, e) =>
             {
@@ -133,23 +141,28 @@ namespace Explorer
             IFileSystemListItem selectedItem = this.SelectedItems[0]
                 as IFileSystemListItem;
 
-            if (currentLocation.IsMerging && selectedItem is FileItem)
+            if (IsChoosingMergeWith && selectedItem is FileItem)
             {
-                try
-                {
-                    currentLocation.Node.Entity.MergeTo(selectedItem.Entity.Path);
-                }
-                catch
-                {
-                    MessageBox.Show($"Impossible to merge `{currentLocation.Node.Name}`"
-                        + $" to {selectedItem.Name}.", "Merging error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                IsChoosingMergeWith = false;
+                IsChoosingMergeTo = true;
+                merger.MergeWithNode = selectedItem.Node;
+                this.UpdateRefresh();
 
-                this.FinishMerging();
+                //try
+                //{
+                //    currentLocation.Node.Entity.MergeTo(selectedItem.Entity.Path);
+                //}
+                //catch
+                //{
+                //    MessageBox.Show($"Impossible to merge `{currentLocation.Node.Name}`"
+                //        + $" to {selectedItem.Name}.", "Merging error",
+                //        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //}
 
-                TextEditor editor = new TextEditor();
-                editor.Open(selectedItem);
+                //this.FinishMerging();
+
+                //TextEditor editor = new TextEditor();
+                //editor.Open(selectedItem);
 
                 return;
             }
@@ -604,25 +617,27 @@ namespace Explorer
             this.DisplayedNode = node;
             this.DisplayedItem = node.ListItem;
 
-            if (currentLocation.IsMoving)
+            if (IsMoving)
             {
-                currentLocation.Name =
-                    $"    Move {this.DisplayedNode.Presenter.Buffer.Name}" +
-                    $" to {this.DisplayedItem.Entity.Path}";
-                currentLocation.Node = this.DisplayedNode;
+                mover.Name = $"    Move {DisplayedNode.Presenter.Buffer.Name}" +
+                    $" to {DisplayedItem.Entity.Path}";
+                mover.Node = DisplayedNode;
+                this.AddItem(mover);
             }
-            else if (currentLocation.IsMerging)
+            else if (IsChoosingMergeWith)
             {
-                currentLocation.Name =
-                    $"    Merge {currentLocation.Node.Name} to...";
+                merger.Name =
+                    $"    Merge {currentLocation.Node.Name} with...";
+                this.AddItem(merger);
             }
+            // TODO: add IsChoosingMergeTo processing
             else
             {
                 currentLocation.Name = $"    {this.DisplayedItem.Entity.Path}";
+                this.AddItem(currentLocation);
             }
 
-            this.AddItem(currentLocation);
-            this.AddItem(new Separator());
+            this.AddItem(separator);
             this.AddItem(backToFolder);
 
             foreach (IFileSystemTreeNode subNode in node.SubNodes)
@@ -661,24 +676,24 @@ namespace Explorer
 
         public void StartMoving()
         {
-            currentLocation.EnableMovingMode();
+            IsMoving = true;
         }
 
         public void FinishMoving()
         {
-            currentLocation.DisableMovingMode();
-            this.Display(DisplayedNode);
+            IsMoving = false;
+            this.UpdateRefresh();
         }
 
         public void StartMerging(IFileSystemTreeNode node)
         {
-            currentLocation.EnableMergingMode();
-            currentLocation.Node = node;
+            IsMerging = true;
+            merger.MergeNode = node;
         }
 
         public void FinishMerging()
         {
-            currentLocation.DisableMergingMode();
+            IsMerging = false;
             this.UpdateRefresh();
         }
     }

@@ -70,6 +70,10 @@ namespace Explorer
         {
         }
 
+        public FileSystemListItem() : base()
+        {
+        }
+
         public FileSystemListItem(IFileSystemTreeNode node) : base(node.Name)
         {
             Node = node;
@@ -243,56 +247,71 @@ namespace Explorer
         }
     }
 
+    public class Mover : FileSystemListItem
+    {
+        public override bool IsAccessible => true;
+
+        public Mover() : base()
+        {
+            this.ImageIndex = Constants.IconTypeIndexes.MoveToIndex;
+            this.Font = new Font("Verdana", 11, FontStyle.Italic);
+
+            this.RightClickMenu = new ContextMenuStrip();
+            this.AddContextMenuOption("Cancel moving", () =>
+                this.Node.Presenter.HandleListItemAction("Cancel moving"));
+
+            this.Open = () =>
+            {
+                this.Node.ListItem.MoveHere();
+            };
+        }
+    }
+
+    public class Merger : FileSystemListItem
+    {
+        public override bool IsAccessible => true;
+
+        // node that will be first in result node
+        public IFileSystemTreeNode MergeWithNode { get; set; }
+
+        // node that will be second in result node
+        public IFileSystemTreeNode MergeNode { get; set; }
+
+        public Merger() : base()
+        {
+            this.ImageIndex = Constants.IconTypeIndexes.MergeIndex;
+            this.Font = new Font("Verdana", 11, FontStyle.Italic);
+
+            this.RightClickMenu = new ContextMenuStrip();
+            this.AddContextMenuOption("Cancel merging", () =>
+                this.Node.Presenter.HandleListItemAction("Cancel merging"));
+
+            this.Open = () =>
+            {
+
+            };
+        }
+    }
+
     public class CurrentLocation : FileSystemListItem
     {
-        public override bool IsAccessible 
-        {
-            get => IsMoving; 
-        }
-
-        public bool IsMoving { get; set; }
+        public override bool IsAccessible => false;
 
         public bool IsMerging { get; set; }
 
-        public CurrentLocation(string name) : base(name)
+        public CurrentLocation() : base()
         {
-            this.RightClickMenu = new ContextMenuStrip();
             this.ImageIndex = Constants.IconTypeIndexes.CurrentLocationIndex;
-
-            this.Open = () => 
-            {
-                if (IsMoving)
-                {
-                    this.Node.ListItem.MoveHere();
-                }
-            };
             this.Font = new Font("Verdana", 11, FontStyle.Italic);
+            this.RightClickMenu = new ContextMenuStrip();
+            this.Open = () => { };
         } 
-
-        public void EnableMovingMode()
-        {
-            this.IsMoving = true;
-            this.ImageIndex = Constants.IconTypeIndexes.MoveToIndex;
-            this.AddContextMenuOption("Cancel moving", () => 
-                this.Node.Presenter.HandleListItemAction("Cancel moving"));
-        }
-
-        public void DisableMovingMode()
-        {
-            this.IsMoving = false;
-            this.ImageIndex = Constants.IconTypeIndexes.CurrentLocationIndex;
-            this.Selected = false;
-            this.RightClickMenu.Items.Clear();
-        }
 
         public void EnableMergingMode()
         {
             this.IsMerging = true;
 
             this.ImageIndex = Constants.IconTypeIndexes.MergeIndex;
-
-            this.AddContextMenuOption("Cancel merging", () =>
-                this.Node.Presenter.HandleListItemAction("Cancel merging"));
         }
 
         public void DisableMergingMode()

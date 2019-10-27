@@ -92,6 +92,11 @@ namespace Explorer
                         View.Tree.List.UpdateRefresh();
                     } 
                 },
+                { "Merge to", () =>
+                    {
+
+                    }
+                },
                 { "Move here", this.MoveNode },
                 { "Cancel moving", () =>
                     {
