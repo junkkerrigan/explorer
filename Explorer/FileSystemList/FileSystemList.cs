@@ -57,12 +57,10 @@ namespace Explorer
             this.Font = Constants.ViewItemFont;
             this.BorderStyle = BorderStyle.None;
             this.View = View.Tile;
+            this.TileSize = new Size(600, 35);
             this.OwnerDraw = true;
             this.LabelEdit = false;
-
             RightClickMenu = new ContextMenuStrip();
-
-            
 
             // open editor
             this.KeyUp += (s, e) =>
@@ -586,6 +584,14 @@ namespace Explorer
                 this.FillGeneralContextMenu();
             }
 
+            int maxWidth = this.Size.Width;
+            foreach (IFileSystemTreeNode subNode in node.SubNodes)
+            {
+                maxWidth = System.Math.Max(maxWidth, 40 +
+                    TextRenderer.MeasureText(subNode.Name, Constants.ViewItemFont).Width);
+            }
+            this.TileSize = new Size(maxWidth, 35);
+
             this.DisplayedNode = node;
             this.DisplayedItem = node.ListItem;
 
@@ -609,7 +615,6 @@ namespace Explorer
             this.AddItem(currentLocation);
             this.AddItem(new Separator());
             this.AddItem(backToFolder);
-            this.AddItem(new Separator());
 
             foreach (IFileSystemTreeNode subNode in node.SubNodes)
             {
