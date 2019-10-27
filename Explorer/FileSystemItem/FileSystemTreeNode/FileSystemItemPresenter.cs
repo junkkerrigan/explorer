@@ -67,8 +67,10 @@ namespace Explorer
                         if (_bufferElementState == BufferElementState.Moving)
                         {
                             MessageBox.Show(
-                                $"Impossible to move {View.Name} while {_buffer.Name} is moving",
-                                "Moving error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                $"Impossible to move `{View.Name}` while `{_buffer.Name}`" +
+                                " is moving. To cancel moving, click `General > Cancel moving`" +
+                                " or call right-click menu on `Move to` button.", "Moving error", 
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return;
                         }
                         if (_bufferElementState == BufferElementState.Cut)
@@ -103,6 +105,7 @@ namespace Explorer
                 { "Delete", this.RemoveNode },
                 { "Properties", View.ListItem.ShowProperties },
                 { "Rename", View.ListItem.StartNameEditing },
+                { "Create", () => { } },
                 { "Create folder", () =>
                     {
                         IFileSystemTreeNode newFolder =
@@ -162,8 +165,10 @@ namespace Explorer
             if (_bufferElementState == BufferElementState.Moving)
             {
                 MessageBox.Show(
-                    $"Impossible to copy {View.Name} while {_buffer.Name} is moving",
-                    "Copying error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    $"Impossible to copy `{View.Name}` while `{_buffer.Name}` is moving." +
+                    " To cancel moving, click `General > Cancel moving` or call"
+                    + " right-click menu on `Move to` button.", "Copying error", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (_bufferElementState == BufferElementState.Cut)
@@ -186,8 +191,10 @@ namespace Explorer
             if (_bufferElementState == BufferElementState.Moving)
             {
                 MessageBox.Show(
-                    $"Impossible to cut {View.Name} while {_buffer.Name} is moving",
-                    "Cutting error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    $"Impossible to cut `{View.Name}` while `{_buffer.Name}` is moving."
+                    + "To cancel moving, click `General > Cancel moving` or call"
+                    + " right-click menu on `Move to` button.", "Cutting error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (_bufferElementState == BufferElementState.Cut)
@@ -214,7 +221,6 @@ namespace Explorer
 
             _parent.AddSubNode(_buffer);
             _parent.SortSubNodes(displayParent);
-
             _buffer.ListItem.Selected = false;
 
             _parent = null;
@@ -227,7 +233,7 @@ namespace Explorer
         {
             if (View == _parent)
             {
-                MessageBox.Show($"Impossible to move {_buffer.Name} into the same directory",
+                MessageBox.Show($"Impossible to move `{_buffer.Name}` into the same directory.",
                     "Moving error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
@@ -246,9 +252,16 @@ namespace Explorer
             {
                 _buffer.Entity.Move(newPath);
             }
-            catch (AlreadyExistsException)
+            catch (DirectoryAlreadyExistsException)
             {
-                MessageBox.Show($"Impossible to move: {_buffer.Name} already exists.",
+                MessageBox.Show($"Impossible to move: directory with name" 
+                    + $" `{_buffer.Name}` already exists.", "Moving error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                isMovingSucceed = false;
+            }
+            catch (FileAlreadyExistsException)
+            {
+                MessageBox.Show($"Impossible to move: `{_buffer.Name}` already exists.",
                     "Moving error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 isMovingSucceed = false;
             }
@@ -282,19 +295,19 @@ namespace Explorer
             }
             if (View.IsChild(_buffer))
             {
-                MessageBox.Show($"Impossible to paste {_buffer.Name} into child directory.",
+                MessageBox.Show($"Impossible to paste `{_buffer.Name}` into its child directory.",
                     "Pasting error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (View == _parent && _bufferElementState == BufferElementState.Cut)
             {
-                MessageBox.Show($"Impossible to paste {_buffer.Name} into the same directory.",
+                MessageBox.Show($"Impossible to paste `{_buffer.Name}` into the same directory.",
                     "Pasting error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (View == _buffer)
             {
-                MessageBox.Show($"Impossible to paste {_buffer.Name} into itself.",
+                MessageBox.Show($"Impossible to paste `{_buffer.Name}` into itself.",
                     "Pasting error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
@@ -321,13 +334,13 @@ namespace Explorer
             catch (DirectoryAlreadyExistsException)
             {
                 MessageBox.Show("Impossible to paste: directory with name"
-                    + $" {_buffer.Name} already exists.", "Pasting error",
+                    + $" `{_buffer.Name}` already exists.", "Pasting error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 isCopyingSucceed = false;
             }
             catch (FileAlreadyExistsException)
             {
-                MessageBox.Show($"Impossible to paste: {_buffer.Name} already exists.", 
+                MessageBox.Show($"Impossible to paste: `{_buffer.Name}` already exists.", 
                     "Pasting error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 isCopyingSucceed = false;
             }

@@ -14,7 +14,7 @@ namespace Explorer
         IFileSystemList List { get; }
 
         bool IsAccessible { get; }
-
+        
         FileSystemItemPresenter Presenter { get; set; }
 
         void ShowMenu();

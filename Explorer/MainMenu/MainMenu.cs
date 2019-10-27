@@ -108,7 +108,7 @@ namespace Explorer
                 else if (selectedItem is DriveItem && option.Text != "Open")
                 {
                     MessageBox.Show(
-                        $"Impossible to {option.Text.ToLower()} {selectedItem.Name}.",
+                        $"Impossible to {option.Text.ToLower()} `{selectedItem.Name}`.",
                         "Operation error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 else

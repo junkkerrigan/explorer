@@ -44,21 +44,41 @@ namespace Explorer
 
         public void OpenWithDefaultApplication()
         {
-            try
+            string[] appList = { null, "notepad.exe", "chrome.exe" };
+            bool isSucceed;
+
+            foreach(string app in appList)
             {
-                Process.Start(this.Path);
+                isSucceed = true;
+
+                if (app == null)
+                {
+                    try
+                    {
+                        Process.Start(this.Path);
+                    }
+                    catch
+                    {
+                        isSucceed = false;
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        Process.Start(app, $"\"{this.Path}\"");
+                    }
+                    catch
+                    {
+                        isSucceed = false;
+                    }
+                }
+
+                if (isSucceed) return;
             }
-            catch (Win32Exception)
-            {
-                MessageBox.Show($"Impossible to open {this.Node.Name}.", "Opening error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error in Entity.OpenWithDefaultApplication");
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.GetType());
-            }
+
+            MessageBox.Show($"Impossible to open `{this.Node.Name}`.", "Opening error",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         public void UpdatePath(string newPath)
@@ -154,7 +174,7 @@ namespace Explorer
             }
             catch (IOException)
             {
-                MessageBox.Show($"Impossible to delete {this.Node.Name}.", "Deleting error",
+                MessageBox.Show($"Impossible to delete `{this.Node.Name}`.", "Deleting error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
@@ -165,14 +185,19 @@ namespace Explorer
 
         public override void Move(string destinationPath)
         {
+            if (Directory.Exists(destinationPath))
+            {
+                throw new DirectoryAlreadyExistsException();
+            }
+            else if (File.Exists(destinationPath))
+            {
+                throw new FileAlreadyExistsException();
+            }
+
             try
             {
                 Directory.Move(this.Path, destinationPath);
                 this.UpdatePath(destinationPath);
-            }
-            catch (IOException)
-            {
-                throw new DirectoryAlreadyExistsException();
             }
             catch (Exception ex)
             {
@@ -212,7 +237,7 @@ namespace Explorer
             }
             catch(IOException)
             {
-                MessageBox.Show($"Impossible to delete {this.Node.Name}.", "Deleting error",
+                MessageBox.Show($"Impossible to delete `{this.Node.Name}`.", "Deleting error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch(Exception ex)
@@ -223,21 +248,25 @@ namespace Explorer
 
         public override void Move(string destinationPath)
         {
-            try
-            {
-                Console.WriteLine(this.Path);
-                Console.WriteLine(this);
-                File.Move(this.Path, destinationPath);
-                this.Path = destinationPath;
-            }
-            catch(IOException)
+            if (File.Exists(destinationPath))
             {
                 throw new FileAlreadyExistsException();
+            }
+            else if (Directory.Exists(destinationPath))
+            {
+                throw new DirectoryAlreadyExistsException();
+            }
+
+            try
+            {
+                File.Move(this.Path, destinationPath);
+                this.Path = destinationPath;
             }
             catch(Exception ex)
             {
                 Console.WriteLine("Error in FileEntity.Move:");
                 Console.WriteLine(ex.Message);
+                throw;
             }
         }
 
@@ -347,7 +376,7 @@ namespace Explorer
             catch(AlreadyExistsException)
             {
                 MessageBox.Show($"Impossible to save:"
-                    + $" {Path.GetFileName(newPath)} already exists.", "Saving error",
+                    + $" `{Path.GetFileName(newPath)}` already exists.", "Saving error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -380,7 +409,7 @@ namespace Explorer
             catch (AlreadyExistsException)
             {
                 MessageBox.Show($"Impossible to save:"
-                    + $" {Path.GetFileName(newPath)} already exists.", "Saving error",
+                    + $" `{Path.GetFileName(newPath)}` already exists.", "Saving error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

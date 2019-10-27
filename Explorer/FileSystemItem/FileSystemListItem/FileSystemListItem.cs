@@ -82,7 +82,7 @@ namespace Explorer
             this.ForeColor = Color.Gray;
             this.Open = () =>
             {
-                MessageBox.Show($"Impossible to open: {this.Name} is inaccesible.",
+                MessageBox.Show($"Impossible to open: `{this.Name}` is inaccesible.",
                     "Opening error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             };
             this.RightClickMenu.Items.Clear();

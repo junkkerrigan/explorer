@@ -84,9 +84,16 @@ namespace Explorer
             {
                 node.Entity.EditName(e.Label);
             }
-            catch (AlreadyExistsException)
+            catch (DirectoryAlreadyExistsException)
             {
-                MessageBox.Show($"Impossible to rename: {e.Label} already exists.",
+                MessageBox.Show("Impossible to rename: directory with name"
+                    + $" `{e.Label}` already exists.", "Renaming error", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                e.CancelEdit = true;
+            }
+            catch (FileAlreadyExistsException)
+            {
+                MessageBox.Show($"Impossible to rename: `{e.Label}` already exists.",
                     "Renaming error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 e.CancelEdit = true;
             }

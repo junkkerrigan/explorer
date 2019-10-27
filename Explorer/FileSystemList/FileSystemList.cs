@@ -17,8 +17,6 @@ namespace Explorer
 
         static CurrentLocation currentLocation = new CurrentLocation("");
 
-        static Separator separator = new Separator();
-
         private ContextMenuStrip RightClickMenu;
 
         public List<IFileSystemListItem> RootItems 
@@ -37,8 +35,6 @@ namespace Explorer
                 return items;
             }
         }
-
-
 
         public IFileSystemListItem  DisplayedItem { get; set; }
 
@@ -61,11 +57,423 @@ namespace Explorer
             this.Font = Constants.ViewItemFont;
             this.BorderStyle = BorderStyle.None;
             this.View = View.Tile;
-            this.TileSize = new Size(600, 30);
             this.OwnerDraw = true;
+            this.LabelEdit = false;
 
             RightClickMenu = new ContextMenuStrip();
 
+            
+
+            // open editor
+            this.KeyUp += (s, e) =>
+            {
+                if (e.KeyCode == Keys.VolumeUp && this.SelectedItem is FileItem)
+                {
+                    TextEditor editor = new TextEditor();
+
+                    editor.Open(this.SelectedItem);
+                }
+            };
+            this.MouseDown += (s, e) =>
+            {
+                if (e.Button == MouseButtons.Right)
+                {
+                    ListViewItem item = this.GetItemAt(e.X, e.Y);
+                    if (item == null)
+                    {
+                        RightClickMenu.Show(Cursor.Position);
+                    }
+                    else
+                    {
+                        Console.WriteLine(item.Bounds);
+                        IFileSystemListItem target = item as IFileSystemListItem;
+                        target.ShowMenu();
+                    }
+                }
+            };
+            // to prevent from being selected or focused 
+            this.ItemSelectionChanged += (s, e) =>
+            {
+                if (e.IsSelected && !(e.Item as IFileSystemListItem).IsAccessible)
+                {
+                    e.Item.Selected = false;
+                    e.Item.Focused = false;
+                }
+            };
+
+            this.DrawItem += FileSystemList_DrawItem;
+            this.MouseDoubleClick += FileSystemList_MouseDoubleClick;
+            this.AfterLabelEdit += FileSystemList_AfterLabelEdit;
+
+            ImageList itemIcons = new ImageList
+            {
+                ImageSize = new Size(25, 25)
+            };
+            itemIcons.Images.Add(Image.FromFile("../../assets/icons/driveIcon.png"));
+            itemIcons.Images.Add(Image.FromFile("../../assets/icons/folderIcon.png"));
+            itemIcons.Images.Add(Image.FromFile("../../assets/icons/fileIcon.png"));
+            itemIcons.Images.Add(Image.FromFile("../../assets/icons/backToFolderIcon.png"));
+            itemIcons.Images.Add(Image.FromFile("../../assets/icons/currentLocationIcon.png"));
+            itemIcons.Images.Add(Image.FromFile("../../assets/icons/moveToIcon.png"));
+            itemIcons.Images.Add(Image.FromFile("../../assets/icons/mergeIcon.png"));
+
+            this.LargeImageList = this.SmallImageList = itemIcons;
+        }
+
+        private void FileSystemList_MouseDoubleClick(object s, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right) return;
+            if (this.SelectedItems.Count == 0) return;
+
+            IFileSystemListItem selectedItem = this.SelectedItems[0]
+                as IFileSystemListItem;
+
+            if (currentLocation.IsMerging && selectedItem is FileItem)
+            {
+                try
+                {
+                    currentLocation.Node.Entity.MergeTo(selectedItem.Entity.Path);
+                }
+                catch
+                {
+                    MessageBox.Show($"Impossible to merge `{currentLocation.Node.Name}`"
+                        + $" to {selectedItem.Name}.", "Merging error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                this.FinishMerging();
+
+                TextEditor editor = new TextEditor();
+                editor.Open(selectedItem);
+
+                return;
+            }
+
+            selectedItem.Open();
+        }
+
+        private void FileSystemList_AfterLabelEdit(object s, LabelEditEventArgs e)
+        {
+            IFileSystemListItem item = this.Items[e.Item] as IFileSystemListItem;
+
+            if (item.Name == "") // editing after creating
+            {
+                HandleAfterCreating();
+            }
+            else
+            {
+                HandleAfterRenaming();
+            }
+
+            void HandleAfterRenaming()
+            {
+                if (e.Label == null || e.Label == "")
+                {
+                    e.CancelEdit = true;
+                    return;
+                }
+
+                try
+                {
+                    item.Entity.EditName(e.Label);
+                }
+                catch (DirectoryAlreadyExistsException)
+                {
+                    if (e.Label != item.Name)
+                    {
+                        MessageBox.Show("Impossible to rename: directory with name"
+                            + $" `{e.Label}` already exists.", "Renaming error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        e.CancelEdit = true;
+                    }
+                }
+                catch (FileAlreadyExistsException)
+                {
+                    if (e.Label != item.Name)
+                    {
+                        MessageBox.Show($"Impossible to rename: `{e.Label}` already exists.",
+                            "Renaming error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        e.CancelEdit = true;
+                    }
+                }
+                catch (ArgumentException ex)
+                {
+                    if (ex.Message == ".")
+                    {
+                        MessageBox.Show("Impossible to rename: invalid name.", "Creating error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Impossible to rename: name can't contain invalid"
+                            + " characters ( \\ / | : * < > \" ? ).", "Creating error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    e.CancelEdit = true;
+                }
+                if (!e.CancelEdit)
+                {
+                    item.Node.Name = e.Label;
+                    this.BeginInvoke(
+                        new Action(() => {
+                            item.Node.Parent.SortSubNodes();
+                        })
+                    );
+                    // for sorting after node name will finally be changed
+
+                    this.LabelEdit = false;
+                }
+                else
+                {
+                    item.StartNameEditing();
+                }
+            }
+
+            void HandleAfterCreating()
+            {
+                string path = this.DisplayedNode.Entity.Path, name = e.Label;
+
+
+                if (name == "" || name == null)
+                {
+                    if (item is FolderItem)
+                    {
+                        int cnt = 0;
+                        string folderName = "New folder";
+                        
+                        while(true)
+                        {
+                            if (cnt != 0)
+                            {
+                                folderName = $"New folder ({cnt})";
+                            }
+
+                            try
+                            {
+                                e.CancelEdit = false;
+                                IFileSystemItemEntity.Factory.CreateNewFolder(path, 
+                                    folderName);
+                            }
+                            catch (AlreadyExistsException)
+                            {
+                                e.CancelEdit = true;
+                            }
+                            if (!e.CancelEdit)
+                            {
+                                string folderPath = Path.Combine(path, folderName);
+
+                                item.Name = folderName;
+                                item.Node.Name = folderName;
+                                item.Entity.Path = folderPath;
+
+                                return;
+                            }
+
+                            cnt++;
+                        }
+                    }
+                    else if (item is FileItem)
+                    {
+                        int cnt = 0;
+                        string fileName = "New file";
+
+                        while (true)
+                        {
+                            if (cnt != 0)
+                            {
+                                fileName = $"New file ({cnt})";
+                            }
+
+                            try
+                            {
+                                e.CancelEdit = false;
+                                IFileSystemItemEntity.Factory.CreateNewFile(path,
+                                    fileName);
+                            }
+                            catch (AlreadyExistsException)
+                            {
+                                e.CancelEdit = true;
+                            }
+                            if (!e.CancelEdit)
+                            {
+                                string filePath = Path.Combine(path, fileName);
+
+                                item.Name = fileName;
+                                item.Node.Name = fileName;
+                                item.Entity.Path = filePath;
+
+                                return;
+                            }
+
+                            cnt++;
+                        }
+                    }
+                }
+
+                try
+                {
+                    if (item is FileItem)
+                    {
+                        IFileSystemItemEntity.Factory.CreateNewFile(path, name);
+                    }
+                    else if (item is FolderItem)
+                    {
+                        IFileSystemItemEntity.Factory.CreateNewFolder(path, name);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException("Error: you can't create drive.");
+                    }
+                }
+                catch (DirectoryAlreadyExistsException)
+                {
+                    MessageBox.Show("Impossible to create: directory with name"
+                        + $" `{e.Label}` already exists.", "Creating error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    e.CancelEdit = true;
+                    item.StartNameEditing();
+                }
+                catch (FileAlreadyExistsException)
+                {
+                    MessageBox.Show($"Impossible to create: `{e.Label}` already exists.",
+                        "Creating error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    e.CancelEdit = true;
+                    item.StartNameEditing();
+                }
+                catch (ArgumentException ex)
+                {
+                    if (ex.Message == ".")
+                    {
+                        MessageBox.Show("Impossible to create: invalid name.", "Creating error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Impossible to create: name can't contain invalid"
+                            + " characters ( \\ / | : * < > \" ? ).", "Creating error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    e.CancelEdit = true;
+                    item.StartNameEditing();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    e.CancelEdit = true;
+                    item.StartNameEditing();
+                }
+                finally
+                {
+                    if (!e.CancelEdit)
+                    {
+                        string itemPath = Path.Combine(path, name);
+
+                        item.Node.Name = e.Label;
+                        item.Entity.Path = itemPath;
+                    }
+                }
+            }
+        }
+
+        private void FileSystemList_DrawItem(object s, DrawListViewItemEventArgs e)
+        {
+            e.DrawDefault = true; // if custom render, changing below
+
+            if (this.SearchBox.Text == "")
+            {
+                return;
+            }
+
+            IFileSystemListItem item = e.Item as IFileSystemListItem;
+
+            if (!item.IsFileSystemItem() || !item.IsAccessible)
+            {
+                return;
+            }
+
+            if (this.SearchBox.SearchOnly && !e.Item.Text.EndsWith(".html"))
+            {
+                return;
+            }
+
+            List<int> matches = SearchByKeywords(this.SearchBox.Text, e.Item.Text);
+
+            if (matches == null)
+            {
+                return;
+            }
+
+            string[] chunks = e.Item.Text.Split(new char[] { ' ' });
+
+            string highlight;
+
+
+            // check if name contains all the keywords
+            bool isMatch = false;
+
+            for (int i = 0; i < chunks.Length; i++)
+            {
+                string chunk = chunks[i];
+
+                highlight = chunk.Substring(0, matches[i]);
+
+                if (highlight.Length > 0) isMatch = true;
+            }
+
+            if (!isMatch)
+            {
+                return;
+            }
+
+            // draw item
+            Font ordinaryFont = new Font("Verdana", 13);
+            Font highlightFont = new Font("Verdana", 14, FontStyle.Bold);
+
+            Brush ordinaryBrush = new SolidBrush(Color.Black);
+            Brush highlightBrush = new SolidBrush(Color.Red);
+
+            int idx = e.Item.ImageIndex;
+
+            if (idx >= 0 && idx < this.SmallImageList.Images.Count)
+            {
+                Image icon = this.SmallImageList.Images[idx];
+                e.Graphics.DrawImage(icon, new Point(e.Bounds.X, e.Bounds.Y));
+            }
+
+            float left = this.SmallImageList.ImageSize.Width + 2,
+                top = e.Bounds.Top + 3;
+
+            string ordinary;
+
+            SizeF size;
+
+            for (int i = 0; i < chunks.Length; i++)
+            {
+                string chunk = chunks[i];
+
+                highlight = chunk.Substring(0, matches[i]);
+
+                e.Graphics.DrawString(highlight, highlightFont, highlightBrush, left,
+                    top - 2);
+
+                size = e.Graphics.MeasureString(highlight, highlightFont);
+
+                left += size.Width;
+
+                ordinary = chunk.Substring(matches[i]);
+
+                e.Graphics.DrawString(ordinary, ordinaryFont, ordinaryBrush, left, top);
+
+                size = e.Graphics.MeasureString(ordinary, ordinaryFont);
+
+                left += size.Width;
+            }
+
+            e.DrawDefault = false;
+        }
+
+        private void FillGeneralContextMenu()
+        {
             string[] contextMenuOptions =
             {
                 "Create", "Paste",
@@ -81,7 +489,7 @@ namespace Explorer
                 "Folder", "File",
             };
 
-            ToolStripMenuItem createOption = this.RightClickMenu.Items[0] 
+            ToolStripMenuItem createOption = this.RightClickMenu.Items[0]
                 as ToolStripMenuItem;
 
             foreach (string name in createOptionSubItems)
@@ -95,274 +503,6 @@ namespace Explorer
 
                 createOption.DropDownItems.Add(subOption);
             }
-
-            this.KeyUp += (s, e) =>
-            {
-                if (e.KeyCode == Keys.VolumeUp && this.SelectedItem is FileItem)
-                {
-                    TextEditor editor = new TextEditor();
-
-                    editor.Open(this.SelectedItem);
-                }
-            };
-
-            this.DrawItem += (s, e) =>
-            {
-                e.DrawDefault = true; // if custom render, changing below
-
-                if (this.SearchBox.Text == "")
-                {
-                    return;
-                }
-
-                IFileSystemListItem item = e.Item as IFileSystemListItem;
-
-                if (!item.IsFileSystemItem() || !item.IsAccessible)
-                {
-                    return;
-                }
-
-                if (this.SearchBox.SearchOnly && !e.Item.Text.EndsWith(".html"))
-                {
-                    return;
-                }
-
-                List<int> matches = SearchByKeywords(this.SearchBox.Text, e.Item.Text);
-
-                if (matches == null)
-                {
-                    return;
-                }
-
-                string[] chunks = e.Item.Text.Split(new char[] { ' ' });
-
-                string highlight;
-
-                
-                // check if name contains all the keywords
-                bool isMatch = false;
-
-                for (int i = 0; i < chunks.Length; i++)
-                {
-                    string chunk = chunks[i];
-
-                    highlight = chunk.Substring(0, matches[i]);
-
-                    if (highlight.Length > 0) isMatch = true;
-                }
-
-                if (!isMatch)
-                {
-                    return;
-                }
-
-                Font ordinaryFont = new Font("Verdana", 13);
-                Font highlightFont = new Font("Verdana", 14, FontStyle.Bold);
-
-                Brush ordinaryBrush = new SolidBrush(Color.Black);
-                Brush highlightBrush = new SolidBrush(Color.Red);
-
-                int idx = e.Item.ImageIndex;
-
-                if (idx >= 0 && idx < this.SmallImageList.Images.Count)
-                {
-                    Image icon = this.SmallImageList.Images[idx];
-                    e.Graphics.DrawImage(icon, new Point(e.Bounds.X, e.Bounds.Y));
-                }
-
-                float left = this.SmallImageList.ImageSize.Width + 2,
-                    top = e.Bounds.Top + 3;
-
-                string ordinary;
-
-                SizeF size;
-
-                for (int i = 0; i < chunks.Length; i++)
-                {
-                    string chunk = chunks[i];
-
-                    highlight = chunk.Substring(0, matches[i]);
-
-                    e.Graphics.DrawString(highlight, highlightFont, highlightBrush, left, 
-                        top - 2);
-
-                    size = e.Graphics.MeasureString(highlight, highlightFont);
-
-                    left += size.Width;
-
-                    ordinary = chunk.Substring(matches[i]);
-                    
-                    e.Graphics.DrawString(ordinary, ordinaryFont, ordinaryBrush, left, top);
-
-                    size = e.Graphics.MeasureString(ordinary, ordinaryFont);
-
-                    left += size.Width;
-                }
-
-                e.DrawDefault = false;
-            };
-
-            // to prevent from being selected or focused 
-            this.ItemSelectionChanged += (s, e) =>
-            {
-                if (e.IsSelected && !(e.Item as IFileSystemListItem).IsAccessible)
-                {
-                    e.Item.Selected = false;
-                    e.Item.Focused = false;
-                }
-            };
-
-            this.MouseDown += (s, e) =>
-            {
-                if (e.Button == MouseButtons.Right)
-                {
-                    if (this.GetItemAt(e.X, e.Y) == null)
-                    {
-                        RightClickMenu.Show(Cursor.Position);
-                    }
-                    else
-                    {
-                        IFileSystemListItem target = this.GetItemAt(e.X, e.Y) as IFileSystemListItem;
-                        target.ShowMenu();
-                    }
-                }
-            };
-
-            this.MouseDoubleClick += (s, e) =>
-            {
-                if (e.Button == MouseButtons.Right) return;
-                if (this.SelectedItems.Count == 0) return;
-
-                IFileSystemListItem selectedItem = this.SelectedItems[0] 
-                    as IFileSystemListItem;
-
-                if (currentLocation.IsMerging && selectedItem is FileItem)
-                {
-                    try
-                    {
-                        currentLocation.Node.Entity.MergeTo(selectedItem.Entity.Path);
-                    }
-                    catch
-                    {
-                        MessageBox.Show($"Impossible to merge {currentLocation.Node.Name}"
-                            + $" to {selectedItem.Name}.", "Merging error",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-
-                    this.FinishMerging();
-
-                    TextEditor editor = new TextEditor();
-                    editor.Open(selectedItem);
-
-                    return;
-                }
-
-                selectedItem.Open();
-            };
-
-            this.AfterLabelEdit += (s, e) =>
-            {
-                IFileSystemListItem item = this.Items[e.Item] as IFileSystemListItem;
-
-                if (item.Name == "") // editing after creating
-                {
-                    if (e.Label == "" || e.Label == null)
-                    {
-                        string itemType = (item is FolderItem) ? "folder" : "file";
-
-                        MessageBox.Show($"Impossible to create {itemType} with empty name.",
-                            "Creating error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        e.CancelEdit = true;
-                        item.StartNameEditing();
-                        return;
-                    }
-
-                    string path = System.IO.Path.Combine(this.DisplayedNode.Entity.Path, e.Label);
-
-                    try
-                    {
-                        if (item is FileItem)
-                        {
-                            IFileSystemItemEntity.Factory.CreateNewFile(path);
-                        }
-                        else if (item is FolderItem)
-                        {
-                            IFileSystemItemEntity.Factory.CreateNewFolder(path);
-                        }
-                        else
-                        {
-                            throw new NotSupportedException("Error: you can't create drive.");
-                        }
-                    }
-                    catch (AlreadyExistsException)
-                    {
-                        MessageBox.Show($"Impossible to create: {e.Label} already exists.",
-                            "Creating error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        e.CancelEdit = true;
-                        item.StartNameEditing();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-                    finally
-                    {
-                        if (!e.CancelEdit)
-                        {
-                            item.Node.Name = e.Label;
-                            item.Entity.Path = path;
-                        }
-                    }
-                    return;
-                }
-
-                try
-                {
-                    item.Entity.EditName(e.Label);
-                }
-                catch (AlreadyExistsException)
-                {
-                    if (e.Label == null || e.Label == "")
-                    {
-                        e.CancelEdit = true;
-                    }
-                    else if (e.Label != item.Name)
-                    {
-                        MessageBox.Show($"Impossible to rename: {e.Label} already exists.",
-                            "Renaming error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        e.CancelEdit = true;
-                    }
-                }
-                finally
-                {
-                    if (!e.CancelEdit)
-                    {
-                        item.Node.Name = e.Label;
-                        this.BeginInvoke(
-                            new Action(() => {
-                                item.Node.Parent.SortSubNodes();
-                            })
-                        );
-                        // for sorting after node name will finally be changed
-                    }
-                    this.LabelEdit = false;
-                }
-            };
-
-            // TODO: move to Globals
-            ImageList itemIcons = new ImageList
-            {
-                ImageSize = new Size(25, 25)
-            };
-            itemIcons.Images.Add(Image.FromFile("../../assets/icons/driveIcon.png"));
-            itemIcons.Images.Add(Image.FromFile("../../assets/icons/folderIcon.png"));
-            itemIcons.Images.Add(Image.FromFile("../../assets/icons/fileIcon.png"));
-            itemIcons.Images.Add(Image.FromFile("../../assets/icons/backToFolderIcon.png"));
-            itemIcons.Images.Add(Image.FromFile("../../assets/icons/currentLocationIcon.png"));
-            itemIcons.Images.Add(Image.FromFile("../../assets/icons/moveToIcon.png"));
-            itemIcons.Images.Add(Image.FromFile("../../assets/icons/mergeIcon.png"));
-
-            this.LargeImageList = this.SmallImageList = itemIcons;
         }
 
         private List<int> SearchByKeywords(string query, string text)
@@ -427,9 +567,9 @@ namespace Explorer
         public void DisplayTree()
         {
             this.Items.Clear();
+            this.RightClickMenu.Items.Clear();
 
             this.DisplayedNode = null;
-
             this.DisplayedItem = null;
 
             foreach (IFileSystemTreeNode node in this.Tree.RootNodes)
@@ -440,23 +580,13 @@ namespace Explorer
 
         public void Display(IFileSystemTreeNode node)
         {
-            // TODO: move to presenter
             this.Items.Clear();
-
-            this.View = View.Tile;
-
-            int maxWidth = this.Size.Width;
-
-            foreach (IFileSystemTreeNode subNode in node.SubNodes)
+            if (this.RightClickMenu.Items.Count == 0)
             {
-                maxWidth = System.Math.Max(maxWidth, 40 + 
-                    TextRenderer.MeasureText(subNode.Name, Constants.ViewItemFont).Width);
+                this.FillGeneralContextMenu();
             }
 
-            this.TileSize = new Size(maxWidth, 30);
-
             this.DisplayedNode = node;
-
             this.DisplayedItem = node.ListItem;
 
             if (currentLocation.IsMoving)
@@ -477,10 +607,9 @@ namespace Explorer
             }
 
             this.AddItem(currentLocation);
-
-            this.AddItem(separator);
-
+            this.AddItem(new Separator());
             this.AddItem(backToFolder);
+            this.AddItem(new Separator());
 
             foreach (IFileSystemTreeNode subNode in node.SubNodes)
             {

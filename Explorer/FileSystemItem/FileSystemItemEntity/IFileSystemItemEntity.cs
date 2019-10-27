@@ -16,23 +16,72 @@ namespace Explorer
 
         static class Factory
         {
-            public static void CreateNewFolder(string path)
+            public static void CreateNewFolder(string path, string name)
             {
-                
-                if (Directory.Exists(path))
+                try
+                {
+                    ValidateName(name);
+                }
+                catch
+                {
+                    throw;
+                }
+
+                string folderPath = System.IO.Path.Combine(path, name);
+
+                if (Directory.Exists(folderPath))
                 {
                     throw new DirectoryAlreadyExistsException();
                 }
-                Directory.CreateDirectory(path);
-            }
-
-            public static void CreateNewFile(string path)
-            {
-                if (File.Exists(path))
+                else if (File.Exists(folderPath))
                 {
                     throw new FileAlreadyExistsException();
                 }
-                File.Create(path);
+
+                Directory.CreateDirectory(folderPath);             
+            }
+
+            public static void CreateNewFile(string path, string name)
+            {
+                try
+                {
+                    ValidateName(name);
+                }
+                catch
+                {
+                    throw;
+                }
+
+                string filePath = System.IO.Path.Combine(path, name);
+
+                if (Directory.Exists(filePath))
+                {
+                    throw new DirectoryAlreadyExistsException();
+                }
+                else if (File.Exists(filePath))
+                {
+                    throw new FileAlreadyExistsException();
+                }
+
+                File.Create(filePath).Close();
+            }
+
+            private static void ValidateName(string name)
+            {
+                if (name == ".")
+                {
+                    throw new ArgumentException(".");
+                }
+
+                string invalidChars = "\\/|:*<>\"?";
+
+                foreach (char symbol in invalidChars)
+                {
+                    if (name.IndexOf(symbol) > -1)
+                    {
+                        throw new ArgumentException();
+                    }
+                }
             }
         }
 
