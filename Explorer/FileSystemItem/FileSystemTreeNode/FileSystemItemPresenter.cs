@@ -273,14 +273,12 @@ namespace Explorer
                 }
                 else
                 {
-                    _clone.MarkAsSelected();
                     View.Tree.List.FinishMoving();
                     _clone = null;
                     _parent = null;
                     _buffer = null;
                     _bufferElementState = BufferElementState.Empty;
                 }
-                View.Expand();
                 View.DisplayOnListView();
             }
         }
@@ -352,7 +350,7 @@ namespace Explorer
                 }
                 else
                 {
-                    _clone.MarkAsSelected();
+                    //_clone.MarkAsSelected();
                     if (_bufferElementState == BufferElementState.Cut)
                     {
                         _buffer = null;
@@ -360,7 +358,6 @@ namespace Explorer
                     }
                     _clone = null;
                     _bufferElementState = BufferElementState.Empty;
-                    View.Expand();
                     View.DisplayOnListView();
                 }
                 View.Tree.EndUpdate();

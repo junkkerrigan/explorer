@@ -15,6 +15,8 @@ namespace Explorer
 
         bool IsAccessible { get; }
         
+        int RealWidth { get; set; }
+
         FileSystemItemPresenter Presenter { get; set; }
 
         void ShowMenu();

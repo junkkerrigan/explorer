@@ -44,6 +44,8 @@ namespace Explorer
 
         public IFileSystemTreeNode Node { get; set; }
 
+        public int RealWidth { get; set; }
+
         public virtual bool IsAccessible
         {
             get 

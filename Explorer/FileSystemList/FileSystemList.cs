@@ -72,6 +72,7 @@ namespace Explorer
                     editor.Open(this.SelectedItem);
                 }
             };
+
             this.MouseDown += (s, e) =>
             {
                 if (e.Button == MouseButtons.Right)
@@ -83,9 +84,15 @@ namespace Explorer
                     }
                     else
                     {
-                        Console.WriteLine(item.Bounds);
                         IFileSystemListItem target = item as IFileSystemListItem;
-                        target.ShowMenu();
+                        if (target is CurrentLocation || target.RealWidth >= e.X)
+                        {
+                            target.ShowMenu();
+                        }
+                        else
+                        {
+                            RightClickMenu.Show(Cursor.Position);
+                        }
                     }
                 }
             };
@@ -587,8 +594,10 @@ namespace Explorer
             int maxWidth = this.Size.Width;
             foreach (IFileSystemTreeNode subNode in node.SubNodes)
             {
-                maxWidth = System.Math.Max(maxWidth, 40 +
-                    TextRenderer.MeasureText(subNode.Name, Constants.ViewItemFont).Width);
+                int itemWidth = 30 +
+                    TextRenderer.MeasureText(subNode.Name, Constants.ViewItemFont).Width;
+                subNode.ListItem.RealWidth = itemWidth;
+                maxWidth = System.Math.Max(maxWidth, itemWidth);
             }
             this.TileSize = new Size(maxWidth, 35);
 

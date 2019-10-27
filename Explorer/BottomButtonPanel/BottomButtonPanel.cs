@@ -51,18 +51,7 @@ namespace Explorer
             btn.Click += (s, e) =>
             {
                 IFileSystemListItem selected = List.SelectedItem;
-                if (selected == null)
-                {
-                    MessageBox.Show(
-                        $"Impossible to {btn.Text.ToLower()}: nothing is selected.",
-                        "Operation error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                else if (selected is DriveItem && btn.Text != "Open")
-                {
-                    MessageBox.Show(
-                        $"Impossible to {btn.Text.ToLower()} {selected.Name}.",
-                        "Operation error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                if (selected == null || selected is DriveItem) return;
                 else
                 {
                     selected.Presenter.HandleListItemAction(action);
