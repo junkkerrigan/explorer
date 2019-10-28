@@ -86,16 +86,11 @@ namespace Explorer
                         _bufferElementState = BufferElementState.Moving;
                     }
                 },
-                { "Merge",  () => 
+                { "Merge",  () => View.Tree.List.StartMerging(View) },
+                { "Cancel merging", () =>
                     {
-                        View.Tree.List.StartMerging(View);
-                        View.Tree.List.UpdateRefresh();
+                        View.Tree.List.FinishMerging();
                     } 
-                },
-                { "Merge to", () =>
-                    {
-
-                    }
                 },
                 { "Move here", this.MoveNode },
                 { "Cancel moving", () =>
@@ -125,14 +120,14 @@ namespace Explorer
                 },
                 { "Create file", () =>
                     {
-                        IFileSystemTreeNode newFolder =
+                        IFileSystemTreeNode newFile =
                             IFileSystemTreeNode.Factory.GetNewFileNode("");
 
-                        View.AddSubNode(newFolder);
+                        View.AddSubNode(newFile);
                         View.Collapse();
                         View.DisplayOnListView();
 
-                        newFolder.ListItem.StartNameEditing();
+                        newFile.ListItem.StartNameEditing();
                     }
                 },
             };

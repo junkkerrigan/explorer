@@ -45,9 +45,12 @@ namespace Explorer
             ToolStripMenuItem cancelMoving = new ToolStripMenuItem("Cancel moving");
             AssignGeneralMenuOption(cancelMoving, "Cancel moving");
 
+            ToolStripMenuItem cancelMerging = new ToolStripMenuItem("Cancel merging");
+            AssignGeneralMenuOption(cancelMerging, "Cancel merging");
+
             general.DropDownItems.AddRange(new ToolStripMenuItem[]
             {
-                create, paste, undoCut, cancelMoving,
+                create, paste, undoCut, cancelMoving, cancelMerging,
             });
 
             ToolStripMenuItem selected = new ToolStripMenuItem("Selected");
@@ -123,6 +126,7 @@ namespace Explorer
             option.Click += (s, e) =>
             {
                 IFileSystemListItem selectedItem = List.DisplayedItem;
+                Console.WriteLine(selectedItem);
                 if (selectedItem != null)
                 {
                     selectedItem.Presenter.HandleListItemAction(action);

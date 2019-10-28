@@ -284,11 +284,21 @@ namespace Explorer
 
             this.RightClickMenu = new ContextMenuStrip();
             this.AddContextMenuOption("Cancel merging", () =>
-                this.Node.Presenter.HandleListItemAction("Cancel merging"));
+                this.MergeNode.Presenter.HandleListItemAction("Cancel merging"));
 
             this.Open = () =>
             {
+                if (List.IsChoosingMergeTo)
+                {
+                    IFileSystemTreeNode newFile =
+                            IFileSystemTreeNode.Factory.GetNewFileNode("");
 
+                    List.DisplayedNode.AddSubNode(newFile);
+                    List.DisplayedNode.Collapse();
+                    List.UpdateRefresh();
+
+                    newFile.ListItem.StartNameEditing();
+                }
             };
         }
     }

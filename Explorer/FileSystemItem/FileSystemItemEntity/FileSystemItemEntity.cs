@@ -93,7 +93,7 @@ namespace Explorer
 
         public abstract void Move(string destinationPath);
 
-        public virtual void MergeTo(string filePath)
+        public virtual void Merge(IFileSystemItemEntity mergeWith, IFileSystemItemEntity merge)
         {
         }
     }
@@ -270,13 +270,15 @@ namespace Explorer
             }
         }
 
-        public override void MergeTo(string filePath)
+        public override void Merge(IFileSystemItemEntity mergeWith, IFileSystemItemEntity merge)
         {
-            string text = File.ReadAllText(this.Path);
+            string mergeWithText = File.ReadAllText(mergeWith.Path),
+                mergeText = File.ReadAllText(merge.Path);
 
             try
             {
-                File.AppendAllText(filePath, text);
+                File.AppendAllText(this.Path, mergeWithText);
+                File.AppendAllText(this.Path, mergeText);
             }
             catch
             {

@@ -20,6 +20,8 @@ namespace Explorer
 
         IFileSystemListItem DisplayedItem { get; set; }
 
+        bool IsChoosingMergeTo { get; }
+
         void Display(IFileSystemTreeNode node);
 
         void Display(IFileSystemListItem item);
@@ -37,5 +39,7 @@ namespace Explorer
         void StartMerging(IFileSystemTreeNode node);
 
         void FinishMoving();
+
+        void FinishMerging();
     }
 }

@@ -93,6 +93,6 @@ namespace Explorer
 
         void Move(string destinationPath);
 
-        void MergeTo(string filePath);
+        void Merge(IFileSystemItemEntity mergeWith, IFileSystemItemEntity merge);
     }
 }

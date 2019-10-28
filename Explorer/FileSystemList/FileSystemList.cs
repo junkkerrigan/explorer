@@ -55,7 +55,8 @@ namespace Explorer
         
         private bool IsMoving; // move to constants as enum and implement CurrentAction
         private bool IsChoosingMergeWith;
-        private bool IsChoosingMergeTo;
+
+        public bool IsChoosingMergeTo { get; set; }
 
         public FileSystemList() : base()
         {
@@ -92,7 +93,7 @@ namespace Explorer
                     else
                     {
                         IFileSystemListItem target = item as IFileSystemListItem;
-                        if (target is CurrentLocation || target.RealWidth >= e.X)
+                        if (!target.IsFileSystemItem() || target.RealWidth >= e.X)
                         {
                             target.ShowMenu();
                         }
@@ -147,6 +148,7 @@ namespace Explorer
                 IsChoosingMergeTo = true;
                 merger.MergeWithNode = selectedItem.Node;
                 this.UpdateRefresh();
+                merger.EnsureVisible();
 
                 //try
                 //{
@@ -174,7 +176,11 @@ namespace Explorer
         {
             IFileSystemListItem item = this.Items[e.Item] as IFileSystemListItem;
 
-            if (item.Name == "") // editing after creating
+            if (IsChoosingMergeTo) // editing after file that is result of merging created
+            {
+                HandleAfterMergeTargetCreating();
+            }
+            else if (item.Name == "") // editing after creating
             {
                 HandleAfterCreating();
             }
@@ -250,7 +256,6 @@ namespace Explorer
             void HandleAfterCreating()
             {
                 string path = this.DisplayedNode.Entity.Path, name = e.Label;
-
 
                 if (name == "" || name == null)
                 {
@@ -390,6 +395,114 @@ namespace Explorer
                         item.Entity.Path = itemPath;
                     }
                 }
+            }
+
+            void HandleAfterMergeTargetCreating()
+            {
+                string path = this.DisplayedNode.Entity.Path, name = e.Label;
+
+                if (name == null || name == "")
+                {
+                    string extenstion = Path.GetExtension(merger.MergeWithNode.Entity.Path);
+                    if (extenstion == "")
+                    {
+                        extenstion = Path.GetExtension(merger.MergeNode.Entity.Path);
+                    }
+                    string mergeWithName =
+                        Path.GetFileNameWithoutExtension(merger.MergeWithNode.Name),
+                        mergeName = Path.GetFileNameWithoutExtension(merger.MergeNode.Name);
+                    string fileName = $"{mergeWithName}+{mergeName}{extenstion}";
+                    int cnt = 0;
+
+                    while (true)
+                    {
+                        if (cnt != 0)
+                        {
+                            fileName = $"{mergeWithName}+{mergeName}({cnt}){extenstion}";
+                        }
+
+                        try
+                        {
+                            e.CancelEdit = false;
+                            IFileSystemItemEntity.Factory.CreateNewFile(path,
+                                fileName);
+                        }
+                        catch (AlreadyExistsException)
+                        {
+                            e.CancelEdit = true;
+                        }
+                        if (!e.CancelEdit)
+                        {
+                            string filePath = Path.Combine(path, fileName);
+
+                            item.Name = fileName;
+                            item.Node.Name = fileName;
+                            item.Entity.Path = filePath;
+
+                            item.Entity.Merge(merger.MergeWithNode.Entity, merger.MergeNode.Entity);
+                            this.FinishMerging();
+
+                            return;
+                        }
+
+                        cnt++;
+                    }
+                }
+
+                try
+                {
+                    IFileSystemItemEntity.Factory.CreateNewFile(path, name);
+                }
+                catch (DirectoryAlreadyExistsException)
+                {
+                    MessageBox.Show("Impossible to create: directory with name"
+                        + $" `{e.Label}` already exists.", "Creating error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    e.CancelEdit = true;
+                    item.StartNameEditing();
+                }
+                catch (FileAlreadyExistsException)
+                {
+                    MessageBox.Show($"Impossible to create: `{e.Label}` already exists.",
+                        "Creating error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    e.CancelEdit = true;
+                    item.StartNameEditing();
+                }
+                catch (ArgumentException ex)
+                {
+                    if (ex.Message == ".")
+                    {
+                        MessageBox.Show("Impossible to create: invalid name.", "Creating error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Impossible to create: name can't contain invalid"
+                            + " characters ( \\ / | : * < > \" ? ).", "Creating error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    e.CancelEdit = true;
+                    item.StartNameEditing();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    e.CancelEdit = true;
+                    item.StartNameEditing();
+                }
+                finally
+                {
+                    if (!e.CancelEdit)
+                    {
+                        string itemPath = Path.Combine(path, name);
+
+                        item.Node.Name = name;
+                        item.Entity.Path = itemPath;
+                    }
+                    item.Entity.Merge(merger.MergeWithNode.Entity, merger.MergeNode.Entity);
+                    this.FinishMerging();
+                }
+
             }
         }
 
@@ -607,7 +720,7 @@ namespace Explorer
             int maxWidth = this.Size.Width;
             foreach (IFileSystemTreeNode subNode in node.SubNodes)
             {
-                int itemWidth = 30 +
+                int itemWidth = 35 +
                     TextRenderer.MeasureText(subNode.Name, Constants.ViewItemFont).Width;
                 subNode.ListItem.RealWidth = itemWidth;
                 maxWidth = System.Math.Max(maxWidth, itemWidth);
@@ -619,18 +732,24 @@ namespace Explorer
 
             if (IsMoving)
             {
-                mover.Name = $"    Move {DisplayedNode.Presenter.Buffer.Name}" +
-                    $" to {DisplayedItem.Entity.Path}";
+                mover.Name = $"    Move `{DisplayedNode.Presenter.Buffer.Name}`" +
+                    $" to `{DisplayedItem.Entity.Path}`";
                 mover.Node = DisplayedNode;
                 this.AddItem(mover);
             }
             else if (IsChoosingMergeWith)
             {
                 merger.Name =
-                    $"    Merge {currentLocation.Node.Name} with...";
+                    $"    Merge `{merger.MergeNode.Name}` with...";
                 this.AddItem(merger);
             }
-            // TODO: add IsChoosingMergeTo processing
+            else if (IsChoosingMergeTo)
+            {
+                merger.Name = 
+                    $"    Merge `{merger.MergeNode.Name}` with `{merger.MergeWithNode.Name}`"
+                    + $" to `{DisplayedItem.Entity.Path}`";
+                this.AddItem(merger);
+            }
             else
             {
                 currentLocation.Name = $"    {this.DisplayedItem.Entity.Path}";
@@ -687,13 +806,17 @@ namespace Explorer
 
         public void StartMerging(IFileSystemTreeNode node)
         {
-            IsMerging = true;
+            IsChoosingMergeWith = true;
             merger.MergeNode = node;
+            this.UpdateRefresh();
+            merger.EnsureVisible();
         }
 
         public void FinishMerging()
         {
-            IsMerging = false;
+            IsChoosingMergeWith = false;
+            IsChoosingMergeTo = false;
+            merger.MergeNode = merger.MergeWithNode = null;
             this.UpdateRefresh();
         }
     }
