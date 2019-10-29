@@ -68,6 +68,7 @@ namespace Explorer
 
         public FileSystemListItem(string name) : base(name)
         {
+            CalcRealWidth();
         }
 
         public FileSystemListItem() : base()
@@ -83,6 +84,20 @@ namespace Explorer
 
         public Action Open { get; set; }
 
+        public void CalcRealWidth()
+        {
+            int itemWidth = 35 +
+                    TextRenderer.MeasureText(Name, Constants.ViewItemFont).Width;
+            RealWidth = itemWidth;
+        }
+
+        public void CalcRealWidth(string name)
+        {
+            int itemWidth = 35 +
+                    TextRenderer.MeasureText(name, Constants.ViewItemFont).Width;
+            RealWidth = itemWidth;
+        }
+
         public void MarkAsInaccessible()
         {
             this.ForeColor = Color.Gray;
@@ -96,7 +111,10 @@ namespace Explorer
 
         public void ShowMenu()
         {
-            this.RightClickMenu.Show(Cursor.Position);
+            if (this.RightClickMenu != null)
+            {
+                this.RightClickMenu.Show(Cursor.Position);
+            }
         }
 
         public void ShowProperties()
@@ -223,10 +241,7 @@ namespace Explorer
 
     public class BackToFolder : FileSystemListItem
     {
-        public override bool IsAccessible
-        {
-            get => true;
-        }
+        public override bool IsAccessible => true;
 
         public BackToFolder() : base("...")
         {
@@ -316,26 +331,12 @@ namespace Explorer
             this.RightClickMenu = new ContextMenuStrip();
             this.Open = () => { };
         } 
-
-        public void EnableMergingMode()
-        {
-            this.IsMerging = true;
-
-            this.ImageIndex = Constants.IconTypeIndexes.MergeIndex;
-        }
-
-        public void DisableMergingMode()
-        {
-            this.IsMerging = false;
-
-            this.ImageIndex = Constants.IconTypeIndexes.CurrentLocationIndex;
-
-            this.RightClickMenu.Items.Clear();
-        }
     }
 
     public class Separator : FileSystemListItem
     {
+        public override bool IsAccessible => false;
+
         public Separator() : base("")
         {
             this.Open = () => { };

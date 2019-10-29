@@ -23,6 +23,10 @@ namespace Explorer
 
         Action Open { get; }
 
+        void CalcRealWidth();
+        
+        void CalcRealWidth(string name);
+
         bool Selected { get; set; }
 
         void MarkAsInaccessible();

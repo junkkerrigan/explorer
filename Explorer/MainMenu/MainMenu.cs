@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -78,21 +79,24 @@ namespace Explorer
                 open, copy, cut, move, rename, delete,
             });
 
-            ToolStripMenuItem faq = new ToolStripMenuItem("FAQ");
-            faq.Click += (s, e) =>
-            {
-                MessageBox.Show("", "FAQ");
-            };
-
             ToolStripMenuItem help = new ToolStripMenuItem("Help");
+            string helpText;
+
             help.Click += (s, e) =>
             {
                 MessageBox.Show("Enter your question or try to find the answer in FAQ.", "Help");
             };
 
+            ToolStripMenuItem personalTasks = new ToolStripMenuItem("Personal tasks");
+            string personalTasksText = File.ReadAllText("../../assets/texts/personalTasks.txt");
+            personalTasks.Click += (s, e) =>
+            {
+                MessageBox.Show(personalTasksText, "Personal tasks");
+            };
+
             this.Items.AddRange(new ToolStripMenuItem[]
             {
-                general, selected, faq, help,
+                general, selected, help, personalTasks,
             });
         }
 

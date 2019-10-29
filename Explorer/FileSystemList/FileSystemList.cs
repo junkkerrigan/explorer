@@ -71,54 +71,19 @@ namespace Explorer
             RightClickMenu = new ContextMenuStrip();
 
             // open editor
-            this.KeyUp += (s, e) =>
-            {
-                if (e.KeyCode == Keys.VolumeUp && this.SelectedItem is FileItem)
-                {
-                    TextEditor editor = new TextEditor();
-
-                    editor.Open(this.SelectedItem);
-                }
-            };
-
-            this.MouseDown += (s, e) =>
-            {
-                if (e.Button == MouseButtons.Right)
-                {
-                    ListViewItem item = this.GetItemAt(e.X, e.Y);
-                    if (item == null)
-                    {
-                        RightClickMenu.Show(Cursor.Position);
-                    }
-                    else
-                    {
-                        IFileSystemListItem target = item as IFileSystemListItem;
-                        if (!target.IsFileSystemItem() || target.RealWidth >= e.X)
-                        {
-                            target.ShowMenu();
-                        }
-                        else
-                        {
-                            RightClickMenu.Show(Cursor.Position);
-                        }
-                    }
-                }
-            };
-
+            this.KeyUp += FileSystemList_KeyUp;
+            this.MouseDown += FileSystemList_MouseDown;
             // to prevent from being selected or focused 
-            this.ItemSelectionChanged += (s, e) =>
-            {
-                if (e.IsSelected && !(e.Item as IFileSystemListItem).IsAccessible)
-                {
-                    e.Item.Selected = false;
-                    e.Item.Focused = false;
-                }
-            };
-
+            this.ItemSelectionChanged += FileSystemList_ItemSelectionChanged;
             this.DrawItem += FileSystemList_DrawItem;
             this.MouseDoubleClick += FileSystemList_MouseDoubleClick;
             this.AfterLabelEdit += FileSystemList_AfterLabelEdit;
 
+            FillImageList();
+        }
+
+        private void FillImageList()
+        {
             ImageList itemIcons = new ImageList
             {
                 ImageSize = new Size(25, 25)
@@ -132,6 +97,50 @@ namespace Explorer
             itemIcons.Images.Add(Image.FromFile("../../assets/icons/mergeIcon.png"));
 
             this.LargeImageList = this.SmallImageList = itemIcons;
+        }
+
+        private void FileSystemList_KeyUp(object s, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.VolumeUp && this.SelectedItem is FileItem)
+            {
+                TextEditor editor = new TextEditor();
+
+                editor.Open(this.SelectedItem);
+            }
+        }
+
+        private void FileSystemList_MouseDown(object s, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                ListViewItem item = this.GetItemAt(e.X, e.Y);
+                if (item == null)
+                {
+                    RightClickMenu.Show(Cursor.Position);
+                }
+                else
+                {
+                    IFileSystemListItem target = item as IFileSystemListItem;
+                    if (target.IsAccessible && target.RealWidth >= e.X)
+                    {
+                        target.ShowMenu();
+                    }
+                    else
+                    {
+                        RightClickMenu.Show(Cursor.Position);
+                    }
+                }
+            }
+        }
+
+        private void FileSystemList_ItemSelectionChanged(object s, 
+            ListViewItemSelectionChangedEventArgs e)
+        {
+            if (e.IsSelected && !(e.Item as IFileSystemListItem).IsAccessible)
+            {
+                e.Item.Selected = false;
+                e.Item.Focused = false;
+            }
         }
 
         private void FileSystemList_MouseDoubleClick(object s, MouseEventArgs e)
@@ -149,23 +158,6 @@ namespace Explorer
                 merger.MergeWithNode = selectedItem.Node;
                 this.UpdateRefresh();
                 merger.EnsureVisible();
-
-                //try
-                //{
-                //    currentLocation.Node.Entity.MergeTo(selectedItem.Entity.Path);
-                //}
-                //catch
-                //{
-                //    MessageBox.Show($"Impossible to merge `{currentLocation.Node.Name}`"
-                //        + $" to {selectedItem.Name}.", "Merging error",
-                //        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                //}
-
-                //this.FinishMerging();
-
-                //TextEditor editor = new TextEditor();
-                //editor.Open(selectedItem);
-
                 return;
             }
 
@@ -175,6 +167,7 @@ namespace Explorer
         private void FileSystemList_AfterLabelEdit(object s, LabelEditEventArgs e)
         {
             IFileSystemListItem item = this.Items[e.Item] as IFileSystemListItem;
+            string path = this.DisplayedNode.Entity.Path, name = e.Label;
 
             if (IsChoosingMergeTo) // editing after file that is result of merging created
             {
@@ -189,9 +182,11 @@ namespace Explorer
                 HandleAfterRenaming();
             }
 
+            item.CalcRealWidth(item.Node.Name);
+
             void HandleAfterRenaming()
             {
-                if (e.Label == null || e.Label == "")
+                if (name == null || name == "")
                 {
                     e.CancelEdit = true;
                     return;
@@ -255,8 +250,6 @@ namespace Explorer
 
             void HandleAfterCreating()
             {
-                string path = this.DisplayedNode.Entity.Path, name = e.Label;
-
                 if (name == "" || name == null)
                 {
                     if (item is FolderItem)
@@ -684,6 +677,7 @@ namespace Explorer
 
         public void AddItem(IFileSystemListItem item)
         {
+            item.CalcRealWidth();
             this.Items.Add(item as ListViewItem);
         }
 
@@ -720,10 +714,7 @@ namespace Explorer
             int maxWidth = this.Size.Width;
             foreach (IFileSystemTreeNode subNode in node.SubNodes)
             {
-                int itemWidth = 35 +
-                    TextRenderer.MeasureText(subNode.Name, Constants.ViewItemFont).Width;
-                subNode.ListItem.RealWidth = itemWidth;
-                maxWidth = System.Math.Max(maxWidth, itemWidth);
+                maxWidth = System.Math.Max(maxWidth, subNode.ListItem.RealWidth);
             }
             this.TileSize = new Size(maxWidth, 35);
 

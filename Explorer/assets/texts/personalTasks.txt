@@ -1,0 +1,33 @@
+Andrew Pavlenko, K-24. Variant 14.
+
+
+
+1. 
+Task: search of HTML files by keywords and keywords' highlighting.
+
+Implementation: files and directories are searched inside displayed folder whenever you are entering keywords in searchbox in the upper-left corner. it's also possible to toggle between search among all files and among only HTML files.
+
+
+2. 
+Task: merge of HTML files.
+
+Implementation: you call context menu of file, choose `Merge` option, then choose file to merge with and finally specify directory to place result file in. After that, merge result is created and you can name it. If name isn't specified, it's created automatically.
+
+
+3. 
+Task: toggling of case of selected text.
+
+Implementation: when text redactor is open, you select some piece of text, call context menu and choose `Toggle case` option. If selected text is entirely uppercase, it'll become lowercase, else it'll become uppercase. After toggling, selected text keep been selected, so you can toggle it again.
+
+
+4. 
+Task: checking orthography and showing most appropriate suggestions for incorrect words.
+
+Implementation: when text redactor is open, you select some piece of text, call context menu and choose `Check orthopraphy` option. Then result of checking and most appropriate suggestions, if the word isn't contained in wordlist, will be displayed near all the selected, even partially, words. If you click on suggestion, the word will be replaced with it. Wordlist is taken from txt file, it contains 20k words.
+
+
+5. 
+Task: implement Factory Method design pattern for saving file in different format.
+
+Implamentation: there are abstract class Saver and HTMLSaver and TXTSaver classes. TextEditor class contains Saver field, and whenever file is saved in any format, instance of appropriate concrete Saver is created and file is saved.
+
