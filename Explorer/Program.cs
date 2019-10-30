@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Explorer
@@ -17,8 +14,8 @@ namespace Explorer
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var view = new View.Explorer();
-            var presenter = new Presenter.Presenter(view);
+            Explorer View = new Explorer();
+            ExplorerPresenter presenter = new ExplorerPresenter(View);
 
             presenter.Run();
         }
