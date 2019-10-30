@@ -144,15 +144,15 @@ namespace Explorer
 
             DirectoryViewWrapper.Size = new Size(
                 MainWrapperFreeSpaceWidth() / 3,
-                MainWrapperFreeSpaceHeight());
+                MainWrapperFreeSpaceHeight() + 8);
 
             FileViewWrapper.Location = new Point(
                 DirectoryViewWrapper.Width + Constants.MainWrapperPadding +
                     Constants.SpaceBetweenViews,
-                MainMenu.Height + Constants.MainMenuMarginBottom);
+                MainMenu.Height);
 
             FileViewWrapper.Size = new Size(MainWrapperFreeSpaceWidth() 
-                - DirectoryViewWrapper.Width, 
+                - DirectoryViewWrapper.Width,
                 MainWrapperFreeSpaceHeight());
 
             BottomButtonPanel.Location = new Point(Constants.MainWrapperPadding,
