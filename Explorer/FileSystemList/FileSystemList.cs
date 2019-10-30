@@ -171,7 +171,7 @@ namespace Explorer
 
             if (IsChoosingMergeTo) // editing after file that is result of merging created
             {
-                HandleAfterMergeTargetCreating();
+                HandleAfterMergeResultCreating();
             }
             else if (item.Name == "") // editing after creating
             {
@@ -266,15 +266,15 @@ namespace Explorer
 
                             try
                             {
-                                e.CancelEdit = false;
+                                e.CancelEdit = true;
                                 IFileSystemItemEntity.Factory.CreateNewFolder(path, 
                                     folderName);
                             }
                             catch (AlreadyExistsException)
                             {
-                                e.CancelEdit = true;
+                                e.CancelEdit = false;
                             }
-                            if (!e.CancelEdit)
+                            if (e.CancelEdit)
                             {
                                 string folderPath = Path.Combine(path, folderName);
 
@@ -302,15 +302,15 @@ namespace Explorer
 
                             try
                             {
-                                e.CancelEdit = false;
+                                e.CancelEdit = true;
                                 IFileSystemItemEntity.Factory.CreateNewFile(path,
                                     fileName);
                             }
                             catch (AlreadyExistsException)
                             {
-                                e.CancelEdit = true;
+                                e.CancelEdit = false;
                             }
-                            if (!e.CancelEdit)
+                            if (e.CancelEdit)
                             {
                                 string filePath = Path.Combine(path, fileName);
 
@@ -390,12 +390,15 @@ namespace Explorer
                 }
             }
 
-            void HandleAfterMergeTargetCreating()
+            void HandleAfterMergeResultCreating()
             {
                 string path = this.DisplayedNode.Entity.Path, name = e.Label;
 
+                Console.WriteLine($"-{name}-");
+
                 if (name == null || name == "")
                 {
+                    Console.WriteLine("N or E");
                     string extenstion = Path.GetExtension(merger.MergeWithNode.Entity.Path);
                     if (extenstion == "")
                     {
@@ -416,19 +419,22 @@ namespace Explorer
 
                         try
                         {
-                            e.CancelEdit = false;
+                            e.CancelEdit = true;
                             IFileSystemItemEntity.Factory.CreateNewFile(path,
                                 fileName);
                         }
                         catch (AlreadyExistsException)
                         {
-                            e.CancelEdit = true;
+                            e.CancelEdit = false;
                         }
-                        if (!e.CancelEdit)
+                        if (e.CancelEdit)
                         {
                             string filePath = Path.Combine(path, fileName);
+                            Console.WriteLine($"-{filePath}-");
 
+                            Console.WriteLine($"-{item.Name}-");
                             item.Name = fileName;
+
                             item.Node.Name = fileName;
                             item.Entity.Path = filePath;
 
@@ -805,10 +811,9 @@ namespace Explorer
 
         public void FinishMerging()
         {
-            IsChoosingMergeWith = false;
-            IsChoosingMergeTo = false;
+            IsChoosingMergeWith = IsChoosingMergeTo = false;
             merger.MergeNode = merger.MergeWithNode = null;
-            this.UpdateRefresh();
+            //this.UpdateRefresh();
         }
     }
 }
