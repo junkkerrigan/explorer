@@ -80,11 +80,11 @@ namespace Explorer
             });
 
             ToolStripMenuItem help = new ToolStripMenuItem("Help");
-            string helpText;
+            string helpText = File.ReadAllText("../../assets/texts/help.txt");
 
             help.Click += (s, e) =>
             {
-                MessageBox.Show("Enter your question or try to find the answer in FAQ.", "Help");
+                MessageBox.Show(helpText, "Help");
             };
 
             ToolStripMenuItem personalTasks = new ToolStripMenuItem("Personal tasks");

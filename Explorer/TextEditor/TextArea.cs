@@ -59,7 +59,6 @@ namespace Explorer
                 {
                     Editor.IndicateUnsavedChanges();
                 }
-
             };
         }
 

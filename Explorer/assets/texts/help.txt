@@ -1,0 +1,49 @@
+Welcome to Explorer Help!
+
+Here you can find answers for most of frequently asked questions (FAQ). If your search isn't crowned with succeed, you always have an opportunity to get the answer from our technical experts by contacting them on our email address: `paavlenko.andrew@gmail.com`.
+
+
+
+
+Part I: Explorer.
+
+
+I.1. Our soft gives an opportunity to manage files and directories, stored on your device.
+
+I.2. Explorer provides a broad variety of different tools, so all the responsibility for consequences of their usage lies with you.
+
+I.3. Explorer contains two parts: Tree View, that displays content in tree hierarchy, and List View, that displays a list of items of active directory. List View provides wider functionality, but in Tree View you can see all the directories and files simultaneously.
+
+I.4. It also has main menu, context menu for every file and directory, possible to commit actions with. There are big buttons at the bottom that duplicate primary functionality. Context menu is called with right mouse click on the item or withing List View for displayed directory. Big button and main menu button operates with selected item, if any item is selected, else with displayed directory, except actions that can't be applied for particular item. Tools work the same regardless of the way you use it.
+
+I.5. There is a text editor that is embedded into Explorer. You can open it by pressing F3 when particular file is selected.
+
+I.6. Searchbox is located at the upper-right corner of window.
+
+
+Part II: Tools.
+
+
+II.1. All the tools are available in standard ways (I.4-I.6), you can open item also with left mouse double-click on it.
+
+II.2. You can open drives and paste content from buffer into them.
+
+II.3. You can open, copy, cut, move, rename, delete folders, paste content from buffer and create both folders and files into them. If concrete action is impossible, you'll be notified.
+
+II.3. You can open, copy, cut, move, rename, delete, merge files and open them in Text Editor. Merging of files is merging their text content and creating a new file with the resulting text.
+
+II.4. You can search items by keywords and specify area of search (either all the items or only HTML files).
+
+
+Part III: Text Editor.
+
+
+III.1. Text Editor is opened by pressing F3 when particular file is selected.
+
+III.2. You can edit text, toggle case or check orthography of selected piece and replace incorrect words with most appropriate suggestions from embedded wordlist.
+
+III.3. It's possible to save open file, or to save in specified format: either as HTML file (.html) or as TXT file (.txt).
+
+III.4. All the tools are available in context right-click menu of Editor.
+
+
