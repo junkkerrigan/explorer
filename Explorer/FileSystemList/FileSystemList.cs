@@ -166,6 +166,7 @@ namespace Explorer
 
         private void FileSystemList_AfterLabelEdit(object s, LabelEditEventArgs e)
         {
+            this.LabelEdit = false;
             IFileSystemListItem item = this.Items[e.Item] as IFileSystemListItem;
             string path = this.DisplayedNode.Entity.Path, name = e.Label;
 
@@ -239,8 +240,6 @@ namespace Explorer
                         })
                     );
                     // for sorting after node name will finally be changed
-
-                    this.LabelEdit = false;
                 }
                 else
                 {
@@ -813,7 +812,7 @@ namespace Explorer
         {
             IsChoosingMergeWith = IsChoosingMergeTo = false;
             merger.MergeNode = merger.MergeWithNode = null;
-            //this.UpdateRefresh();
+            this.UpdateRefresh();
         }
     }
 }

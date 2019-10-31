@@ -28,7 +28,7 @@ namespace Explorer
             string[] contextMenuOptions = 
             {
                 "Open", "Copy", "Cut", "Paste", "Delete", "Rename", "Expand", 
-                "Expand all", "Collapse", "Properties",
+                "Expand all", "Collapse", 
             };
 
             foreach (string option in contextMenuOptions)

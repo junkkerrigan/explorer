@@ -168,7 +168,7 @@ namespace Explorer
 
             string[] contextMenuOptions =
             {
-                "Open", "Paste", "Properties",
+                "Open", "Paste", 
             };
 
             foreach(string option in contextMenuOptions)
@@ -196,7 +196,7 @@ namespace Explorer
 
             string[] contextMenuOptions =
             {
-                "Open", "Copy", "Cut", "Paste", "Move", "Delete", "Rename", "Properties",
+                "Open", "Copy", "Cut", "Paste", "Move", "Delete", "Rename", 
             };
 
             foreach (string option in contextMenuOptions)
@@ -224,7 +224,7 @@ namespace Explorer
 
             string[] contextMenuOptions =
             {
-                "Open", "Copy", "Cut", "Move", "Merge", "Delete", "Rename", "Properties",
+                "Open", "Copy", "Cut", "Move", "Merge", "Delete", "Rename", 
             };
 
             foreach (string option in contextMenuOptions)

@@ -29,7 +29,7 @@ namespace Explorer
 
             string[] contextMenuOptions =
             {
-                "Open", "Copy", "Cut", "Delete", "Rename", "Properties",
+                "Open", "Copy", "Cut", "Delete", "Rename", 
             };
 
             foreach (string option in contextMenuOptions)
